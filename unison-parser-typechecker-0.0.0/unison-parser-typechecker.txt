@@ -3647,6 +3647,7 @@ DebugDumpNamespaceSimpleI :: Input
 DebugClearWatchI :: Input
 QuitI :: Input
 UiI :: Input
+DocsToHtmlI :: Path' -> FilePath -> Input
 data Event
 UnisonFileChanged :: SourceName -> Source -> Event
 IncomingRootBranch :: Set Hash -> Event
@@ -4274,9 +4275,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a6Mhr loc_a6Mhs. Lens' (Env v_a6Mhr loc_a6Mhs) (TypeLookup v_a6Mhr loc_a6Mhs)
-termsByShortname :: forall v_a6Mhr loc_a6Mhs. Lens' (Env v_a6Mhr loc_a6Mhs) (Map Name [NamedReference v_a6Mhr loc_a6Mhs])
-ambientAbilities :: forall v_a6Mhr loc_a6Mhs. Lens' (Env v_a6Mhr loc_a6Mhs) [Type v_a6Mhr loc_a6Mhs]
+typeLookup :: forall v_a6Ms0 loc_a6Ms1. Lens' (Env v_a6Ms0 loc_a6Ms1) (TypeLookup v_a6Ms0 loc_a6Ms1)
+termsByShortname :: forall v_a6Ms0 loc_a6Ms1. Lens' (Env v_a6Ms0 loc_a6Ms1) (Map Name [NamedReference v_a6Ms0 loc_a6Ms1])
+ambientAbilities :: forall v_a6Ms0 loc_a6Ms1. Lens' (Env v_a6Ms0 loc_a6Ms1) [Type v_a6Ms0 loc_a6Ms1]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.
@@ -5127,6 +5128,8 @@ FoundTypeRef :: Reference -> FoundRef
 fuzzyFind :: Monad m => Path -> Branch m -> String -> [(Alignment, UnisonName, [FoundRef])]
 findShallow :: (Monad m, Var v) => Codebase m v Ann -> Absolute -> Backend m [ShallowListEntry v Ann]
 findShallowReadmeInBranchAndRender :: Var v => Width -> Runtime v -> Codebase IO v Ann -> NamesWithHistory -> Branch IO -> Backend IO (Maybe Doc)
+isDoc :: Monad m => Var v => Codebase m v Ann -> Referent -> m Bool
+isDoc' :: (Var v, Monoid loc) => Maybe (Type v loc) -> Bool
 termListEntry :: Monad m => Var v => Codebase m v Ann -> Branch0 m -> Referent -> HQSegment -> Backend m (TermEntry v Ann)
 typeListEntry :: Monad m => Var v => Codebase m v Ann -> Reference -> HQSegment -> Backend m TypeEntry
 typeDeclHeader :: forall v m. Monad m => Var v => Codebase m v Ann -> PrettyPrintEnv -> Reference -> Backend m (DisplayObject SyntaxText SyntaxText)
@@ -5188,7 +5191,8 @@ formatType :: Var v => PrettyPrintEnv -> Width -> Type v a -> SyntaxText
 formatSuffixedType :: Var v => PrettyPrintEnvDecl -> Width -> Type v Ann -> SyntaxText
 mungeSyntaxText :: Functor g => g (Element Reference) -> g Element
 prettyDefinitionsBySuffixes :: forall v. Var v => NameScoping -> Maybe Hash -> Maybe Width -> Suffixify -> Runtime v -> Codebase IO v Ann -> [HashQualified Name] -> Backend IO DefinitionDisplayResults
-renderDoc :: forall v. Var v => PrettyPrintEnvDecl -> Width -> Runtime v -> Codebase IO v Ann -> Reference -> Backend IO [(HashQualifiedName, UnisonHash, Doc)]
+renderDoc :: forall v. Var v => PrettyPrintEnvDecl -> Width -> Runtime v -> Codebase IO v Ann -> Reference -> IO [(HashQualifiedName, UnisonHash, Doc)]
+docsInBranchToHtmlFiles :: Var v => Runtime v -> Codebase IO v Ann -> Branch IO -> FilePath -> IO ()
 bestNameForTerm :: forall v. Var v => PrettyPrintEnv -> Width -> Referent -> Text
 bestNameForType :: forall v. Var v => PrettyPrintEnv -> Width -> Reference -> Text
 resolveBranchHash :: Monad m => Maybe Hash -> Codebase m v Ann -> Backend m (Branch m)
@@ -5587,6 +5591,7 @@ module Unison.Codebase.Editor.Command
 data Command m i v a
 [Eval] :: m a -> Command m i v a
 [UI] :: Command m i v ()
+[DocsToHtml] :: Branch m -> FilePath -> Command m i v ()
 [HQNameQuery] :: Maybe Path -> Branch m -> [HashQualified Name] -> Command m i v QueryResult
 [LoadSearchResults] :: [SearchResult] -> Command m i v [SearchResult' v Ann]
 [GetDefinitionsBySuffixes] :: Maybe Path -> Branch m -> [HashQualified Name] -> Command m i v (Either BackendError (DefinitionResults v))
@@ -5816,6 +5821,7 @@ debugDumpNamespace :: InputPattern
 debugDumpNamespaceSimple :: InputPattern
 debugClearWatchCache :: InputPattern
 test :: InputPattern
+docsToHtml :: InputPattern
 execute :: InputPattern
 ioTest :: InputPattern
 makeStandalone :: InputPattern

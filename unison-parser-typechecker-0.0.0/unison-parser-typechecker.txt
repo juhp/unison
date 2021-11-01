@@ -5192,7 +5192,7 @@ formatSuffixedType :: Var v => PrettyPrintEnvDecl -> Width -> Type v Ann -> Synt
 mungeSyntaxText :: Functor g => g (Element Reference) -> g Element
 prettyDefinitionsBySuffixes :: forall v. Var v => NameScoping -> Maybe Hash -> Maybe Width -> Suffixify -> Runtime v -> Codebase IO v Ann -> [HashQualified Name] -> Backend IO DefinitionDisplayResults
 renderDoc :: forall v. Var v => PrettyPrintEnvDecl -> Width -> Runtime v -> Codebase IO v Ann -> Reference -> IO (HashQualifiedName, UnisonHash, Doc)
-docsInBranchToHtmlFiles :: Var v => Runtime v -> Codebase IO v Ann -> Branch IO -> FilePath -> IO ()
+docsInBranchToHtmlFiles :: Var v => Runtime v -> Codebase IO v Ann -> Branch IO -> Path -> FilePath -> IO ()
 bestNameForTerm :: forall v. Var v => PrettyPrintEnv -> Width -> Referent -> Text
 bestNameForType :: forall v. Var v => PrettyPrintEnv -> Width -> Reference -> Text
 resolveBranchHash :: Monad m => Maybe Hash -> Codebase m v Ann -> Backend m (Branch m)
@@ -5591,7 +5591,7 @@ module Unison.Codebase.Editor.Command
 data Command m i v a
 [Eval] :: m a -> Command m i v a
 [UI] :: Command m i v ()
-[DocsToHtml] :: Branch m -> FilePath -> Command m i v ()
+[DocsToHtml] :: Branch m -> Path -> FilePath -> Command m i v ()
 [HQNameQuery] :: Maybe Path -> Branch m -> [HashQualified Name] -> Command m i v QueryResult
 [LoadSearchResults] :: [SearchResult] -> Command m i v [SearchResult' v Ann]
 [GetDefinitionsBySuffixes] :: Maybe Path -> Branch m -> [HashQualified Name] -> Command m i v (Either BackendError (DefinitionResults v))

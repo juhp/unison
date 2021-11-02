@@ -4297,9 +4297,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a6Nht loc_a6Nhu. Lens' (Env v_a6Nht loc_a6Nhu) (TypeLookup v_a6Nht loc_a6Nhu)
-termsByShortname :: forall v_a6Nht loc_a6Nhu. Lens' (Env v_a6Nht loc_a6Nhu) (Map Name [NamedReference v_a6Nht loc_a6Nhu])
-ambientAbilities :: forall v_a6Nht loc_a6Nhu. Lens' (Env v_a6Nht loc_a6Nhu) [Type v_a6Nht loc_a6Nhu]
+typeLookup :: forall v_a6No1 loc_a6No2. Lens' (Env v_a6No1 loc_a6No2) (TypeLookup v_a6No1 loc_a6No2)
+termsByShortname :: forall v_a6No1 loc_a6No2. Lens' (Env v_a6No1 loc_a6No2) (Map Name [NamedReference v_a6No1 loc_a6No2])
+ambientAbilities :: forall v_a6No1 loc_a6No2. Lens' (Env v_a6No1 loc_a6No2) [Type v_a6No1 loc_a6No2]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.
@@ -5077,6 +5077,7 @@ instance Data.OpenApi.Internal.Schema.ToSchema a => Data.OpenApi.Internal.Schema
 module Unison.Server.Doc.AsHtml
 data NamedLinkHref
 Href :: Text -> NamedLinkHref
+DocLinkHref :: Name -> NamedLinkHref
 ReferenceHref :: Text -> NamedLinkHref
 InvalidHref :: NamedLinkHref
 data EmbeddedSource
@@ -5085,7 +5086,7 @@ Builtin :: SyntaxText -> EmbeddedSource
 embeddedSource :: Ref (UnisonHash, DisplayObject SyntaxText Src) -> Maybe EmbeddedSource
 inlineCode :: [Attribute] -> Html () -> Html ()
 codeBlock :: [Attribute] -> Html () -> Html ()
-normalizeHref :: NamedLinkHref -> Doc -> NamedLinkHref
+normalizeHref :: Map Referent Name -> Doc -> NamedLinkHref
 data IsFolded
 IsFolded :: Bool -> [Html ()] -> [Html ()] -> IsFolded
 Disabled :: Html () -> IsFolded
@@ -5102,7 +5103,7 @@ mergeWords :: Text -> [Doc] -> [Doc]
 --   things like extract an src of an image. I.e something that has to be a
 --   Text and not a Doc
 toText :: Text -> Doc -> Text
-toHtml :: Doc -> Html ()
+toHtml :: Map Referent Name -> Doc -> Html ()
 
 -- | Unison Doc allows endlessly deep section nesting with titles, but HTML
 --   only supports to h1-h6, so we clamp the sectionLevel when converting

@@ -2796,6 +2796,7 @@ TyLink :: Reference -> BLit
 Bytes :: Bytes -> BLit
 packTags :: RTag -> CTag -> Word64
 unpackTags :: Word64 -> (RTag, CTag)
+maskTags :: Word64 -> Word64
 type ANFM v = ReaderT (Set v) (State (Word64, Word16, [(v, SuperNormal v)]))
 data Branched e
 MatchIntegral :: EnumMap Word64 e -> Maybe e -> Branched e
@@ -3220,8 +3221,6 @@ asize :: MEM b => Stack b -> SZ
 type Off = Int
 type SZ = Int
 type FP = Int
-universalEq :: (Foreign -> Foreign -> Bool) -> Closure -> Closure -> Bool
-universalCompare :: (Foreign -> Foreign -> Ordering) -> Closure -> Closure -> Ordering
 marshalToForeign :: HasCallStack => Closure -> Foreign
 unull :: Seg 'UN
 bnull :: Seg 'BX
@@ -3546,6 +3545,14 @@ cacheAdd :: [(Reference, SuperGroup Symbol)] -> CCache -> IO [Reference]
 reflectValue :: EnumMap Word64 Reference -> Closure -> IO Value
 reifyValue :: CCache -> Value -> IO (Either [Reference] Closure)
 reifyValue0 :: (Map Reference Word64, Map Reference Word64) -> Value -> IO Closure
+closureNum :: Closure -> Int
+universalEq :: (Foreign -> Foreign -> Bool) -> Closure -> Closure -> Bool
+compareAsFloat :: Int -> Int -> Ordering
+compareAsNat :: Int -> Int -> Ordering
+floatTag :: Word64
+natTag :: Word64
+charTag :: Word64
+universalCompare :: (Foreign -> Foreign -> Ordering) -> Closure -> Closure -> Ordering
 
 module Unison.Codebase.Runtime
 type Error = Pretty ColorText
@@ -4290,9 +4297,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a6Ncw loc_a6Ncx. Lens' (Env v_a6Ncw loc_a6Ncx) (TypeLookup v_a6Ncw loc_a6Ncx)
-termsByShortname :: forall v_a6Ncw loc_a6Ncx. Lens' (Env v_a6Ncw loc_a6Ncx) (Map Name [NamedReference v_a6Ncw loc_a6Ncx])
-ambientAbilities :: forall v_a6Ncw loc_a6Ncx. Lens' (Env v_a6Ncw loc_a6Ncx) [Type v_a6Ncw loc_a6Ncx]
+typeLookup :: forall v_a6Nht loc_a6Nhu. Lens' (Env v_a6Nht loc_a6Nhu) (TypeLookup v_a6Nht loc_a6Nhu)
+termsByShortname :: forall v_a6Nht loc_a6Nhu. Lens' (Env v_a6Nht loc_a6Nhu) (Map Name [NamedReference v_a6Nht loc_a6Nhu])
+ambientAbilities :: forall v_a6Nht loc_a6Nhu. Lens' (Env v_a6Nht loc_a6Nhu) [Type v_a6Nht loc_a6Nhu]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.

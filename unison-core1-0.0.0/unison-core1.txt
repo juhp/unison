@@ -155,10 +155,13 @@ data Referent' r
 Ref' :: r -> Referent' r
 Con' :: r -> ConstructorId -> ConstructorType -> Referent' r
 isConstructor :: Referent' r -> Bool
-toTermReference :: Referent' r -> Maybe r
-toReference' :: Referent' r -> r
-toTypeReference :: Referent' r -> Maybe r
 fold :: (r -> a) -> (r -> ConstructorId -> ConstructorType -> a) -> Referent' r -> a
+
+-- | A lens onto the reference in a referent.
+reference_ :: Lens (Referent' r) (Referent' r') r r'
+toReference' :: Referent' r -> r
+toTermReference :: Referent' r -> Maybe r
+toTypeReference :: Referent' r -> Maybe r
 instance GHC.Base.Functor Unison.Referent'.Referent'
 instance GHC.Classes.Eq r => GHC.Classes.Eq (Unison.Referent'.Referent' r)
 instance GHC.Classes.Ord r => GHC.Classes.Ord (Unison.Referent'.Referent' r)
@@ -216,6 +219,7 @@ type Size = Word64
 derivedBase32Hex :: Text -> Pos -> Size -> Reference
 data Component
 members :: Component -> Set Reference
+component :: Hash -> [k] -> [(k, Id)]
 components :: [(Hash, [k])] -> [(k, Id)]
 groupByComponent :: [(k, Reference)] -> [[(k, Reference)]]
 componentFor :: Reference -> Component
@@ -263,6 +267,9 @@ pattern ConId :: Id -> ConstructorId -> ConstructorType -> Id
 fold :: (r -> a) -> (r -> Int -> ConstructorType -> a) -> Referent' r -> a
 toReference :: Referent -> Reference
 fromText :: Text -> Maybe Referent
+
+-- | A lens onto the reference in a referent.
+reference_ :: Lens (Referent' r) (Referent' r') r r'
 isPrefixOf :: ShortHash -> Referent -> Bool
 toShortHash :: Referent -> ShortHash
 toText :: Referent -> Text

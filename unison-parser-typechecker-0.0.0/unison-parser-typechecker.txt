@@ -25,7 +25,7 @@ RawMerge :: e -> Set (RawHash h) -> Raw h e
 newtype RawHash a
 RawHash :: Hash -> RawHash a
 [unRawHash] :: RawHash a -> Hash
-head_ :: forall m_amcq h_amcr e_amcs. Lens' (Causal m_amcq h_amcr e_amcs) e_amcs
+head_ :: forall m_amcs h_amct e_amcu. Lens' (Causal m_amcs h_amct e_amcu) e_amcu
 one :: Hashable e => e -> Causal m h e
 cons :: (Applicative m, Hashable e) => e -> Causal m h e -> Causal m h e
 cons' :: Hashable e => e -> RawHash h -> m (Causal m h e) -> Causal m h e
@@ -1755,6 +1755,13 @@ increment :: Logger -> Logger
 decrement :: Logger -> Logger
 
 module Unison.Util.Map
+
+-- | Construct a map from a foldable container by mapping each element to
+--   monadic action that returns a key and a value.
+--   
+--   The map is constructed from the left: if two elements map to the same
+--   key, the second will overwrite the first.
+foldMapM :: (Ord k, Monad m, Foldable t) => (a -> m (k, v)) -> t a -> m (Map k v)
 unionWithM :: forall m k a. (Monad m, Ord k) => (a -> a -> m a) -> Map k a -> Map k a -> m (Map k a)
 
 
@@ -1981,7 +1988,7 @@ isOne :: Branch m -> Bool
 before :: Monad m => Branch m -> Branch m -> m Bool
 lca :: Monad m => Branch m -> Branch m -> m (Maybe (Branch m))
 diff0 :: Monad m => Branch0 m -> Branch0 m -> m BranchDiff
-history :: forall m_a3Duk m_a3DHI. Iso (Branch m_a3Duk) (Branch m_a3DHI) (UnwrappedBranch m_a3Duk) (UnwrappedBranch m_a3DHI)
+history :: forall m_a3Dzk m_a3DMI. Iso (Branch m_a3Dzk) (Branch m_a3DMI) (UnwrappedBranch m_a3Dzk) (UnwrappedBranch m_a3DMI)
 head :: Branch m -> Branch0 m
 headHash :: Branch m -> Hash
 children :: Lens' (Branch0 m) (Map NameSegment (Branch m))
@@ -2016,7 +2023,7 @@ modifyAtM :: forall n m. Functor n => Applicative m => Path -> (Branch m -> n (B
 children0 :: IndexedTraversal' NameSegment (Branch0 m) (Branch0 m)
 terms :: Lens' (Branch0 m) (Star Referent NameSegment)
 types :: Lens' (Branch0 m) (Star Reference NameSegment)
-edits :: forall m_a3Dug. Lens' (Branch0 m_a3Dug) (Map NameSegment (EditHash, m_a3Dug Patch))
+edits :: forall m_a3Dzg. Lens' (Branch0 m_a3Dzg) (Map NameSegment (EditHash, m_a3Dzg Patch))
 deepReferents :: Branch0 m -> Set Referent
 deepTypeReferences :: Branch0 m -> Set Reference
 cachedRead :: forall m. MonadIO m => Cache m -> Deserialize m Raw Raw -> (EditHash -> m Patch) -> Hash -> m (Branch m)
@@ -2310,6 +2317,14 @@ termsMentioningType :: (Var v, Functor m) => Codebase m v a -> Type v a -> m (Se
 dependents :: Functor m => Codebase m v a -> Reference -> m (Set Reference)
 isTerm :: (Applicative m, Var v, BuiltinAnnotation a) => Codebase m v a -> Reference -> m Bool
 isType :: Applicative m => Codebase m v a -> Reference -> m Bool
+unsafeGetTerm :: (HasCallStack, Monad m) => Codebase m v a -> Id -> m (Term v a)
+
+-- | Get a term with its type.
+--   
+--   Precondition: the term exists in the codebase.
+unsafeGetTermWithType :: (HasCallStack, Monad m) => Codebase m v a -> Id -> m (Term v a, Type v a)
+unsafeGetTypeDeclaration :: (HasCallStack, Monad m) => Codebase m v a -> Id -> m (Decl v a)
+unsafeGetTypeOfTermById :: (HasCallStack, Monad m) => Codebase m v a -> Id -> m (Type v a)
 
 module Unison.Codebase.FileCodebase
 codebaseExists :: MonadIO m => CodebasePath -> m Bool
@@ -4275,9 +4290,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a6Ms0 loc_a6Ms1. Lens' (Env v_a6Ms0 loc_a6Ms1) (TypeLookup v_a6Ms0 loc_a6Ms1)
-termsByShortname :: forall v_a6Ms0 loc_a6Ms1. Lens' (Env v_a6Ms0 loc_a6Ms1) (Map Name [NamedReference v_a6Ms0 loc_a6Ms1])
-ambientAbilities :: forall v_a6Ms0 loc_a6Ms1. Lens' (Env v_a6Ms0 loc_a6Ms1) [Type v_a6Ms0 loc_a6Ms1]
+typeLookup :: forall v_a6Ncw loc_a6Ncx. Lens' (Env v_a6Ncw loc_a6Ncx) (TypeLookup v_a6Ncw loc_a6Ncx)
+termsByShortname :: forall v_a6Ncw loc_a6Ncx. Lens' (Env v_a6Ncw loc_a6Ncx) (Map Name [NamedReference v_a6Ncw loc_a6Ncx])
+ambientAbilities :: forall v_a6Ncw loc_a6Ncx. Lens' (Env v_a6Ncw loc_a6Ncx) [Type v_a6Ncw loc_a6Ncx]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.
@@ -5139,7 +5154,11 @@ termEntryToNamedTerm :: Var v => PrettyPrintEnv -> Maybe Width -> TermEntry v a 
 typeEntryToNamedType :: TypeEntry -> NamedType
 findShallowInBranch :: (Monad m, Var v) => Codebase m v Ann -> Branch m -> Backend m [ShallowListEntry v Ann]
 termReferencesByShortHash :: Monad m => Codebase m v a -> ShortHash -> m (Set Reference)
+
+-- | Look up types in the codebase by short hash, and include builtins.
 typeReferencesByShortHash :: Monad m => Codebase m v a -> ShortHash -> m (Set Reference)
+
+-- | Look up terms in the codebase by short hash, and include builtins.
 termReferentsByShortHash :: Monad m => Codebase m v a -> ShortHash -> m (Set Referent)
 
 -- | Configure how names will be constructed and filtered. this is
@@ -5197,7 +5216,13 @@ bestNameForTerm :: forall v. Var v => PrettyPrintEnv -> Width -> Referent -> Tex
 bestNameForType :: forall v. Var v => PrettyPrintEnv -> Width -> Reference -> Text
 resolveBranchHash :: Monad m => Maybe Hash -> Codebase m v Ann -> Backend m (Branch m)
 resolveRootBranchHash :: Monad m => Maybe ShortBranchHash -> Codebase m v Ann -> Backend m (Branch m)
-definitionsBySuffixes :: forall m v. MonadIO m => Var v => NameScoping -> Branch m -> Codebase m v Ann -> [HashQualified Name] -> Backend m (DefinitionResults v)
+
+-- | Determines whether we include full cycles in the results, (e.g. if I
+--   search for <tt>isEven</tt>, will I find <tt>isOdd</tt> too?)
+data IncludeCycles
+IncludeCycles :: IncludeCycles
+DontIncludeCycles :: IncludeCycles
+definitionsBySuffixes :: forall m v. MonadIO m => Var v => NameScoping -> Branch m -> Codebase m v Ann -> IncludeCycles -> [HashQualified Name] -> m (DefinitionResults v)
 termsToSyntax :: Var v => Ord a => Suffixify -> Width -> PrettyPrintEnvDecl -> Map Reference (DisplayObject (Type v a) (Term v a)) -> Map Reference (DisplayObject SyntaxText SyntaxText)
 typesToSyntax :: Var v => Ord a => Suffixify -> Width -> PrettyPrintEnvDecl -> Map Reference (DisplayObject () (Decl v a)) -> Map Reference (DisplayObject SyntaxText SyntaxText)
 loadSearchResults :: (Var v, Applicative m) => Codebase m v Ann -> [SearchResult] -> m [SearchResult' v Ann]
@@ -5515,7 +5540,6 @@ GitError :: Input -> GitError -> Output v
 ConfiguredMetadataParseError :: Path' -> String -> Pretty ColorText -> Output v
 NoConfiguredGitUrl :: PushPull -> Path' -> Output v
 ConfiguredGitUrlParseError :: PushPull -> Path' -> Text -> String -> Output v
-DisplayLinks :: PrettyPrintEnvDecl -> Metadata -> Map Reference (DisplayObject () (Decl v Ann)) -> Map Reference (DisplayObject (Type v Ann) (Term v Ann)) -> Output v
 MetadataMissingType :: PrettyPrintEnv -> Referent -> Output v
 TermMissingType :: Reference -> Output v
 MetadataAmbiguous :: HashQualified Name -> PrettyPrintEnv -> [Referent] -> Output v
@@ -5594,7 +5618,7 @@ data Command m i v a
 [DocsToHtml] :: Branch m -> Path -> FilePath -> Command m i v ()
 [HQNameQuery] :: Maybe Path -> Branch m -> [HashQualified Name] -> Command m i v QueryResult
 [LoadSearchResults] :: [SearchResult] -> Command m i v [SearchResult' v Ann]
-[GetDefinitionsBySuffixes] :: Maybe Path -> Branch m -> [HashQualified Name] -> Command m i v (Either BackendError (DefinitionResults v))
+[GetDefinitionsBySuffixes] :: Maybe Path -> Branch m -> IncludeCycles -> [HashQualified Name] -> Command m i v (DefinitionResults v)
 [FindShallow] :: Absolute -> Command m i v (Either BackendError [ShallowListEntry v Ann])
 [ConfigLookup] :: Configured a => Text -> Command m i v (Maybe a)
 [Input] :: Command m i v i

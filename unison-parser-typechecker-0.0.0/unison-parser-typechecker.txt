@@ -5575,6 +5575,7 @@ BadName :: String -> Output v
 DefaultMetadataNotification :: Output v
 BadRootBranch :: GetRootBranchError -> Output v
 CouldntLoadBranch :: Hash -> Output v
+NamespaceEmpty :: Either Absolute (Absolute, Absolute) -> Output v
 NoOp :: Output v
 data NumberedOutput v
 ShowDiffNamespace :: Absolute -> Absolute -> PrettyPrintEnv -> BranchDiffOutput v Ann -> NumberedOutput v

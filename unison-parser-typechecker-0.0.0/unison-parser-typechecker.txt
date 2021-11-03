@@ -2046,7 +2046,7 @@ module Unison.CommandLine.Globbing
 
 -- | Expand a single glob pattern into all matching targets of the
 --   specified types.
-expandGlobs :: forall m. Set TargetType -> Branch0 m -> Absolute -> String -> [String]
+expandGlobs :: forall m. Set TargetType -> Branch0 m -> Absolute -> String -> Maybe [String]
 
 -- | Possible targets which a glob may select.
 data TargetType
@@ -4297,9 +4297,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a6NnT loc_a6NnU. Lens' (Env v_a6NnT loc_a6NnU) (TypeLookup v_a6NnT loc_a6NnU)
-termsByShortname :: forall v_a6NnT loc_a6NnU. Lens' (Env v_a6NnT loc_a6NnU) (Map Name [NamedReference v_a6NnT loc_a6NnU])
-ambientAbilities :: forall v_a6NnT loc_a6NnU. Lens' (Env v_a6NnT loc_a6NnU) [Type v_a6NnT loc_a6NnU]
+typeLookup :: forall v_a6NqV loc_a6NqW. Lens' (Env v_a6NqV loc_a6NqW) (TypeLookup v_a6NqV loc_a6NqW)
+termsByShortname :: forall v_a6NqV loc_a6NqW. Lens' (Env v_a6NqV loc_a6NqW) (Map Name [NamedReference v_a6NqV loc_a6NqW])
+ambientAbilities :: forall v_a6NqV loc_a6NqW. Lens' (Env v_a6NqV loc_a6NqW) [Type v_a6NqV loc_a6NqW]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.

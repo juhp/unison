@@ -5981,7 +5981,7 @@ data Hidden
 type Err = String
 data UcmCommand
 UcmCommand :: Absolute -> Text -> UcmCommand
-run :: FilePath -> FilePath -> [Stanza] -> Codebase IO Symbol Ann -> IO Text
+run :: String -> FilePath -> FilePath -> [Stanza] -> Codebase IO Symbol Ann -> IO Text
 parse :: String -> Text -> Either Err [Stanza]
 parseFile :: FilePath -> IO (Either Err [Stanza])
 instance GHC.Show.Show Unison.Codebase.TranscriptParser.Hidden

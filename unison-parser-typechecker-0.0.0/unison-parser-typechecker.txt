@@ -25,7 +25,7 @@ RawMerge :: e -> Set (RawHash h) -> Raw h e
 newtype RawHash a
 RawHash :: Hash -> RawHash a
 [unRawHash] :: RawHash a -> Hash
-head_ :: forall m_amcs h_amct e_amcu. Lens' (Causal m_amcs h_amct e_amcu) e_amcu
+head_ :: forall m_amcu h_amcv e_amcw. Lens' (Causal m_amcu h_amcv e_amcw) e_amcw
 one :: Hashable e => e -> Causal m h e
 cons :: (Applicative m, Hashable e) => e -> Causal m h e -> Causal m h e
 cons' :: Hashable e => e -> RawHash h -> m (Causal m h e) -> Causal m h e
@@ -1184,78 +1184,403 @@ instance GHC.Classes.Ord v => GHC.Base.Monoid (Unison.Codebase.Editor.SlurpCompo
 module Unison.Codebase.CodeLookup.Util
 fromTypecheckedUnisonFile :: forall m v a. (Var v, Monad m) => TypecheckedUnisonFile v a -> CodeLookup v m a
 
+module Unison.Util.Convert
+class Convert a b
+convert :: Convert a b => a -> b
+class Parse a b
+parse :: Parse a b => a -> Maybe b
+instance (Unison.Util.Convert.Parse a a2, Unison.Util.Convert.Parse b b2) => Unison.Util.Convert.Parse (a, b) (a2, b2)
+
+module Unison.Util.CycleTable
+data CycleTable k v
+CycleTable :: BasicHashTable k v -> IOPRef Int -> CycleTable k v
+[table] :: CycleTable k v -> BasicHashTable k v
+[sizeRef] :: CycleTable k v -> IOPRef Int
+new :: Int -> IO (CycleTable k v)
+lookup :: (Hashable k, Eq k) => k -> CycleTable k v -> IO (Maybe v)
+insert :: (Hashable k, Eq k) => k -> v -> CycleTable k v -> IO ()
+size :: CycleTable k v -> IO Int
+insertEnd :: (Hashable k, Eq k) => k -> CycleTable k Int -> IO ()
+
+module Unison.Util.CyclicEq
+class CyclicEq a
+cyclicEq :: CyclicEq a => CycleTable Int Int -> CycleTable Int Int -> a -> a -> IO Bool
+bothEq' :: (Eq a, CyclicEq b) => CycleTable Int Int -> CycleTable Int Int -> a -> a -> b -> b -> IO Bool
+bothEq :: (CyclicEq a, CyclicEq b) => CycleTable Int Int -> CycleTable Int Int -> a -> a -> b -> b -> IO Bool
+instance Unison.Util.CyclicEq.CyclicEq a => Unison.Util.CyclicEq.CyclicEq [a]
+instance Unison.Util.CyclicEq.CyclicEq a => Unison.Util.CyclicEq.CyclicEq (Data.Sequence.Internal.Seq a)
+instance Unison.Util.CyclicEq.CyclicEq a => Unison.Util.CyclicEq.CyclicEq (Data.Vector.Vector a)
+
+module Unison.Util.CyclicOrd
+class CyclicOrd a
+cyclicOrd :: CyclicOrd a => CycleTable Int Int -> CycleTable Int Int -> a -> a -> IO Ordering
+bothOrd' :: (Ord a, CyclicOrd b) => CycleTable Int Int -> CycleTable Int Int -> a -> a -> b -> b -> IO Ordering
+bothOrd :: (CyclicOrd a, CyclicOrd b) => CycleTable Int Int -> CycleTable Int Int -> a -> a -> b -> b -> IO Ordering
+instance Unison.Util.CyclicOrd.CyclicOrd a => Unison.Util.CyclicOrd.CyclicOrd [a]
+instance Unison.Util.CyclicOrd.CyclicOrd a => Unison.Util.CyclicOrd.CyclicOrd (Data.Sequence.Internal.Seq a)
+instance Unison.Util.CyclicOrd.CyclicOrd a => Unison.Util.CyclicOrd.CyclicOrd (Data.Vector.Vector a)
+
+module Unison.Util.EnumContainers
+data EnumMap k a
+data EnumSet k
+class EnumKey k
+keyToInt :: EnumKey k => k -> Int
+intToKey :: EnumKey k => Int -> k
+mapFromList :: EnumKey k => [(k, a)] -> EnumMap k a
+setFromList :: EnumKey k => [k] -> EnumSet k
+setToList :: EnumKey k => EnumSet k -> [k]
+mapSingleton :: EnumKey k => k -> a -> EnumMap k a
+setSingleton :: EnumKey k => k -> EnumSet k
+mapInsert :: EnumKey k => k -> a -> EnumMap k a -> EnumMap k a
+unionWith :: EnumKey k => EnumKey k => (a -> a -> a) -> EnumMap k a -> EnumMap k a -> EnumMap k a
+hasKey :: EnumKey k => k -> EnumMap k a -> Bool
+keys :: EnumKey k => EnumMap k a -> [k]
+keysSet :: EnumKey k => EnumMap k a -> EnumSet k
+restrictKeys :: EnumKey k => EnumMap k a -> EnumSet k -> EnumMap k a
+withoutKeys :: EnumKey k => EnumMap k a -> EnumSet k -> EnumMap k a
+member :: EnumKey k => k -> EnumSet k -> Bool
+lookup :: EnumKey k => k -> EnumMap k a -> Maybe a
+lookupWithDefault :: EnumKey k => a -> k -> EnumMap k a -> a
+mapWithKey :: EnumKey k => (k -> a -> b) -> EnumMap k a -> EnumMap k b
+foldMapWithKey :: EnumKey k => Monoid m => (k -> a -> m) -> EnumMap k a -> m
+mapToList :: EnumKey k => EnumMap k a -> [(k, a)]
+(!) :: EnumKey k => EnumMap k a -> k -> a
+findMin :: EnumKey k => EnumSet k -> k
+traverseSet_ :: Applicative f => EnumKey k => (k -> f ()) -> EnumSet k -> f ()
+setSize :: EnumSet k -> Int
+instance GHC.Classes.Ord a => GHC.Classes.Ord (Unison.Util.EnumContainers.EnumMap k a)
+instance GHC.Classes.Eq a => GHC.Classes.Eq (Unison.Util.EnumContainers.EnumMap k a)
+instance GHC.Show.Show a => GHC.Show.Show (Unison.Util.EnumContainers.EnumMap k a)
+instance Data.Traversable.Traversable (Unison.Util.EnumContainers.EnumMap k)
+instance Data.Foldable.Foldable (Unison.Util.EnumContainers.EnumMap k)
+instance GHC.Base.Functor (Unison.Util.EnumContainers.EnumMap k)
+instance GHC.Base.Semigroup (Unison.Util.EnumContainers.EnumMap k a)
+instance GHC.Base.Monoid (Unison.Util.EnumContainers.EnumMap k a)
+instance GHC.Classes.Ord (Unison.Util.EnumContainers.EnumSet k)
+instance GHC.Classes.Eq (Unison.Util.EnumContainers.EnumSet k)
+instance GHC.Show.Show (Unison.Util.EnumContainers.EnumSet k)
+instance GHC.Base.Semigroup (Unison.Util.EnumContainers.EnumSet k)
+instance GHC.Base.Monoid (Unison.Util.EnumContainers.EnumSet k)
+instance Unison.Util.EnumContainers.EnumKey GHC.Word.Word64
+instance Unison.Util.EnumContainers.EnumKey GHC.Word.Word16
+
+module Unison.Util.Exception
+tryAny :: MonadIO m => IO a -> m (Either SomeException a)
+catchAny :: IO a -> (SomeException -> IO a) -> IO a
+
+module Unison.Codebase.Editor.Git
+gitIn :: MonadIO m => FilePath -> [Text] -> m ()
+gitTextIn :: MonadIO m => FilePath -> [Text] -> m Text
+
+-- | Given a remote git repo url, and branch/commit hash (currently not
+--   allowed): checks for git, clones or updates a cached copy of the repo
+pullBranch :: (MonadIO m, MonadCatch m, MonadError GitProtocolError m) => ReadRepo -> m CodebasePath
+
+-- | Perform an IO action, passing any IO exception to <tt>handler</tt>
+withIOError :: MonadIO m => IO a -> (IOException -> m a) -> m a
+withStatus :: MonadIO m => String -> m a -> m a
+
+module Unison.Util.Free
+data Free f a
+Pure :: a -> Free f a
+Bind :: f x -> (x -> Free f a) -> Free f a
+eval :: f a -> Free f a
+fold :: Monad m => (forall x. f x -> m x) -> Free f a -> m a
+unfold :: (v -> Either a (f v)) -> v -> Free f a
+unfold' :: (v -> Free f (Either a v)) -> v -> Free f a
+unfoldM :: (Traversable f, Applicative m, Monad m) => (b -> m (Either a (f b))) -> b -> m (Free f a)
+free :: Traversable f => f (Free f a) -> Free f a
+foldWithIndex :: forall f m a. Monad m => (forall x. Int -> f x -> m x) -> Free f a -> m a
+instance GHC.Base.Functor (Unison.Util.Free.Free f)
+instance GHC.Base.Monad (Unison.Util.Free.Free f)
+instance GHC.Base.Applicative (Unison.Util.Free.Free f)
+instance Control.Monad.Trans.Class.MonadTrans Unison.Util.Free.Free
+
+module Unison.Util.Less
+less :: String -> IO ()
+
+
+-- | Small logging library. Typical usage, import qualified:
+--   
+--   import qualified Unison.Util.Logger as L
+--   
+--   do logger &lt;- L.atomic . L.atInfo . L.scope "worker" . L.toHandle $
+--   stderr L.warn logger "WARNING!!!" L.debug logger "Debug message, will
+--   be ignored" let logger2 = L.atDebug logger L.debug logger2 "Debug
+--   message, will be printed" logger' &lt;- L.at L.warnLevel
+module Unison.Util.Logger
+type Level = Int
+type Scope = [String]
+data Logger
+Logger :: !Scope -> (String -> String) -> !Level -> (String -> IO ()) -> Logger
+[getScope] :: Logger -> !Scope
+[prefix] :: Logger -> String -> String
+[getLevel] :: Logger -> !Level
+[raw] :: Logger -> String -> IO ()
+
+-- | Ensure at most one message is logged at the same time
+atomic :: Logger -> IO Logger
+toHandle :: Handle -> Logger
+toStandardError :: Logger
+toStandardOut :: Logger
+logHandleAt :: Logger -> Level -> Handle -> IO ()
+logAt' :: Logger -> Level -> IO String -> IO ()
+logAt :: Logger -> Level -> String -> IO ()
+scope :: String -> Logger -> Logger
+scope' :: [String] -> Logger -> Logger
+logger :: (String -> IO ()) -> Logger
+error :: Logger -> String -> IO ()
+warn :: Logger -> String -> IO ()
+info :: Logger -> String -> IO ()
+debug :: Logger -> String -> IO ()
+trace :: Logger -> String -> IO ()
+error' :: Logger -> IO String -> IO ()
+warn' :: Logger -> IO String -> IO ()
+info' :: Logger -> IO String -> IO ()
+debug' :: Logger -> IO String -> IO ()
+trace' :: Logger -> IO String -> IO ()
+errorLevel :: Level
+warnLevel :: Level
+infoLevel :: Level
+debugLevel :: Level
+traceLevel :: Level
+at :: Level -> Logger -> Logger
+atError :: Logger -> Logger
+atWarn :: Logger -> Logger
+atInfo :: Logger -> Logger
+atDebug :: Logger -> Logger
+atTrace :: Logger -> Logger
+increment :: Logger -> Logger
+decrement :: Logger -> Logger
+
+module Unison.Util.Map
+
+-- | Construct a map from a foldable container by mapping each element to
+--   monadic action that returns a key and a value.
+--   
+--   The map is constructed from the left: if two elements map to the same
+--   key, the second will overwrite the first.
+foldMapM :: (Ord k, Monad m, Foldable t) => (a -> m (k, v)) -> t a -> m (Map k v)
+unionWithM :: forall m k a. (Monad m, Ord k) => (a -> a -> m a) -> Map k a -> Map k a -> m (Map k a)
+
+
+-- | A utility type for saving memory in the presence of many duplicate
+--   ByteStrings, etc. If you have data that may be a redundant duplicate,
+--   try pinning it to a pin board, and use the result of that operation
+--   instead.
+--   
+--   Without a pin board:
+--   
+--   x ───── "38dce848c8c829c62" y ───── "38dce848c8c829c62" z ─────
+--   "d2518f260535b927b"
+--   
+--   With a pin board:
+--   
+--   x ───── "38dce848c8c829c62" ┄┄┄┄┄┐ y ────────┘ board z ─────
+--   "d2518f260535b927b" ┄┄┄┄┄┘
+--   
+--   ... and after x is garbage collected:
+--   
+--   "38dce848c8c829c62" ┄┄┄┄┄┐ y ────────┘ board z ─────
+--   "d2518f260535b927b" ┄┄┄┄┄┘
+--   
+--   ... and after y is garbage collected:
+--   
+--   board z ───── "d2518f260535b927b" ┄┄┄┄┄┘
+module Unison.Util.PinBoard
+
+-- | A "pin board" is a place to pin values; semantically, it's a set, but
+--   differs in a few ways:
+--   
+--   <ul>
+--   <li>Pinned values aren't kept alive by the pin board, they might be
+--   garbage collected at any time.</li>
+--   <li>If you try to pin a value that's already pinned (per its Eq
+--   instance), the pinned one will be returned instead.</li>
+--   <li>It has a small API: just <a>new</a> and <a>pin</a>.</li>
+--   </ul>
+data PinBoard a
+new :: MonadIO m => m (PinBoard a)
+pin :: forall a m. (Eq a, Hashable a, MonadIO m) => PinBoard a -> a -> m a
+debugDump :: MonadIO m => (a -> Text) -> PinBoard a -> m ()
+debugSize :: PinBoard a -> IO Int
+
+module Unison.Util.Range
+
+-- | True if <tt>_x</tt> contains <tt>_y</tt>
+contains :: Range -> Range -> Bool
+overlaps :: Range -> Range -> Bool
+inRange :: Pos -> Range -> Bool
+isMultiLine :: Range -> Bool
+data Range
+Range :: Pos -> Pos -> Range
+[start] :: Range -> Pos
+[end] :: Range -> Pos
+startingLine :: Range -> Range
+instance GHC.Show.Show Unison.Util.Range.Range
+instance GHC.Classes.Ord Unison.Util.Range.Range
+instance GHC.Classes.Eq Unison.Util.Range.Range
+instance GHC.Base.Semigroup Unison.Util.Range.Range
+
+module Unison.Util.AnnotatedText
+data Segment a
+Segment :: String -> Maybe a -> Segment a
+[segment] :: Segment a -> String
+[annotation] :: Segment a -> Maybe a
+toPair :: Segment a -> (String, Maybe a)
+newtype AnnotatedText a
+AnnotatedText :: Seq (Segment a) -> AnnotatedText a
+data AnnotatedExcerpt a
+AnnotatedExcerpt :: Line -> String -> Map Range a -> AnnotatedExcerpt a
+[lineOffset] :: AnnotatedExcerpt a -> Line
+[text] :: AnnotatedExcerpt a -> String
+[annotations] :: AnnotatedExcerpt a -> Map Range a
+annotate' :: Maybe b -> AnnotatedText a -> AnnotatedText b
+deannotate :: AnnotatedText a -> AnnotatedText b
+annotate :: a -> AnnotatedText a -> AnnotatedText a
+annotateMaybe :: AnnotatedText (Maybe a) -> AnnotatedText a
+trailingNewLine :: AnnotatedText a -> Bool
+markup :: AnnotatedExcerpt a -> Map Range a -> AnnotatedExcerpt a
+textLength :: AnnotatedText a -> Int
+textEmpty :: AnnotatedText a -> Bool
+condensedExcerptToText :: Int -> AnnotatedExcerpt a -> AnnotatedText a
+excerptToText :: forall a. AnnotatedExcerpt a -> AnnotatedText a
+snipWithContext :: Int -> AnnotatedExcerpt a -> [AnnotatedExcerpt a]
+instance GHC.Generics.Generic (Unison.Util.AnnotatedText.Segment a)
+instance Data.Foldable.Foldable Unison.Util.AnnotatedText.Segment
+instance GHC.Base.Functor Unison.Util.AnnotatedText.Segment
+instance GHC.Show.Show a => GHC.Show.Show (Unison.Util.AnnotatedText.Segment a)
+instance GHC.Classes.Eq a => GHC.Classes.Eq (Unison.Util.AnnotatedText.Segment a)
+instance GHC.Generics.Generic (Unison.Util.AnnotatedText.AnnotatedText a)
+instance GHC.Show.Show a => GHC.Show.Show (Unison.Util.AnnotatedText.AnnotatedText a)
+instance Data.Foldable.Foldable Unison.Util.AnnotatedText.AnnotatedText
+instance GHC.Base.Functor Unison.Util.AnnotatedText.AnnotatedText
+instance GHC.Classes.Eq a => GHC.Classes.Eq (Unison.Util.AnnotatedText.AnnotatedText a)
+instance GHC.Base.Functor Unison.Util.AnnotatedText.AnnotatedExcerpt
+instance Data.String.IsString (Unison.Util.AnnotatedText.AnnotatedExcerpt a)
+instance GHC.Base.Semigroup (Unison.Util.AnnotatedText.AnnotatedText a)
+instance GHC.Base.Monoid (Unison.Util.AnnotatedText.AnnotatedText a)
+instance Data.ListLike.FoldableLL.FoldableLL (Unison.Util.AnnotatedText.AnnotatedText a) GHC.Types.Char
+instance Data.ListLike.Base.ListLike (Unison.Util.AnnotatedText.AnnotatedText a) GHC.Types.Char
+instance Data.String.IsString (Unison.Util.AnnotatedText.AnnotatedText a)
+instance GHC.Exts.IsList (Unison.Util.AnnotatedText.AnnotatedText a)
+
+module Unison.Util.Rope
+chunks :: Rope a -> [a]
+singleton :: Sized a => a -> Rope a
+one :: Sized a => a -> Rope a
+map :: Sized b => (a -> b) -> Rope a -> Rope b
+traverse :: (Applicative f, Sized b) => (a -> f b) -> Rope a -> f (Rope b)
+null :: Sized a => Rope a -> Bool
+flatten :: Monoid a => Rope a -> a
+two :: Sized a => Rope a -> Rope a -> Rope a
+cons :: (Sized a, Semigroup a) => a -> Rope a -> Rope a
+uncons :: Sized a => Rope a -> Maybe (a, Rope a)
+snoc :: (Sized a, Semigroup a) => Rope a -> a -> Rope a
+unsnoc :: Sized a => Rope a -> Maybe (Rope a, a)
+index :: (Sized a, Index a ch) => Int -> Rope a -> Maybe ch
+debugDepth :: Rope a -> Int
+class Sized a
+size :: Sized a => a -> Int
+class Take a
+take :: Take a => Int -> a -> a
+class Drop a
+drop :: Drop a => Int -> a -> a
+class Reverse a
+reverse :: Reverse a => a -> a
+class Index a elem
+unsafeIndex :: Index a elem => Int -> a -> elem
+
+-- | Roughly size-balanced binary tree of chunks. There are a few
+--   operations that are sloppier about rebalancing as long as that can't
+--   lead to trees of more than logarithmic depth.
+--   
+--   The <a>Int</a> in the <a>Two</a> constructor is a cached size of that
+--   subtree.
+data Rope a
+instance Data.Foldable.Foldable Unison.Util.Rope.Rope
+instance Unison.Util.Rope.Reverse a => Unison.Util.Rope.Reverse (Unison.Util.Rope.Rope a)
+instance (Unison.Util.Rope.Sized a, Unison.Util.Rope.Index a ch) => Unison.Util.Rope.Index (Unison.Util.Rope.Rope a) ch
+instance (Unison.Util.Rope.Sized a, GHC.Base.Semigroup a, Unison.Util.Rope.Drop a) => Unison.Util.Rope.Drop (Unison.Util.Rope.Rope a)
+instance (Unison.Util.Rope.Sized a, Unison.Util.Rope.Take a, Unison.Util.Rope.Drop a, GHC.Classes.Eq a) => GHC.Classes.Eq (Unison.Util.Rope.Rope a)
+instance (Unison.Util.Rope.Sized a, Unison.Util.Rope.Take a, Unison.Util.Rope.Drop a, GHC.Classes.Ord a) => GHC.Classes.Ord (Unison.Util.Rope.Rope a)
+instance (Unison.Util.Rope.Sized a, GHC.Base.Semigroup a, Unison.Util.Rope.Take a) => Unison.Util.Rope.Take (Unison.Util.Rope.Rope a)
+instance Unison.Util.Rope.Sized a => Unison.Util.Rope.Sized (Unison.Util.Rope.Rope a)
+instance (Unison.Util.Rope.Sized a, GHC.Base.Semigroup a) => GHC.Base.Semigroup (Unison.Util.Rope.Rope a)
+instance (Unison.Util.Rope.Sized a, GHC.Base.Semigroup a) => GHC.Base.Monoid (Unison.Util.Rope.Rope a)
+instance Control.DeepSeq.NFData a => Control.DeepSeq.NFData (Unison.Util.Rope.Rope a)
+
 module Unison.Util.Bytes
-type ByteString = Block Word8
 newtype Bytes
-Bytes :: FingerTree (Sum Int) (View ByteString) -> Bytes
-null :: Bytes -> Bool
-empty :: Bytes
-fromArray :: ByteArrayAccess ba => ba -> Bytes
-zlibCompress :: Bytes -> Bytes
-gzipCompress :: Bytes -> Bytes
-gzipDecompress :: Bytes -> Bytes
-zlibDecompress :: Bytes -> Bytes
-toArray :: forall bo. ByteArray bo => Bytes -> bo
+Bytes :: Rope Chunk -> Bytes
+[underlying] :: Bytes -> Rope Chunk
+type Chunk = Vector Word8
+fromByteString :: ByteString -> Bytes
+toByteString :: Bytes -> ByteString
+fromWord8s :: [Word8] -> Bytes
+toWord8s :: Bytes -> [Word8]
+fromBase16 :: Bytes -> Either Text Bytes
+toBase16 :: Bytes -> Bytes
+fromBase32 :: Bytes -> Either Text Bytes
+toBase32 :: Bytes -> Bytes
+fromBase64 :: Bytes -> Either Text Bytes
+toBase64 :: Bytes -> Bytes
+fromBase64UrlUnpadded :: Bytes -> Either Text Bytes
+toBase64UrlUnpadded :: Bytes -> Bytes
+chunkFromByteString :: ByteString -> Chunk
+byteStringToChunk :: ByteString -> Chunk
+chunkToByteString :: Chunk -> ByteString
+fromChunks :: [Chunk] -> Bytes
+chunks :: Bytes -> [Chunk]
+byteStringChunks :: Bytes -> [ByteString]
+toArray :: ByteArray b => Bytes -> b
+fromArray :: ByteArrayAccess b => b -> Bytes
 toLazyByteString :: Bytes -> ByteString
-fromLazyByteString :: ByteString -> Bytes
-size :: Bytes -> Int
-chunks :: Bytes -> [View ByteString]
-fromChunks :: [View ByteString] -> Bytes
-snocView :: Bytes -> View ByteString -> Bytes
-cons :: ByteArrayAccess ba => ba -> Bytes -> Bytes
-snoc :: ByteArrayAccess ba => Bytes -> ba -> Bytes
 flatten :: Bytes -> Bytes
+at :: Int -> Bytes -> Maybe Word8
 take :: Int -> Bytes -> Bytes
 drop :: Int -> Bytes -> Bytes
-at :: Int -> Bytes -> Maybe Word8
-dropBlock :: Int -> Bytes -> Maybe (View ByteString, Bytes)
-decodeNat64be :: Bytes -> Maybe (Word64, Bytes)
-decodeNat64le :: Bytes -> Maybe (Word64, Bytes)
-decodeNat32be :: Bytes -> Maybe (Word64, Bytes)
-decodeNat32le :: Bytes -> Maybe (Word64, Bytes)
-decodeNat16be :: Bytes -> Maybe (Word64, Bytes)
-decodeNat16le :: Bytes -> Maybe (Word64, Bytes)
-fillBE :: Word64 -> Int -> Ptr Word8 -> IO ()
-encodeNat64be :: Word64 -> Bytes
-encodeNat32be :: Word64 -> Bytes
+size :: Bytes -> Int
+empty :: Bytes
 encodeNat16be :: Word64 -> Bytes
-fillLE :: Word64 -> Int -> Int -> Ptr Word8 -> IO ()
-encodeNat64le :: Word64 -> Bytes
-encodeNat32le :: Word64 -> Bytes
+decodeNat16be :: Bytes -> Maybe (Word64, Bytes)
+encodeNat32be :: Word64 -> Bytes
+decodeNat32be :: Bytes -> Maybe (Word64, Bytes)
+encodeNat64be :: Word64 -> Bytes
+decodeNat64be :: Bytes -> Maybe (Word64, Bytes)
 encodeNat16le :: Word64 -> Bytes
-toBase16 :: Bytes -> Bytes
-fromBase16 :: Bytes -> Either Text Bytes
-toBase32 :: Bytes -> Bytes
-toBase64 :: Bytes -> Bytes
-toBase64UrlUnpadded :: Bytes -> Bytes
-fromBase32 :: Bytes -> Either Text Bytes
-fromBase64 :: Bytes -> Either Text Bytes
-fromBase64UrlUnpadded :: Bytes -> Either Text Bytes
-fromBase :: Base -> Bytes -> Either Text Bytes
-toBase :: Base -> Bytes -> Bytes
-toWord8s :: Bytes -> [Word8]
-fromWord8s :: [Word8] -> Bytes
-alignChunks :: ByteArrayAccess ba => [View ba] -> [View ba] -> ([View ba], [View ba])
-view :: ByteArrayAccess bs => bs -> View bs
-takeView :: ByteArrayAccess bs => Int -> View bs -> View bs
-dropView :: ByteArrayAccess bs => Int -> View bs -> View bs
-data View bytes
-View :: !Int -> !Int -> !bytes -> View bytes
-[viewOffset] :: View bytes -> !Int
-[viewSize] :: View bytes -> !Int
-[unView] :: View bytes -> !bytes
+decodeNat16le :: Bytes -> Maybe (Word64, Bytes)
+encodeNat32le :: Word64 -> Bytes
+decodeNat32le :: Bytes -> Maybe (Word64, Bytes)
+encodeNat64le :: Word64 -> Bytes
+decodeNat64le :: Bytes -> Maybe (Word64, Bytes)
+
+-- | Decode a <a>ByteString</a> containing UTF-8 encoded text that is known
+--   to be valid.
+--   
+--   If the input contains any invalid UTF-8 data, an exception will be
+--   thrown that cannot be caught in pure code. For more control over the
+--   handling of invalid data, use <a>decodeUtf8'</a> or
+--   <a>decodeUtf8With</a>.
+decodeUtf8 :: ByteString -> Text
+
+-- | Encode text using UTF-8 encoding.
+encodeUtf8 :: Text -> ByteString
+zlibCompress :: Bytes -> Bytes
+zlibDecompress :: Bytes -> Bytes
+gzipCompress :: Bytes -> Bytes
+gzipDecompress :: Bytes -> Bytes
+instance GHC.Classes.Ord Unison.Util.Bytes.Bytes
+instance GHC.Classes.Eq Unison.Util.Bytes.Bytes
 instance GHC.Base.Monoid Unison.Util.Bytes.Bytes
 instance GHC.Base.Semigroup Unison.Util.Bytes.Bytes
-instance GHC.Show.Show Unison.Util.Bytes.Bytes
-instance GHC.Classes.Eq Unison.Util.Bytes.Bytes
-instance GHC.Classes.Ord Unison.Util.Bytes.Bytes
 instance Control.DeepSeq.NFData Unison.Util.Bytes.Bytes
-instance Data.FingerTree.Measured (Data.Semigroup.Internal.Sum GHC.Types.Int) (Unison.Util.Bytes.View Unison.Util.Bytes.ByteString)
-instance Data.ByteArray.Types.ByteArrayAccess bytes => GHC.Classes.Eq (Unison.Util.Bytes.View bytes)
-instance Data.ByteArray.Types.ByteArrayAccess bytes => GHC.Classes.Ord (Unison.Util.Bytes.View bytes)
-instance Data.ByteArray.Types.ByteArrayAccess bytes => GHC.Show.Show (Unison.Util.Bytes.View bytes)
-instance Data.ByteArray.Types.ByteArrayAccess bytes => Data.ByteArray.Types.ByteArrayAccess (Unison.Util.Bytes.View bytes)
-instance Control.DeepSeq.NFData (Unison.Util.Bytes.View bs)
+instance GHC.Show.Show Unison.Util.Bytes.Bytes
+instance Unison.Util.Rope.Sized Unison.Util.Bytes.Chunk
+instance Unison.Util.Rope.Drop Unison.Util.Bytes.Chunk
+instance Unison.Util.Rope.Take Unison.Util.Bytes.Chunk
+instance Unison.Util.Rope.Index Unison.Util.Bytes.Chunk GHC.Word.Word8
+instance Unison.Util.Rope.Reverse Unison.Util.Bytes.Chunk
 
 module Unison.Lexer
 data Token a
@@ -1585,287 +1910,6 @@ instance GHC.Show.Show Unison.Codebase.Editor.UriParser.GitProtocol
 instance GHC.Classes.Ord Unison.Codebase.Editor.UriParser.GitProtocol
 instance GHC.Classes.Eq Unison.Codebase.Editor.UriParser.GitProtocol
 
-module Unison.Util.Convert
-class Convert a b
-convert :: Convert a b => a -> b
-class Parse a b
-parse :: Parse a b => a -> Maybe b
-instance (Unison.Util.Convert.Parse a a2, Unison.Util.Convert.Parse b b2) => Unison.Util.Convert.Parse (a, b) (a2, b2)
-
-module Unison.Util.CycleTable
-data CycleTable k v
-CycleTable :: BasicHashTable k v -> IOPRef Int -> CycleTable k v
-[table] :: CycleTable k v -> BasicHashTable k v
-[sizeRef] :: CycleTable k v -> IOPRef Int
-new :: Int -> IO (CycleTable k v)
-lookup :: (Hashable k, Eq k) => k -> CycleTable k v -> IO (Maybe v)
-insert :: (Hashable k, Eq k) => k -> v -> CycleTable k v -> IO ()
-size :: CycleTable k v -> IO Int
-insertEnd :: (Hashable k, Eq k) => k -> CycleTable k Int -> IO ()
-
-module Unison.Util.CyclicEq
-class CyclicEq a
-cyclicEq :: CyclicEq a => CycleTable Int Int -> CycleTable Int Int -> a -> a -> IO Bool
-bothEq' :: (Eq a, CyclicEq b) => CycleTable Int Int -> CycleTable Int Int -> a -> a -> b -> b -> IO Bool
-bothEq :: (CyclicEq a, CyclicEq b) => CycleTable Int Int -> CycleTable Int Int -> a -> a -> b -> b -> IO Bool
-instance Unison.Util.CyclicEq.CyclicEq a => Unison.Util.CyclicEq.CyclicEq [a]
-instance Unison.Util.CyclicEq.CyclicEq a => Unison.Util.CyclicEq.CyclicEq (Data.Sequence.Internal.Seq a)
-instance Unison.Util.CyclicEq.CyclicEq a => Unison.Util.CyclicEq.CyclicEq (Data.Vector.Vector a)
-
-module Unison.Util.CyclicOrd
-class CyclicOrd a
-cyclicOrd :: CyclicOrd a => CycleTable Int Int -> CycleTable Int Int -> a -> a -> IO Ordering
-bothOrd' :: (Ord a, CyclicOrd b) => CycleTable Int Int -> CycleTable Int Int -> a -> a -> b -> b -> IO Ordering
-bothOrd :: (CyclicOrd a, CyclicOrd b) => CycleTable Int Int -> CycleTable Int Int -> a -> a -> b -> b -> IO Ordering
-instance Unison.Util.CyclicOrd.CyclicOrd a => Unison.Util.CyclicOrd.CyclicOrd [a]
-instance Unison.Util.CyclicOrd.CyclicOrd a => Unison.Util.CyclicOrd.CyclicOrd (Data.Sequence.Internal.Seq a)
-instance Unison.Util.CyclicOrd.CyclicOrd a => Unison.Util.CyclicOrd.CyclicOrd (Data.Vector.Vector a)
-
-module Unison.Util.EnumContainers
-data EnumMap k a
-data EnumSet k
-class EnumKey k
-keyToInt :: EnumKey k => k -> Int
-intToKey :: EnumKey k => Int -> k
-mapFromList :: EnumKey k => [(k, a)] -> EnumMap k a
-setFromList :: EnumKey k => [k] -> EnumSet k
-setToList :: EnumKey k => EnumSet k -> [k]
-mapSingleton :: EnumKey k => k -> a -> EnumMap k a
-setSingleton :: EnumKey k => k -> EnumSet k
-mapInsert :: EnumKey k => k -> a -> EnumMap k a -> EnumMap k a
-unionWith :: EnumKey k => EnumKey k => (a -> a -> a) -> EnumMap k a -> EnumMap k a -> EnumMap k a
-hasKey :: EnumKey k => k -> EnumMap k a -> Bool
-keys :: EnumKey k => EnumMap k a -> [k]
-keysSet :: EnumKey k => EnumMap k a -> EnumSet k
-restrictKeys :: EnumKey k => EnumMap k a -> EnumSet k -> EnumMap k a
-withoutKeys :: EnumKey k => EnumMap k a -> EnumSet k -> EnumMap k a
-member :: EnumKey k => k -> EnumSet k -> Bool
-lookup :: EnumKey k => k -> EnumMap k a -> Maybe a
-lookupWithDefault :: EnumKey k => a -> k -> EnumMap k a -> a
-mapWithKey :: EnumKey k => (k -> a -> b) -> EnumMap k a -> EnumMap k b
-foldMapWithKey :: EnumKey k => Monoid m => (k -> a -> m) -> EnumMap k a -> m
-mapToList :: EnumKey k => EnumMap k a -> [(k, a)]
-(!) :: EnumKey k => EnumMap k a -> k -> a
-findMin :: EnumKey k => EnumSet k -> k
-traverseSet_ :: Applicative f => EnumKey k => (k -> f ()) -> EnumSet k -> f ()
-setSize :: EnumSet k -> Int
-instance GHC.Classes.Ord a => GHC.Classes.Ord (Unison.Util.EnumContainers.EnumMap k a)
-instance GHC.Classes.Eq a => GHC.Classes.Eq (Unison.Util.EnumContainers.EnumMap k a)
-instance GHC.Show.Show a => GHC.Show.Show (Unison.Util.EnumContainers.EnumMap k a)
-instance Data.Traversable.Traversable (Unison.Util.EnumContainers.EnumMap k)
-instance Data.Foldable.Foldable (Unison.Util.EnumContainers.EnumMap k)
-instance GHC.Base.Functor (Unison.Util.EnumContainers.EnumMap k)
-instance GHC.Base.Semigroup (Unison.Util.EnumContainers.EnumMap k a)
-instance GHC.Base.Monoid (Unison.Util.EnumContainers.EnumMap k a)
-instance GHC.Classes.Ord (Unison.Util.EnumContainers.EnumSet k)
-instance GHC.Classes.Eq (Unison.Util.EnumContainers.EnumSet k)
-instance GHC.Show.Show (Unison.Util.EnumContainers.EnumSet k)
-instance GHC.Base.Semigroup (Unison.Util.EnumContainers.EnumSet k)
-instance GHC.Base.Monoid (Unison.Util.EnumContainers.EnumSet k)
-instance Unison.Util.EnumContainers.EnumKey GHC.Word.Word64
-instance Unison.Util.EnumContainers.EnumKey GHC.Word.Word16
-
-module Unison.Util.Exception
-tryAny :: MonadIO m => IO a -> m (Either SomeException a)
-catchAny :: IO a -> (SomeException -> IO a) -> IO a
-
-module Unison.Codebase.Editor.Git
-gitIn :: MonadIO m => FilePath -> [Text] -> m ()
-gitTextIn :: MonadIO m => FilePath -> [Text] -> m Text
-
--- | Given a remote git repo url, and branch/commit hash (currently not
---   allowed): checks for git, clones or updates a cached copy of the repo
-pullBranch :: (MonadIO m, MonadCatch m, MonadError GitProtocolError m) => ReadRepo -> m CodebasePath
-
--- | Perform an IO action, passing any IO exception to <tt>handler</tt>
-withIOError :: MonadIO m => IO a -> (IOException -> m a) -> m a
-withStatus :: MonadIO m => String -> m a -> m a
-
-module Unison.Util.Free
-data Free f a
-Pure :: a -> Free f a
-Bind :: f x -> (x -> Free f a) -> Free f a
-eval :: f a -> Free f a
-fold :: Monad m => (forall x. f x -> m x) -> Free f a -> m a
-unfold :: (v -> Either a (f v)) -> v -> Free f a
-unfold' :: (v -> Free f (Either a v)) -> v -> Free f a
-unfoldM :: (Traversable f, Applicative m, Monad m) => (b -> m (Either a (f b))) -> b -> m (Free f a)
-free :: Traversable f => f (Free f a) -> Free f a
-foldWithIndex :: forall f m a. Monad m => (forall x. Int -> f x -> m x) -> Free f a -> m a
-instance GHC.Base.Functor (Unison.Util.Free.Free f)
-instance GHC.Base.Monad (Unison.Util.Free.Free f)
-instance GHC.Base.Applicative (Unison.Util.Free.Free f)
-instance Control.Monad.Trans.Class.MonadTrans Unison.Util.Free.Free
-
-module Unison.Util.Less
-less :: String -> IO ()
-
-
--- | Small logging library. Typical usage, import qualified:
---   
---   import qualified Unison.Util.Logger as L
---   
---   do logger &lt;- L.atomic . L.atInfo . L.scope "worker" . L.toHandle $
---   stderr L.warn logger "WARNING!!!" L.debug logger "Debug message, will
---   be ignored" let logger2 = L.atDebug logger L.debug logger2 "Debug
---   message, will be printed" logger' &lt;- L.at L.warnLevel
-module Unison.Util.Logger
-type Level = Int
-type Scope = [String]
-data Logger
-Logger :: !Scope -> (String -> String) -> !Level -> (String -> IO ()) -> Logger
-[getScope] :: Logger -> !Scope
-[prefix] :: Logger -> String -> String
-[getLevel] :: Logger -> !Level
-[raw] :: Logger -> String -> IO ()
-
--- | Ensure at most one message is logged at the same time
-atomic :: Logger -> IO Logger
-toHandle :: Handle -> Logger
-toStandardError :: Logger
-toStandardOut :: Logger
-logHandleAt :: Logger -> Level -> Handle -> IO ()
-logAt' :: Logger -> Level -> IO String -> IO ()
-logAt :: Logger -> Level -> String -> IO ()
-scope :: String -> Logger -> Logger
-scope' :: [String] -> Logger -> Logger
-logger :: (String -> IO ()) -> Logger
-error :: Logger -> String -> IO ()
-warn :: Logger -> String -> IO ()
-info :: Logger -> String -> IO ()
-debug :: Logger -> String -> IO ()
-trace :: Logger -> String -> IO ()
-error' :: Logger -> IO String -> IO ()
-warn' :: Logger -> IO String -> IO ()
-info' :: Logger -> IO String -> IO ()
-debug' :: Logger -> IO String -> IO ()
-trace' :: Logger -> IO String -> IO ()
-errorLevel :: Level
-warnLevel :: Level
-infoLevel :: Level
-debugLevel :: Level
-traceLevel :: Level
-at :: Level -> Logger -> Logger
-atError :: Logger -> Logger
-atWarn :: Logger -> Logger
-atInfo :: Logger -> Logger
-atDebug :: Logger -> Logger
-atTrace :: Logger -> Logger
-increment :: Logger -> Logger
-decrement :: Logger -> Logger
-
-module Unison.Util.Map
-
--- | Construct a map from a foldable container by mapping each element to
---   monadic action that returns a key and a value.
---   
---   The map is constructed from the left: if two elements map to the same
---   key, the second will overwrite the first.
-foldMapM :: (Ord k, Monad m, Foldable t) => (a -> m (k, v)) -> t a -> m (Map k v)
-unionWithM :: forall m k a. (Monad m, Ord k) => (a -> a -> m a) -> Map k a -> Map k a -> m (Map k a)
-
-
--- | A utility type for saving memory in the presence of many duplicate
---   ByteStrings, etc. If you have data that may be a redundant duplicate,
---   try pinning it to a pin board, and use the result of that operation
---   instead.
---   
---   Without a pin board:
---   
---   x ───── "38dce848c8c829c62" y ───── "38dce848c8c829c62" z ─────
---   "d2518f260535b927b"
---   
---   With a pin board:
---   
---   x ───── "38dce848c8c829c62" ┄┄┄┄┄┐ y ────────┘ board z ─────
---   "d2518f260535b927b" ┄┄┄┄┄┘
---   
---   ... and after x is garbage collected:
---   
---   "38dce848c8c829c62" ┄┄┄┄┄┐ y ────────┘ board z ─────
---   "d2518f260535b927b" ┄┄┄┄┄┘
---   
---   ... and after y is garbage collected:
---   
---   board z ───── "d2518f260535b927b" ┄┄┄┄┄┘
-module Unison.Util.PinBoard
-
--- | A "pin board" is a place to pin values; semantically, it's a set, but
---   differs in a few ways:
---   
---   <ul>
---   <li>Pinned values aren't kept alive by the pin board, they might be
---   garbage collected at any time.</li>
---   <li>If you try to pin a value that's already pinned (per its Eq
---   instance), the pinned one will be returned instead.</li>
---   <li>It has a small API: just <a>new</a> and <a>pin</a>.</li>
---   </ul>
-data PinBoard a
-new :: MonadIO m => m (PinBoard a)
-pin :: forall a m. (Eq a, Hashable a, MonadIO m) => PinBoard a -> a -> m a
-debugDump :: MonadIO m => (a -> Text) -> PinBoard a -> m ()
-debugSize :: PinBoard a -> IO Int
-
-module Unison.Util.Range
-
--- | True if <tt>_x</tt> contains <tt>_y</tt>
-contains :: Range -> Range -> Bool
-overlaps :: Range -> Range -> Bool
-inRange :: Pos -> Range -> Bool
-isMultiLine :: Range -> Bool
-data Range
-Range :: Pos -> Pos -> Range
-[start] :: Range -> Pos
-[end] :: Range -> Pos
-startingLine :: Range -> Range
-instance GHC.Show.Show Unison.Util.Range.Range
-instance GHC.Classes.Ord Unison.Util.Range.Range
-instance GHC.Classes.Eq Unison.Util.Range.Range
-instance GHC.Base.Semigroup Unison.Util.Range.Range
-
-module Unison.Util.AnnotatedText
-data Segment a
-Segment :: String -> Maybe a -> Segment a
-[segment] :: Segment a -> String
-[annotation] :: Segment a -> Maybe a
-toPair :: Segment a -> (String, Maybe a)
-newtype AnnotatedText a
-AnnotatedText :: Seq (Segment a) -> AnnotatedText a
-data AnnotatedExcerpt a
-AnnotatedExcerpt :: Line -> String -> Map Range a -> AnnotatedExcerpt a
-[lineOffset] :: AnnotatedExcerpt a -> Line
-[text] :: AnnotatedExcerpt a -> String
-[annotations] :: AnnotatedExcerpt a -> Map Range a
-annotate' :: Maybe b -> AnnotatedText a -> AnnotatedText b
-deannotate :: AnnotatedText a -> AnnotatedText b
-annotate :: a -> AnnotatedText a -> AnnotatedText a
-annotateMaybe :: AnnotatedText (Maybe a) -> AnnotatedText a
-trailingNewLine :: AnnotatedText a -> Bool
-markup :: AnnotatedExcerpt a -> Map Range a -> AnnotatedExcerpt a
-textLength :: AnnotatedText a -> Int
-textEmpty :: AnnotatedText a -> Bool
-condensedExcerptToText :: Int -> AnnotatedExcerpt a -> AnnotatedText a
-excerptToText :: forall a. AnnotatedExcerpt a -> AnnotatedText a
-snipWithContext :: Int -> AnnotatedExcerpt a -> [AnnotatedExcerpt a]
-instance GHC.Generics.Generic (Unison.Util.AnnotatedText.Segment a)
-instance Data.Foldable.Foldable Unison.Util.AnnotatedText.Segment
-instance GHC.Base.Functor Unison.Util.AnnotatedText.Segment
-instance GHC.Show.Show a => GHC.Show.Show (Unison.Util.AnnotatedText.Segment a)
-instance GHC.Classes.Eq a => GHC.Classes.Eq (Unison.Util.AnnotatedText.Segment a)
-instance GHC.Generics.Generic (Unison.Util.AnnotatedText.AnnotatedText a)
-instance GHC.Show.Show a => GHC.Show.Show (Unison.Util.AnnotatedText.AnnotatedText a)
-instance Data.Foldable.Foldable Unison.Util.AnnotatedText.AnnotatedText
-instance GHC.Base.Functor Unison.Util.AnnotatedText.AnnotatedText
-instance GHC.Classes.Eq a => GHC.Classes.Eq (Unison.Util.AnnotatedText.AnnotatedText a)
-instance GHC.Base.Functor Unison.Util.AnnotatedText.AnnotatedExcerpt
-instance Data.String.IsString (Unison.Util.AnnotatedText.AnnotatedExcerpt a)
-instance GHC.Base.Semigroup (Unison.Util.AnnotatedText.AnnotatedText a)
-instance GHC.Base.Monoid (Unison.Util.AnnotatedText.AnnotatedText a)
-instance Data.ListLike.FoldableLL.FoldableLL (Unison.Util.AnnotatedText.AnnotatedText a) GHC.Types.Char
-instance Data.ListLike.Base.ListLike (Unison.Util.AnnotatedText.AnnotatedText a) GHC.Types.Char
-instance Data.String.IsString (Unison.Util.AnnotatedText.AnnotatedText a)
-instance GHC.Exts.IsList (Unison.Util.AnnotatedText.AnnotatedText a)
-
 module Unison.Util.Star3
 data Star3 fact d1 d2 d3
 Star3 :: Set fact -> Relation fact d1 -> Relation fact d2 -> Relation fact d3 -> Star3 fact d1 d2 d3
@@ -1988,7 +2032,7 @@ isOne :: Branch m -> Bool
 before :: Monad m => Branch m -> Branch m -> m Bool
 lca :: Monad m => Branch m -> Branch m -> m (Maybe (Branch m))
 diff0 :: Monad m => Branch0 m -> Branch0 m -> m BranchDiff
-history :: forall m_a3DDg m_a3DQE. Iso (Branch m_a3DDg) (Branch m_a3DQE) (UnwrappedBranch m_a3DDg) (UnwrappedBranch m_a3DQE)
+history :: forall m_a3FyB m_a3FLZ. Iso (Branch m_a3FyB) (Branch m_a3FLZ) (UnwrappedBranch m_a3FyB) (UnwrappedBranch m_a3FLZ)
 head :: Branch m -> Branch0 m
 headHash :: Branch m -> Hash
 children :: Lens' (Branch0 m) (Map NameSegment (Branch m))
@@ -2023,7 +2067,7 @@ modifyAtM :: forall n m. Functor n => Applicative m => Path -> (Branch m -> n (B
 children0 :: IndexedTraversal' NameSegment (Branch0 m) (Branch0 m)
 terms :: Lens' (Branch0 m) (Star Referent NameSegment)
 types :: Lens' (Branch0 m) (Star Reference NameSegment)
-edits :: forall m_a3DDc. Lens' (Branch0 m_a3DDc) (Map NameSegment (EditHash, m_a3DDc Patch))
+edits :: forall m_a3Fyx. Lens' (Branch0 m_a3Fyx) (Map NameSegment (EditHash, m_a3Fyx Patch))
 deepReferents :: Branch0 m -> Set Referent
 deepTypeReferences :: Branch0 m -> Set Reference
 cachedRead :: forall m. MonadIO m => Cache m -> Deserialize m Raw Raw -> (EditHash -> m Patch) -> Hash -> m (Branch m)
@@ -2584,976 +2628,6 @@ instance GHC.Show.Show s => GHC.Show.Show (Unison.Util.Pretty.Pretty s)
 instance GHC.Base.Semigroup Unison.Util.Pretty.Delta
 instance GHC.Base.Monoid Unison.Util.Pretty.Delta
 
-module Unison.Runtime.ANF
-minimizeCyclesOrCrash :: Var v => Term v a -> Term v a
-pattern TVar :: Var v => v -> Term ANormalF v
-pattern TLit :: Var v => Lit -> Term ANormalF v
-pattern TApp :: Var v => Func v -> [v] -> Term ANormalF v
-pattern TApv :: Var v => v -> [v] -> Term ANormalF v
-pattern TCom :: Var v => Reference -> [v] -> Term ANormalF v
-pattern TCon :: Var v => Reference -> CTag -> [v] -> Term ANormalF v
-pattern TKon :: Var v => v -> [v] -> Term ANormalF v
-pattern TReq :: Var v => Reference -> CTag -> [v] -> Term ANormalF v
-pattern TPrm :: Var v => POp -> [v] -> Term ANormalF v
-pattern TFOp :: Var v => FOp -> [v] -> Term ANormalF v
-pattern THnd :: Var v => [Reference] -> v -> Term ANormalF v -> Term ANormalF v
-pattern TLet :: Var v => Direction Word16 -> v -> Mem -> Term ANormalF v -> Term ANormalF v -> Term ANormalF v
-pattern TLetD :: Var v => v -> Mem -> Term ANormalF v -> Term ANormalF v -> Term ANormalF v
-pattern TFrc :: Var v => v -> Term ANormalF v
-pattern TLets :: Var v => Direction Word16 -> [v] -> [Mem] -> Term ANormalF v -> Term ANormalF v -> Term ANormalF v
-pattern TName :: Var v => v -> Either Reference v -> [v] -> Term ANormalF v -> Term ANormalF v
-pattern TBind :: Var v => Cte v -> ANormal v -> ANormal v
-pattern TBinds :: Var v => [Cte v] -> ANormal v -> ANormal v
-pattern TShift :: Var v => Reference -> v -> Term ANormalF v -> Term ANormalF v
-pattern TMatch :: Var v => v -> Branched (Term ANormalF v) -> Term ANormalF v
-data CompileExn
-CE :: CallStack -> Pretty ColorText -> CompileExn
-internalBug :: HasCallStack => String -> a
-data Mem
-UN :: Mem
-BX :: Mem
-data Lit
-I :: Int64 -> Lit
-N :: Word64 -> Lit
-F :: Double -> Lit
-T :: Text -> Lit
-C :: Char -> Lit
-LM :: Referent -> Lit
-LY :: Reference -> Lit
-data Direction a
-Indirect :: a -> Direction a
-Direct :: Direction a
-data SuperNormal v
-Lambda :: [Mem] -> ANormal v -> SuperNormal v
-[conventions] :: SuperNormal v -> [Mem]
-[bound] :: SuperNormal v -> ANormal v
-data SuperGroup v
-Rec :: [(v, SuperNormal v)] -> SuperNormal v -> SuperGroup v
-[group] :: SuperGroup v -> [(v, SuperNormal v)]
-[entry] :: SuperGroup v -> SuperNormal v
-data POp
-ADDI :: POp
-SUBI :: POp
-MULI :: POp
-DIVI :: POp
-SGNI :: POp
-NEGI :: POp
-MODI :: POp
-POWI :: POp
-SHLI :: POp
-SHRI :: POp
-INCI :: POp
-DECI :: POp
-LEQI :: POp
-EQLI :: POp
-ADDN :: POp
-SUBN :: POp
-MULN :: POp
-DIVN :: POp
-MODN :: POp
-TZRO :: POp
-LZRO :: POp
-POPC :: POp
-POWN :: POp
-SHLN :: POp
-SHRN :: POp
-ANDN :: POp
-IORN :: POp
-XORN :: POp
-COMN :: POp
-INCN :: POp
-DECN :: POp
-LEQN :: POp
-EQLN :: POp
-ADDF :: POp
-SUBF :: POp
-MULF :: POp
-DIVF :: POp
-MINF :: POp
-MAXF :: POp
-LEQF :: POp
-EQLF :: POp
-POWF :: POp
-EXPF :: POp
-SQRT :: POp
-LOGF :: POp
-LOGB :: POp
-ABSF :: POp
-CEIL :: POp
-FLOR :: POp
-TRNF :: POp
-RNDF :: POp
-COSF :: POp
-ACOS :: POp
-COSH :: POp
-ACSH :: POp
-SINF :: POp
-ASIN :: POp
-SINH :: POp
-ASNH :: POp
-TANF :: POp
-ATAN :: POp
-TANH :: POp
-ATNH :: POp
-ATN2 :: POp
-CATT :: POp
-TAKT :: POp
-DRPT :: POp
-SIZT :: POp
-UCNS :: POp
-USNC :: POp
-EQLT :: POp
-LEQT :: POp
-PAKT :: POp
-UPKT :: POp
-CATS :: POp
-TAKS :: POp
-DRPS :: POp
-SIZS :: POp
-CONS :: POp
-SNOC :: POp
-IDXS :: POp
-BLDS :: POp
-VWLS :: POp
-VWRS :: POp
-SPLL :: POp
-SPLR :: POp
-PAKB :: POp
-UPKB :: POp
-TAKB :: POp
-DRPB :: POp
-IDXB :: POp
-SIZB :: POp
-FLTB :: POp
-CATB :: POp
-ITOF :: POp
-NTOF :: POp
-ITOT :: POp
-NTOT :: POp
-TTOI :: POp
-TTON :: POp
-TTOF :: POp
-FTOT :: POp
-FORK :: POp
-EQLU :: POp
-CMPU :: POp
-EROR :: POp
-MISS :: POp
-CACH :: POp
-LKUP :: POp
-LOAD :: POp
-CVLD :: POp
-VALU :: POp
-TLTT :: POp
-PRNT :: POp
-INFO :: POp
-ATOM :: POp
-type FOp = Word64
-close :: (Var v, Monoid a) => Set v -> Term v a -> Term v a
-saturate :: (Var v, Monoid a) => Map (Reference, Int) Int -> Term v a -> Term v a
-float :: (Var v, Monoid a) => Term v a -> (Term v a, [(v, Term v a)])
-lamLift :: (Var v, Monoid a) => Term v a -> (Term v a, [(v, Term v a)])
-inlineAlias :: Var v => Monoid a => Term v a -> Term v a
-addDefaultCases :: Var v => Monoid a => String -> Term v a -> Term v a
-data ANormalF v e
-ALet :: Direction Word16 -> [Mem] -> e -> e -> ANormalF v e
-AName :: Either Reference v -> [v] -> e -> ANormalF v e
-ALit :: Lit -> ANormalF v e
-AMatch :: v -> Branched e -> ANormalF v e
-AShift :: Reference -> e -> ANormalF v e
-AHnd :: [Reference] -> v -> e -> ANormalF v e
-AApp :: Func v -> [v] -> ANormalF v e
-AFrc :: v -> ANormalF v e
-AVar :: v -> ANormalF v e
-pattern AApv :: v -> [v] -> ANormalF v e
-pattern ACom :: Reference -> [v] -> ANormalF v e
-pattern ACon :: Reference -> CTag -> [v] -> ANormalF v e
-pattern AKon :: v -> [v] -> ANormalF v e
-pattern AReq :: Reference -> CTag -> [v] -> ANormalF v e
-pattern APrm :: POp -> [v] -> ANormalF v e
-pattern AFOp :: FOp -> [v] -> ANormalF v e
-type ANormal = Term ANormalF
-data RTag
-data CTag
-class Tag t
-rawTag :: Tag t => t -> Word64
-data GroupRef
-GR :: Reference -> Word64 -> GroupRef
-data Value
-Partial :: GroupRef -> [Word64] -> [Value] -> Value
-Data :: Reference -> Word64 -> [Word64] -> [Value] -> Value
-Cont :: [Word64] -> [Value] -> Cont -> Value
-BLit :: BLit -> Value
-data Cont
-KE :: Cont
-Mark :: [Reference] -> Map Reference Value -> Cont -> Cont
-Push :: Word64 -> Word64 -> Word64 -> Word64 -> GroupRef -> Cont -> Cont
-data BLit
-Text :: Text -> BLit
-List :: Seq Value -> BLit
-TmLink :: Referent -> BLit
-TyLink :: Reference -> BLit
-Bytes :: Bytes -> BLit
-packTags :: RTag -> CTag -> Word64
-unpackTags :: Word64 -> (RTag, CTag)
-maskTags :: Word64 -> Word64
-type ANFM v = ReaderT (Set v) (State (Word64, Word16, [(v, SuperNormal v)]))
-data Branched e
-MatchIntegral :: EnumMap Word64 e -> Maybe e -> Branched e
-MatchText :: Map Text e -> Maybe e -> Branched e
-MatchRequest :: Map Reference (EnumMap CTag ([Mem], e)) -> e -> Branched e
-MatchEmpty :: Branched e
-MatchData :: Reference -> EnumMap CTag ([Mem], e) -> Maybe e -> Branched e
-MatchSum :: EnumMap Word64 ([Mem], e) -> Branched e
-pattern MatchDataCover :: Reference -> EnumMap CTag ([Mem], e) -> Branched e
-data Func v
-FVar :: v -> Func v
-FComb :: !Reference -> Func v
-FCont :: v -> Func v
-FCon :: !Reference -> !CTag -> Func v
-FReq :: !Reference -> !CTag -> Func v
-FPrim :: Either POp FOp -> Func v
-superNormalize :: Var v => Term v a -> SuperGroup v
-anfTerm :: Var v => Term v a -> ANFM v (DNormal v)
-valueTermLinks :: Value -> [Reference]
-valueLinks :: Monoid a => (Bool -> Reference -> a) -> Value -> a
-groupTermLinks :: SuperGroup v -> [Reference]
-groupLinks :: Monoid a => (Bool -> Reference -> a) -> SuperGroup v -> a
-normalLinks :: Monoid a => (Bool -> Reference -> a) -> SuperNormal v -> a
-prettyGroup :: Var v => String -> SuperGroup v -> ShowS
-instance GHC.Show.Show Unison.Runtime.ANF.CompileExn
-instance GHC.Enum.Enum Unison.Runtime.ANF.Mem
-instance GHC.Show.Show Unison.Runtime.ANF.Mem
-instance GHC.Classes.Ord Unison.Runtime.ANF.Mem
-instance GHC.Classes.Eq Unison.Runtime.ANF.Mem
-instance Unison.Util.EnumContainers.EnumKey Unison.Runtime.ANF.RTag
-instance GHC.Read.Read Unison.Runtime.ANF.RTag
-instance GHC.Show.Show Unison.Runtime.ANF.RTag
-instance GHC.Classes.Ord Unison.Runtime.ANF.RTag
-instance GHC.Classes.Eq Unison.Runtime.ANF.RTag
-instance Unison.Util.EnumContainers.EnumKey Unison.Runtime.ANF.CTag
-instance GHC.Read.Read Unison.Runtime.ANF.CTag
-instance GHC.Show.Show Unison.Runtime.ANF.CTag
-instance GHC.Classes.Ord Unison.Runtime.ANF.CTag
-instance GHC.Classes.Eq Unison.Runtime.ANF.CTag
-instance GHC.Show.Show Unison.Runtime.ANF.SeqEnd
-instance GHC.Enum.Enum Unison.Runtime.ANF.SeqEnd
-instance GHC.Classes.Ord Unison.Runtime.ANF.SeqEnd
-instance GHC.Classes.Eq Unison.Runtime.ANF.SeqEnd
-instance Data.Traversable.Traversable Unison.Runtime.ANF.Branched
-instance Data.Foldable.Foldable Unison.Runtime.ANF.Branched
-instance GHC.Base.Functor Unison.Runtime.ANF.Branched
-instance GHC.Show.Show e => GHC.Show.Show (Unison.Runtime.ANF.Branched e)
-instance GHC.Show.Show Unison.Runtime.ANF.Lit
-instance GHC.Classes.Ord Unison.Runtime.ANF.POp
-instance GHC.Classes.Eq Unison.Runtime.ANF.POp
-instance GHC.Show.Show Unison.Runtime.ANF.POp
-instance Data.Traversable.Traversable Unison.Runtime.ANF.Func
-instance Data.Foldable.Foldable Unison.Runtime.ANF.Func
-instance GHC.Base.Functor Unison.Runtime.ANF.Func
-instance GHC.Show.Show v => GHC.Show.Show (Unison.Runtime.ANF.Func v)
-instance Data.Traversable.Traversable Unison.Runtime.ANF.Direction
-instance Data.Foldable.Foldable Unison.Runtime.ANF.Direction
-instance GHC.Base.Functor Unison.Runtime.ANF.Direction
-instance GHC.Show.Show a => GHC.Show.Show (Unison.Runtime.ANF.Direction a)
-instance GHC.Classes.Ord a => GHC.Classes.Ord (Unison.Runtime.ANF.Direction a)
-instance GHC.Classes.Eq a => GHC.Classes.Eq (Unison.Runtime.ANF.Direction a)
-instance (GHC.Show.Show e, GHC.Show.Show v) => GHC.Show.Show (Unison.Runtime.ANF.ANormalF v e)
-instance (GHC.Show.Show v, GHC.Show.Show s) => GHC.Show.Show (Unison.Runtime.ANF.CTE v s)
-instance GHC.Show.Show v => GHC.Show.Show (Unison.Runtime.ANF.SuperNormal v)
-instance GHC.Show.Show v => GHC.Show.Show (Unison.Runtime.ANF.SuperGroup v)
-instance GHC.Show.Show Unison.Runtime.ANF.GroupRef
-instance GHC.Show.Show Unison.Runtime.ANF.Cont
-instance GHC.Show.Show Unison.Runtime.ANF.Value
-instance GHC.Show.Show Unison.Runtime.ANF.BLit
-instance GHC.Base.Semigroup (Unison.Runtime.ANF.BranchAccum v)
-instance GHC.Base.Monoid (Unison.Runtime.ANF.BranchAccum e)
-instance GHC.Base.Functor (Unison.Runtime.ANF.ANormalF v)
-instance Data.Bifunctor.Bifunctor Unison.Runtime.ANF.ANormalF
-instance Data.Bifoldable.Bifoldable Unison.Runtime.ANF.ANormalF
-instance GHC.Base.Semigroup a => GHC.Base.Semigroup (Unison.Runtime.ANF.Direction a)
-instance GHC.Base.Semigroup a => GHC.Base.Monoid (Unison.Runtime.ANF.Direction a)
-instance Unison.Runtime.ANF.Tag Unison.Runtime.ANF.RTag
-instance Unison.Runtime.ANF.Tag Unison.Runtime.ANF.CTag
-instance GHC.Enum.Enum Unison.Runtime.ANF.CTag
-instance GHC.Num.Num Unison.Runtime.ANF.CTag
-instance GHC.Enum.Enum Unison.Runtime.ANF.RTag
-instance GHC.Num.Num Unison.Runtime.ANF.RTag
-instance GHC.Exception.Type.Exception Unison.Runtime.ANF.CompileExn
-
-module Unison.Runtime.Pattern
-type DataSpec = Map Reference (Either Cons Cons)
-splitPatterns :: Var v => DataSpec -> Term v -> Term v
-builtinDataSpec :: DataSpec
-instance GHC.Show.Show v => GHC.Show.Show (Unison.Runtime.Pattern.PatternRow v)
-instance GHC.Show.Show v => GHC.Show.Show (Unison.Runtime.Pattern.PatternMatrix v)
-instance GHC.Show.Show Unison.Runtime.Pattern.SeqMatch
-instance GHC.Classes.Ord Unison.Runtime.Pattern.SeqMatch
-instance GHC.Classes.Eq Unison.Runtime.Pattern.SeqMatch
-instance GHC.Base.Semigroup Unison.Runtime.Pattern.PType
-instance GHC.Base.Monoid Unison.Runtime.Pattern.PType
-
-module Unison.Runtime.MCode
-data Args'
-Arg1 :: !Int -> Args'
-Arg2 :: !Int -> !Int -> Args'
-ArgN :: {-# UNPACK #-} !PrimArray Int -> Args'
-ArgR :: !Int -> !Int -> Args'
-data Args
-ZArgs :: Args
-UArg1 :: !Int -> Args
-UArg2 :: !Int -> !Int -> Args
-BArg1 :: !Int -> Args
-BArg2 :: !Int -> !Int -> Args
-DArg2 :: !Int -> !Int -> Args
-UArgR :: !Int -> !Int -> Args
-BArgR :: !Int -> !Int -> Args
-DArgR :: !Int -> !Int -> !Int -> !Int -> Args
-BArgN :: !PrimArray Int -> Args
-UArgN :: !PrimArray Int -> Args
-DArgN :: !PrimArray Int -> !PrimArray Int -> Args
-DArgV :: !Int -> !Int -> Args
-data RefNums
-RN :: (Reference -> Word64) -> (Reference -> Word64) -> RefNums
-[dnum] :: RefNums -> Reference -> Word64
-[cnum] :: RefNums -> Reference -> Word64
-data MLit
-MI :: !Int -> MLit
-MD :: !Double -> MLit
-MT :: !Text -> MLit
-MM :: !Referent -> MLit
-MY :: !Reference -> MLit
-data Instr
-UPrim1 :: !UPrim1 -> !Int -> Instr
-UPrim2 :: !UPrim2 -> !Int -> !Int -> Instr
-BPrim1 :: !BPrim1 -> !Int -> Instr
-BPrim2 :: !BPrim2 -> !Int -> !Int -> Instr
-ForeignCall :: !Bool -> !Word64 -> !Args -> Instr
-SetDyn :: !Word64 -> !Int -> Instr
-Capture :: !Word64 -> Instr
-Name :: !Ref -> !Args -> Instr
-Info :: !String -> Instr
-Pack :: !Reference -> !Word64 -> !Args -> Instr
-Unpack :: !Maybe Reference -> !Int -> Instr
-Lit :: !MLit -> Instr
-Print :: !Int -> Instr
-Reset :: !EnumSet Word64 -> Instr
-Fork :: !Int -> Instr
-Atomically :: !Int -> Instr
-Seq :: !Args -> Instr
-data Section
-App :: !Bool -> !Ref -> !Args -> Section
-Call :: !Bool -> !Word64 -> !Args -> Section
-Jump :: !Int -> !Args -> Section
-Match :: !Int -> !Branch -> Section
-Yield :: !Args -> Section
-Ins :: !Instr -> !Section -> Section
-Let :: !Section -> !CombIx -> Section
-Die :: String -> Section
-Exit :: Section
-pattern MatchT :: Int -> Section -> Map Text Section -> Section
-pattern MatchW :: Int -> Section -> EnumMap Word64 Section -> Section
-data Comb
-Lam :: !Int -> !Int -> !Int -> !Int -> !Section -> Comb
-type Combs = EnumMap Word64 Comb
-data CombIx
-CIx :: !Reference -> !Word64 -> !Word64 -> CombIx
-data Ref
-Stk :: !Int -> Ref
-Env :: !Word64 -> !Word64 -> Ref
-Dyn :: !Word64 -> Ref
-data UPrim1
-DECI :: UPrim1
-INCI :: UPrim1
-NEGI :: UPrim1
-SGNI :: UPrim1
-LZRO :: UPrim1
-TZRO :: UPrim1
-COMN :: UPrim1
-POPC :: UPrim1
-ABSF :: UPrim1
-EXPF :: UPrim1
-LOGF :: UPrim1
-SQRT :: UPrim1
-COSF :: UPrim1
-ACOS :: UPrim1
-COSH :: UPrim1
-ACSH :: UPrim1
-SINF :: UPrim1
-ASIN :: UPrim1
-SINH :: UPrim1
-ASNH :: UPrim1
-TANF :: UPrim1
-ATAN :: UPrim1
-TANH :: UPrim1
-ATNH :: UPrim1
-ITOF :: UPrim1
-NTOF :: UPrim1
-CEIL :: UPrim1
-FLOR :: UPrim1
-TRNF :: UPrim1
-RNDF :: UPrim1
-data UPrim2
-ADDI :: UPrim2
-SUBI :: UPrim2
-MULI :: UPrim2
-DIVI :: UPrim2
-MODI :: UPrim2
-DIVN :: UPrim2
-MODN :: UPrim2
-SHLI :: UPrim2
-SHRI :: UPrim2
-SHRN :: UPrim2
-POWI :: UPrim2
-EQLI :: UPrim2
-LEQI :: UPrim2
-LEQN :: UPrim2
-ANDN :: UPrim2
-IORN :: UPrim2
-XORN :: UPrim2
-EQLF :: UPrim2
-LEQF :: UPrim2
-ADDF :: UPrim2
-SUBF :: UPrim2
-MULF :: UPrim2
-DIVF :: UPrim2
-ATN2 :: UPrim2
-POWF :: UPrim2
-LOGB :: UPrim2
-MAXF :: UPrim2
-MINF :: UPrim2
-data BPrim1
-SIZT :: BPrim1
-USNC :: BPrim1
-UCNS :: BPrim1
-ITOT :: BPrim1
-NTOT :: BPrim1
-FTOT :: BPrim1
-TTOI :: BPrim1
-TTON :: BPrim1
-TTOF :: BPrim1
-PAKT :: BPrim1
-UPKT :: BPrim1
-VWLS :: BPrim1
-VWRS :: BPrim1
-SIZS :: BPrim1
-PAKB :: BPrim1
-UPKB :: BPrim1
-SIZB :: BPrim1
-FLTB :: BPrim1
-MISS :: BPrim1
-CACH :: BPrim1
-LKUP :: BPrim1
-LOAD :: BPrim1
-CVLD :: BPrim1
-VALU :: BPrim1
-TLTT :: BPrim1
-data BPrim2
-EQLU :: BPrim2
-CMPU :: BPrim2
-DRPT :: BPrim2
-CATT :: BPrim2
-TAKT :: BPrim2
-EQLT :: BPrim2
-LEQT :: BPrim2
-LEST :: BPrim2
-DRPS :: BPrim2
-CATS :: BPrim2
-TAKS :: BPrim2
-CONS :: BPrim2
-SNOC :: BPrim2
-IDXS :: BPrim2
-SPLL :: BPrim2
-SPLR :: BPrim2
-TAKB :: BPrim2
-DRPB :: BPrim2
-IDXB :: BPrim2
-CATB :: BPrim2
-THRO :: BPrim2
-data Branch
-Test1 :: !Word64 -> !Section -> !Section -> Branch
-Test2 :: !Word64 -> !Section -> !Word64 -> !Section -> !Section -> Branch
-TestW :: !Section -> !EnumMap Word64 Section -> Branch
-TestT :: !Section -> !Map Text Section -> Branch
-bcount :: Args -> Int
-ucount :: Args -> Int
-emitCombs :: Var v => RefNums -> Word64 -> SuperGroup v -> EnumMap Word64 Comb
-emitComb :: Var v => RefNums -> Word64 -> RCtx v -> (Word64, SuperNormal v) -> EnumMap Word64 Comb
-emptyRNs :: RefNums
-argsToLists :: Args -> ([Int], [Int])
-combDeps :: Comb -> [Word64]
-combTypes :: Comb -> [Word64]
-prettyCombs :: Word64 -> EnumMap Word64 Comb -> ShowS
-prettyComb :: Word64 -> Word64 -> Comb -> ShowS
-instance GHC.Show.Show Unison.Runtime.MCode.Args'
-instance GHC.Classes.Ord Unison.Runtime.MCode.Args
-instance GHC.Classes.Eq Unison.Runtime.MCode.Args
-instance GHC.Show.Show Unison.Runtime.MCode.Args
-instance GHC.Classes.Ord Unison.Runtime.MCode.UPrim1
-instance GHC.Classes.Eq Unison.Runtime.MCode.UPrim1
-instance GHC.Show.Show Unison.Runtime.MCode.UPrim1
-instance GHC.Classes.Ord Unison.Runtime.MCode.UPrim2
-instance GHC.Classes.Eq Unison.Runtime.MCode.UPrim2
-instance GHC.Show.Show Unison.Runtime.MCode.UPrim2
-instance GHC.Classes.Ord Unison.Runtime.MCode.BPrim1
-instance GHC.Classes.Eq Unison.Runtime.MCode.BPrim1
-instance GHC.Show.Show Unison.Runtime.MCode.BPrim1
-instance GHC.Classes.Ord Unison.Runtime.MCode.BPrim2
-instance GHC.Classes.Eq Unison.Runtime.MCode.BPrim2
-instance GHC.Show.Show Unison.Runtime.MCode.BPrim2
-instance GHC.Classes.Ord Unison.Runtime.MCode.MLit
-instance GHC.Classes.Eq Unison.Runtime.MCode.MLit
-instance GHC.Show.Show Unison.Runtime.MCode.MLit
-instance GHC.Show.Show Unison.Runtime.MCode.CombIx
-instance GHC.Classes.Ord Unison.Runtime.MCode.CombIx
-instance GHC.Classes.Eq Unison.Runtime.MCode.CombIx
-instance GHC.Classes.Ord Unison.Runtime.MCode.Ref
-instance GHC.Classes.Eq Unison.Runtime.MCode.Ref
-instance GHC.Show.Show Unison.Runtime.MCode.Ref
-instance GHC.Classes.Ord Unison.Runtime.MCode.Instr
-instance GHC.Classes.Eq Unison.Runtime.MCode.Instr
-instance GHC.Show.Show Unison.Runtime.MCode.Instr
-instance GHC.Classes.Ord Unison.Runtime.MCode.Section
-instance GHC.Classes.Eq Unison.Runtime.MCode.Section
-instance GHC.Show.Show Unison.Runtime.MCode.Section
-instance GHC.Classes.Ord Unison.Runtime.MCode.Branch
-instance GHC.Classes.Eq Unison.Runtime.MCode.Branch
-instance GHC.Show.Show Unison.Runtime.MCode.Branch
-instance GHC.Classes.Ord Unison.Runtime.MCode.Comb
-instance GHC.Classes.Eq Unison.Runtime.MCode.Comb
-instance GHC.Show.Show Unison.Runtime.MCode.Comb
-instance GHC.Show.Show v => GHC.Show.Show (Unison.Runtime.MCode.Ctx v)
-instance GHC.Base.Functor Unison.Runtime.MCode.Counted
-instance GHC.Base.Functor Unison.Runtime.MCode.Emit
-instance GHC.Base.Applicative Unison.Runtime.MCode.Emit
-instance GHC.Base.Applicative Unison.Runtime.MCode.Counted
-
-module Unison.Runtime.Foreign
-data Foreign
-[Wrap] :: Reference -> !e -> Foreign
-data HashAlgorithm
-[HashAlgorithm] :: HashAlgorithm a => Reference -> a -> HashAlgorithm
-unwrapForeign :: Foreign -> a
-maybeUnwrapForeign :: Reference -> Foreign -> Maybe a
-wrapBuiltin :: forall f. BuiltinForeign f => f -> Foreign
-maybeUnwrapBuiltin :: forall f. BuiltinForeign f => Foreign -> Maybe f
-unwrapBuiltin :: BuiltinForeign f => Foreign -> f
-class BuiltinForeign f
-foreignRef :: BuiltinForeign f => Tagged f Reference
-newtype Tls
-Tls :: Context -> Tls
-data Failure a
-Failure :: Reference -> Text -> a -> Failure a
-instance Unison.Runtime.Foreign.BuiltinForeign Unison.Runtime.Foreign.HashAlgorithm
-instance Unison.Runtime.Foreign.BuiltinForeign Data.Text.Internal.Text
-instance Unison.Runtime.Foreign.BuiltinForeign Unison.Util.Bytes.Bytes
-instance Unison.Runtime.Foreign.BuiltinForeign GHC.IO.Handle.Types.Handle
-instance Unison.Runtime.Foreign.BuiltinForeign Network.Socket.Types.Socket
-instance Unison.Runtime.Foreign.BuiltinForeign GHC.Conc.Sync.ThreadId
-instance Unison.Runtime.Foreign.BuiltinForeign Network.TLS.Parameters.ClientParams
-instance Unison.Runtime.Foreign.BuiltinForeign Network.TLS.Parameters.ServerParams
-instance Unison.Runtime.Foreign.BuiltinForeign Data.X509.SignedCertificate
-instance Unison.Runtime.Foreign.BuiltinForeign Data.X509.PrivateKey.PrivKey
-instance Unison.Runtime.Foreign.BuiltinForeign GHC.IO.FilePath
-instance Unison.Runtime.Foreign.BuiltinForeign Network.TLS.Context.Internal.Context
-instance Unison.Runtime.Foreign.BuiltinForeign (Unison.Runtime.ANF.SuperGroup Unison.Symbol.Symbol)
-instance Unison.Runtime.Foreign.BuiltinForeign Unison.Runtime.ANF.Value
-instance GHC.Classes.Eq Unison.Runtime.Foreign.Foreign
-instance GHC.Classes.Ord Unison.Runtime.Foreign.Foreign
-instance GHC.Show.Show Unison.Runtime.Foreign.Foreign
-
-module Unison.Runtime.Stack
-data K
-KE :: K
-CB :: Callback -> K
-Mark :: !EnumSet Word64 -> !EnumMap Word64 Closure -> !K -> K
-Push :: !Int -> !Int -> !Int -> !Int -> !CombIx -> !K -> K
-data Closure
-PAp :: {-# UNPACK #-} !CombIx -> {-# UNPACK #-} !Seg 'UN -> !Seg 'BX -> Closure
-Enum :: !Reference -> !Word64 -> Closure
-DataU1 :: !Reference -> !Word64 -> !Int -> Closure
-DataU2 :: !Reference -> !Word64 -> !Int -> !Int -> Closure
-DataB1 :: !Reference -> !Word64 -> !Closure -> Closure
-DataB2 :: !Reference -> !Word64 -> !Closure -> !Closure -> Closure
-DataUB :: !Reference -> !Word64 -> !Int -> !Closure -> Closure
-DataG :: !Reference -> !Word64 -> !Seg 'UN -> !Seg 'BX -> Closure
-Captured :: !K -> {-# UNPACK #-} !Seg 'UN -> !Seg 'BX -> Closure
-Foreign :: !Foreign -> Closure
-BlackHole :: Closure
-pattern DataC :: Reference -> Word64 -> [Int] -> [Closure] -> Closure
-pattern PApV :: CombIx -> [Int] -> [Closure] -> Closure
-pattern CapV :: K -> [Int] -> [Closure] -> Closure
-newtype Callback
-Hook :: (Stack 'UN -> Stack 'BX -> IO ()) -> Callback
-data Augment
-I :: Augment
-K :: Augment
-C :: Augment
-data Dump
-A :: Dump
-F :: Int -> Dump
-S :: Dump
-class MEM (b :: Mem) where {
-    data family Stack b :: *;
-    type family Elem b :: *;
-    type family Seg b :: *;
-}
-alloc :: MEM b => IO (Stack b)
-peek :: MEM b => Stack b -> IO (Elem b)
-peekOff :: MEM b => Stack b -> Off -> IO (Elem b)
-poke :: MEM b => Stack b -> Elem b -> IO ()
-pokeOff :: MEM b => Stack b -> Off -> Elem b -> IO ()
-grab :: MEM b => Stack b -> SZ -> IO (Seg b, Stack b)
-ensure :: MEM b => Stack b -> SZ -> IO (Stack b)
-bump :: MEM b => Stack b -> IO (Stack b)
-bumpn :: MEM b => Stack b -> SZ -> IO (Stack b)
-duplicate :: MEM b => Stack b -> IO (Stack b)
-discardFrame :: MEM b => Stack b -> IO (Stack b)
-saveFrame :: MEM b => Stack b -> IO (Stack b, SZ, SZ)
-restoreFrame :: MEM b => Stack b -> SZ -> SZ -> IO (Stack b)
-prepareArgs :: MEM b => Stack b -> Args' -> IO (Stack b)
-acceptArgs :: MEM b => Stack b -> Int -> IO (Stack b)
-frameArgs :: MEM b => Stack b -> IO (Stack b)
-augSeg :: MEM b => Augment -> Stack b -> Seg b -> Maybe Args' -> IO (Seg b)
-dumpSeg :: MEM b => Stack b -> Seg b -> Dump -> IO (Stack b)
-fsize :: MEM b => Stack b -> SZ
-asize :: MEM b => Stack b -> SZ
-type Off = Int
-type SZ = Int
-type FP = Int
-marshalToForeign :: HasCallStack => Closure -> Foreign
-unull :: Seg 'UN
-bnull :: Seg 'BX
-peekD :: Stack 'UN -> IO Double
-peekOffD :: Stack 'UN -> Int -> IO Double
-pokeD :: Stack 'UN -> Double -> IO ()
-pokeOffD :: Stack 'UN -> Int -> Double -> IO ()
-peekN :: Stack 'UN -> IO Word64
-peekOffN :: Stack 'UN -> Int -> IO Word64
-pokeN :: Stack 'UN -> Word64 -> IO ()
-pokeOffN :: Stack 'UN -> Int -> Word64 -> IO ()
-peekBi :: BuiltinForeign b => Stack 'BX -> IO b
-peekOffBi :: BuiltinForeign b => Stack 'BX -> Int -> IO b
-pokeBi :: BuiltinForeign b => Stack 'BX -> b -> IO ()
-pokeOffBi :: BuiltinForeign b => Stack 'BX -> Int -> b -> IO ()
-peekOffS :: Stack 'BX -> Int -> IO (Seq Closure)
-pokeS :: Stack 'BX -> Seq Closure -> IO ()
-pokeOffS :: Stack 'BX -> Int -> Seq Closure -> IO ()
-frameView :: MEM b => Show (Elem b) => Stack b -> IO ()
-uscount :: Seg 'UN -> Int
-bscount :: Seg 'BX -> Int
-instance GHC.Classes.Ord Unison.Runtime.Stack.Closure
-instance GHC.Classes.Eq Unison.Runtime.Stack.Closure
-instance GHC.Show.Show Unison.Runtime.Stack.Closure
-instance GHC.Classes.Ord Unison.Runtime.Stack.K
-instance GHC.Classes.Eq Unison.Runtime.Stack.K
-instance GHC.Show.Show Unison.Runtime.Stack.K
-instance Unison.Runtime.Stack.MEM 'Unison.Runtime.ANF.BX
-instance GHC.Classes.Eq Unison.Runtime.Stack.Callback
-instance GHC.Classes.Ord Unison.Runtime.Stack.Callback
-instance Unison.Runtime.Stack.MEM 'Unison.Runtime.ANF.UN
-instance GHC.Show.Show (Unison.Runtime.Stack.Stack 'Unison.Runtime.ANF.BX)
-instance GHC.Show.Show (Unison.Runtime.Stack.Stack 'Unison.Runtime.ANF.UN)
-
-module Unison.Runtime.Exception
-data RuntimeExn
-PE :: CallStack -> Pretty ColorText -> RuntimeExn
-BU :: Text -> Closure -> RuntimeExn
-die :: HasCallStack => String -> IO a
-exn :: HasCallStack => String -> a
-instance GHC.Show.Show Unison.Runtime.Exception.RuntimeExn
-instance GHC.Exception.Type.Exception Unison.Runtime.Exception.RuntimeExn
-
-module Unison.Runtime.Serialize
-unknownTag :: MonadGet m => String -> Word8 -> m a
-class Tag t
-tag2word :: Tag t => t -> Word8
-word2tag :: (Tag t, MonadGet m) => Word8 -> m t
-putTag :: MonadPut m => Tag t => t -> m ()
-getTag :: MonadGet m => Tag t => m t
-putChar :: MonadPut m => Char -> m ()
-getChar :: MonadGet m => m Char
-putFloat :: MonadPut m => Double -> m ()
-getFloat :: MonadGet m => m Double
-putNat :: MonadPut m => Word64 -> m ()
-getNat :: MonadGet m => m Word64
-putInt :: MonadPut m => Int64 -> m ()
-getInt :: MonadGet m => m Int64
-putLength :: (MonadPut m, Integral n, Integral (Unsigned n), Bits n, Bits (Unsigned n)) => n -> m ()
-getLength :: (MonadGet m, Integral n, Integral (Unsigned n), Bits n, Bits (Unsigned n)) => m n
-putFoldable :: (Foldable f, MonadPut m) => (a -> m ()) -> f a -> m ()
-putMap :: MonadPut m => (a -> m ()) -> (b -> m ()) -> Map a b -> m ()
-getList :: MonadGet m => m a -> m [a]
-getMap :: (MonadGet m, Ord a) => m a -> m b -> m (Map a b)
-putEnumMap :: MonadPut m => EnumKey k => (k -> m ()) -> (v -> m ()) -> EnumMap k v -> m ()
-getEnumMap :: MonadGet m => EnumKey k => m k -> m v -> m (EnumMap k v)
-putEnumSet :: MonadPut m => EnumKey k => (k -> m ()) -> EnumSet k -> m ()
-getEnumSet :: MonadGet m => EnumKey k => m k -> m (EnumSet k)
-putMaybe :: MonadPut m => Maybe a -> (a -> m ()) -> m ()
-getMaybe :: MonadGet m => m a -> m (Maybe a)
-putPair :: MonadPut m => (a -> m ()) -> (b -> m ()) -> (a, b) -> m ()
-getPair :: MonadGet m => m a -> m b -> m (a, b)
-getBytes :: MonadGet m => m Bytes
-putBytes :: MonadPut m => Bytes -> m ()
-getBlock :: MonadGet m => m (View (Block Word8))
-putBlock :: MonadPut m => View (Block Word8) -> m ()
-putHash :: MonadPut m => Hash -> m ()
-getHash :: MonadGet m => m Hash
-putReferent :: MonadPut m => Referent -> m ()
-getReferent :: MonadGet m => m Referent
-getConstructorType :: MonadGet m => m ConstructorType
-putConstructorType :: MonadPut m => ConstructorType -> m ()
-putText :: MonadPut m => Text -> m ()
-getText :: MonadGet m => m Text
-putReference :: MonadPut m => Reference -> m ()
-getReference :: MonadGet m => m Reference
-instance Unison.Runtime.Serialize.Tag Unison.Runtime.MCode.UPrim1
-instance Unison.Runtime.Serialize.Tag Unison.Runtime.MCode.UPrim2
-instance Unison.Runtime.Serialize.Tag Unison.Runtime.MCode.BPrim1
-instance Unison.Runtime.Serialize.Tag Unison.Runtime.MCode.BPrim2
-
-module Unison.Runtime.MCode.Serialize
-putComb :: MonadPut m => Comb -> m ()
-getComb :: MonadGet m => m Comb
-instance Unison.Runtime.Serialize.Tag Unison.Runtime.MCode.Serialize.BranchT
-instance Unison.Runtime.Serialize.Tag Unison.Runtime.MCode.Serialize.MLitT
-instance Unison.Runtime.Serialize.Tag Unison.Runtime.MCode.Serialize.RefT
-instance Unison.Runtime.Serialize.Tag Unison.Runtime.MCode.Serialize.ArgsT
-instance Unison.Runtime.Serialize.Tag Unison.Runtime.MCode.Serialize.InstrT
-instance Unison.Runtime.Serialize.Tag Unison.Runtime.MCode.Serialize.SectionT
-
-module Unison.Runtime.Foreign.Function
-data ForeignFunc
-[FF] :: (Stack 'UN -> Stack 'BX -> Args -> IO a) -> (Stack 'UN -> Stack 'BX -> r -> IO (Stack 'UN, Stack 'BX)) -> (a -> IO r) -> ForeignFunc
-class ForeignConvention a
-readForeign :: ForeignConvention a => [Int] -> [Int] -> Stack 'UN -> Stack 'BX -> IO ([Int], [Int], a)
-writeForeign :: ForeignConvention a => Stack 'UN -> Stack 'BX -> a -> IO (Stack 'UN, Stack 'BX)
-mkForeign :: (ForeignConvention a, ForeignConvention r) => (a -> IO r) -> ForeignFunc
-instance Unison.Runtime.Foreign.Function.ForeignConvention GHC.Types.Int
-instance Unison.Runtime.Foreign.Function.ForeignConvention GHC.Word.Word64
-instance Unison.Runtime.Foreign.Function.ForeignConvention GHC.Types.Char
-instance Unison.Runtime.Foreign.Function.ForeignConvention Unison.Runtime.Stack.Closure
-instance Unison.Runtime.Foreign.Function.ForeignConvention Data.Text.Internal.Text
-instance Unison.Runtime.Foreign.Function.ForeignConvention Unison.Util.Bytes.Bytes
-instance Unison.Runtime.Foreign.Function.ForeignConvention Network.Socket.Types.Socket
-instance Unison.Runtime.Foreign.Function.ForeignConvention GHC.Conc.Sync.ThreadId
-instance Unison.Runtime.Foreign.Function.ForeignConvention GHC.IO.Handle.Types.Handle
-instance Unison.Runtime.Foreign.Function.ForeignConvention Data.Time.Clock.Internal.POSIXTime.POSIXTime
-instance Unison.Runtime.Foreign.Function.ForeignConvention a => Unison.Runtime.Foreign.Function.ForeignConvention (GHC.Maybe.Maybe a)
-instance (Unison.Runtime.Foreign.Function.ForeignConvention a, Unison.Runtime.Foreign.Function.ForeignConvention b) => Unison.Runtime.Foreign.Function.ForeignConvention (Data.Either.Either a b)
-instance Unison.Runtime.Foreign.Function.ForeignConvention GHC.IO.Exception.IOException
-instance Unison.Runtime.Foreign.Function.ForeignConvention GHC.Types.Double
-instance Unison.Runtime.Foreign.Function.ForeignConvention GHC.Types.Bool
-instance Unison.Runtime.Foreign.Function.ForeignConvention GHC.Base.String
-instance Unison.Runtime.Foreign.Function.ForeignConvention GHC.IO.Device.SeekMode
-instance Unison.Runtime.Foreign.Function.ForeignConvention GHC.IO.IOMode.IOMode
-instance Unison.Runtime.Foreign.Function.ForeignConvention ()
-instance (Unison.Runtime.Foreign.Function.ForeignConvention a, Unison.Runtime.Foreign.Function.ForeignConvention b) => Unison.Runtime.Foreign.Function.ForeignConvention (a, b)
-instance Unison.Runtime.Foreign.Function.ForeignConvention a => Unison.Runtime.Foreign.Function.ForeignConvention (Unison.Runtime.Foreign.Failure a)
-instance (Unison.Runtime.Foreign.Function.ForeignConvention a, Unison.Runtime.Foreign.Function.ForeignConvention b, Unison.Runtime.Foreign.Function.ForeignConvention c) => Unison.Runtime.Foreign.Function.ForeignConvention (a, b, c)
-instance Unison.Runtime.Foreign.Function.ForeignConvention GHC.IO.Handle.Types.BufferMode
-instance Unison.Runtime.Foreign.Function.ForeignConvention [Unison.Runtime.Stack.Closure]
-instance Unison.Runtime.Foreign.Function.ForeignConvention [Unison.Runtime.Foreign.Foreign]
-instance Unison.Runtime.Foreign.Function.ForeignConvention (GHC.MVar.MVar Unison.Runtime.Stack.Closure)
-instance Unison.Runtime.Foreign.Function.ForeignConvention (GHC.Conc.Sync.TVar Unison.Runtime.Stack.Closure)
-instance Unison.Runtime.Foreign.Function.ForeignConvention (GHC.IORef.IORef Unison.Runtime.Stack.Closure)
-instance Unison.Runtime.Foreign.Function.ForeignConvention (Unison.Runtime.ANF.SuperGroup Unison.Symbol.Symbol)
-instance Unison.Runtime.Foreign.Function.ForeignConvention Unison.Runtime.ANF.Value
-instance Unison.Runtime.Foreign.Function.ForeignConvention Unison.Runtime.Foreign.Foreign
-instance Unison.Runtime.Foreign.BuiltinForeign b => Unison.Runtime.Foreign.Function.ForeignConvention b
-instance Unison.Runtime.Foreign.BuiltinForeign b => Unison.Runtime.Foreign.Function.ForeignConvention [b]
-instance GHC.Show.Show Unison.Runtime.Foreign.Function.ForeignFunc
-instance GHC.Classes.Eq Unison.Runtime.Foreign.Function.ForeignFunc
-instance GHC.Classes.Ord Unison.Runtime.Foreign.Function.ForeignFunc
-
-module Unison.Runtime.ANF.Serialize
-data TmTag
-VarT :: TmTag
-ForceT :: TmTag
-AppT :: TmTag
-HandleT :: TmTag
-ShiftT :: TmTag
-MatchT :: TmTag
-LitT :: TmTag
-NameRefT :: TmTag
-NameVarT :: TmTag
-LetDirT :: TmTag
-LetIndT :: TmTag
-data FnTag
-FVarT :: FnTag
-FCombT :: FnTag
-FContT :: FnTag
-FConT :: FnTag
-FReqT :: FnTag
-FPrimT :: FnTag
-data MtTag
-MIntT :: MtTag
-MTextT :: MtTag
-MReqT :: MtTag
-MEmptyT :: MtTag
-MDataT :: MtTag
-MSumT :: MtTag
-data LtTag
-IT :: LtTag
-NT :: LtTag
-FT :: LtTag
-TT :: LtTag
-CT :: LtTag
-LMT :: LtTag
-LYT :: LtTag
-data BLTag
-TextT :: BLTag
-ListT :: BLTag
-TmLinkT :: BLTag
-TyLinkT :: BLTag
-BytesT :: BLTag
-data VaTag
-PartialT :: VaTag
-DataT :: VaTag
-ContT :: VaTag
-BLitT :: VaTag
-data CoTag
-KET :: CoTag
-MarkT :: CoTag
-PushT :: CoTag
-index :: Eq v => [v] -> v -> Maybe Word64
-deindex :: HasCallStack => [v] -> Word64 -> v
-putIndex :: MonadPut m => Word64 -> m ()
-getIndex :: MonadGet m => m Word64
-putVar :: MonadPut m => Eq v => [v] -> v -> m ()
-getVar :: MonadGet m => [v] -> m v
-putArgs :: MonadPut m => Eq v => [v] -> [v] -> m ()
-getArgs :: MonadGet m => [v] -> m [v]
-putCCs :: MonadPut m => [Mem] -> m ()
-getCCs :: MonadGet m => m [Mem]
-putGroup :: MonadPut m => Var v => SuperGroup v -> m ()
-getGroup :: MonadGet m => Var v => m (SuperGroup v)
-putComb :: MonadPut m => Var v => [v] -> SuperNormal v -> m ()
-getFresh :: Var v => Word64 -> v
-getComb :: MonadGet m => Var v => [v] -> Word64 -> m (SuperNormal v)
-putNormal :: MonadPut m => Var v => [v] -> ANormal v -> m ()
-getNormal :: MonadGet m => Var v => [v] -> Word64 -> m (ANormal v)
-putFunc :: MonadPut m => Var v => [v] -> Func v -> m ()
-getFunc :: MonadGet m => Var v => [v] -> m (Func v)
-putPOp :: MonadPut m => POp -> m ()
-getPOp :: MonadGet m => m POp
-pOpAssoc :: [(POp, Word16)]
-pop2word :: Map POp Word16
-word2pop :: Map Word16 POp
-putLit :: MonadPut m => Lit -> m ()
-getLit :: MonadGet m => m Lit
-putBLit :: MonadPut m => BLit -> m ()
-getBLit :: MonadGet m => m BLit
-putRefs :: MonadPut m => [Reference] -> m ()
-getRefs :: MonadGet m => m [Reference]
-putBranches :: MonadPut m => Var v => [v] -> Branched (ANormal v) -> m ()
-getBranches :: MonadGet m => Var v => [v] -> Word64 -> m (Branched (ANormal v))
-putCase :: MonadPut m => Var v => [v] -> ([Mem], ANormal v) -> m ()
-getCase :: MonadGet m => Var v => [v] -> Word64 -> m ([Mem], ANormal v)
-putCTag :: MonadPut m => CTag -> m ()
-getCTag :: MonadGet m => m CTag
-putGroupRef :: MonadPut m => GroupRef -> m ()
-getGroupRef :: MonadGet m => m GroupRef
-putValue :: MonadPut m => Value -> m ()
-getValue :: MonadGet m => m Value
-putCont :: MonadPut m => Cont -> m ()
-getCont :: MonadGet m => m Cont
-deserializeGroup :: Var v => ByteString -> Either String (SuperGroup v)
-serializeGroup :: Var v => SuperGroup v -> ByteString
-deserializeValue :: ByteString -> Either String Value
-serializeValue :: Value -> ByteString
-serializeValueLazy :: Value -> ByteString
-instance Unison.Runtime.Serialize.Tag Unison.Runtime.ANF.Serialize.CoTag
-instance Unison.Runtime.Serialize.Tag Unison.Runtime.ANF.Serialize.VaTag
-instance Unison.Runtime.Serialize.Tag Unison.Runtime.ANF.Serialize.BLTag
-instance Unison.Runtime.Serialize.Tag Unison.Runtime.ANF.Serialize.LtTag
-instance Unison.Runtime.Serialize.Tag Unison.Runtime.ANF.Serialize.MtTag
-instance Unison.Runtime.Serialize.Tag Unison.Runtime.ANF.Serialize.FnTag
-instance Unison.Runtime.Serialize.Tag Unison.Runtime.ANF.Serialize.TmTag
-
-module Unison.Runtime.Builtin
-builtinLookup :: Var v => Map Reference (SuperNormal v)
-builtinTermNumbering :: Map Reference Word64
-builtinTypeNumbering :: Map Reference Word64
-builtinTermBackref :: EnumMap Word64 Reference
-builtinTypeBackref :: EnumMap Word64 Reference
-builtinForeigns :: EnumMap Word64 ForeignFunc
-numberedTermLookup :: Var v => EnumMap Word64 (SuperNormal v)
-
-module Unison.Runtime.Machine
-type Tag = Word64
-type DEnv = EnumMap Word64 Closure
-data CCache
-CCache :: EnumMap Word64 ForeignFunc -> TVar (EnumMap Word64 Combs) -> TVar (EnumMap Word64 Reference) -> TVar (EnumMap Word64 Reference) -> TVar Word64 -> TVar Word64 -> TVar (Map Reference (SuperGroup Symbol)) -> TVar (Map Reference Word64) -> TVar (Map Reference Word64) -> CCache
-[foreignFuncs] :: CCache -> EnumMap Word64 ForeignFunc
-[combs] :: CCache -> TVar (EnumMap Word64 Combs)
-[combRefs] :: CCache -> TVar (EnumMap Word64 Reference)
-[tagRefs] :: CCache -> TVar (EnumMap Word64 Reference)
-[freshTm] :: CCache -> TVar Word64
-[freshTy] :: CCache -> TVar Word64
-[intermed] :: CCache -> TVar (Map Reference (SuperGroup Symbol))
-[refTm] :: CCache -> TVar (Map Reference Word64)
-[refTy] :: CCache -> TVar (Map Reference Word64)
-refNumsTm :: CCache -> IO (Map Reference Word64)
-refNumsTy :: CCache -> IO (Map Reference Word64)
-refNumTm :: CCache -> Reference -> IO Word64
-refNumTy :: CCache -> Reference -> IO Word64
-refNumTy' :: CCache -> Reference -> IO (Maybe Word64)
-baseCCache :: IO CCache
-info :: Show a => String -> a -> IO ()
-infos :: String -> String -> IO ()
-eval0 :: CCache -> Section -> IO ()
-topDEnv :: Map Reference Word64 -> Map Reference Word64 -> (DEnv, K -> K)
-apply0 :: Maybe (Stack 'UN -> Stack 'BX -> IO ()) -> CCache -> Word64 -> IO ()
-apply1 :: (Stack 'UN -> Stack 'BX -> IO ()) -> CCache -> Closure -> IO ()
-lookupDenv :: Word64 -> DEnv -> Closure
-exec :: CCache -> DEnv -> Stack 'UN -> Stack 'BX -> K -> Instr -> IO (DEnv, Stack 'UN, Stack 'BX, K)
-eval :: CCache -> DEnv -> Stack 'UN -> Stack 'BX -> K -> Section -> IO ()
-forkEval :: CCache -> Closure -> IO ThreadId
-atomicEval :: CCache -> (Closure -> IO ()) -> Closure -> IO ()
-enter :: CCache -> DEnv -> Stack 'UN -> Stack 'BX -> K -> Bool -> Args -> Comb -> IO ()
-name :: Stack 'UN -> Stack 'BX -> Args -> Closure -> IO (Stack 'BX)
-apply :: CCache -> DEnv -> Stack 'UN -> Stack 'BX -> K -> Bool -> Args -> Closure -> IO ()
-jump :: CCache -> DEnv -> Stack 'UN -> Stack 'BX -> K -> Args -> Closure -> IO ()
-repush :: CCache -> Stack 'UN -> Stack 'BX -> DEnv -> K -> K -> IO ()
-moveArgs :: Stack 'UN -> Stack 'BX -> Args -> IO (Stack 'UN, Stack 'BX)
-closureArgs :: Stack 'BX -> Args -> IO [Closure]
-buildData :: Stack 'UN -> Stack 'BX -> Reference -> Tag -> Args -> IO Closure
-dumpData :: Maybe Reference -> Stack 'UN -> Stack 'BX -> Closure -> IO (Stack 'UN, Stack 'BX)
-closeArgs :: Augment -> Stack 'UN -> Stack 'BX -> Seg 'UN -> Seg 'BX -> Args -> IO (Seg 'UN, Seg 'BX)
-peekForeign :: Stack 'BX -> Int -> IO a
-uprim1 :: Stack 'UN -> UPrim1 -> Int -> IO (Stack 'UN)
-uprim2 :: Stack 'UN -> UPrim2 -> Int -> Int -> IO (Stack 'UN)
-bprim1 :: Stack 'UN -> Stack 'BX -> BPrim1 -> Int -> IO (Stack 'UN, Stack 'BX)
-bprim2 :: Stack 'UN -> Stack 'BX -> BPrim2 -> Int -> Int -> IO (Stack 'UN, Stack 'BX)
-yield :: CCache -> DEnv -> Stack 'UN -> Stack 'BX -> K -> IO ()
-selectTextBranch :: Text -> Section -> Map Text Section -> Section
-selectBranch :: Tag -> Branch -> Section
-splitCont :: DEnv -> Stack 'UN -> Stack 'BX -> K -> Word64 -> IO (K, DEnv, Stack 'UN, Stack 'BX, Seg 'UN, Seg 'BX, K)
-discardCont :: DEnv -> Stack 'UN -> Stack 'BX -> K -> Word64 -> IO (DEnv, Stack 'UN, Stack 'BX, K)
-resolve :: CCache -> DEnv -> Stack 'BX -> Ref -> IO Closure
-combSection :: HasCallStack => CCache -> CombIx -> IO Comb
-dummyRef :: Reference
-reserveIds :: Word64 -> TVar Word64 -> IO Word64
-updateMap :: Semigroup s => s -> TVar s -> STM s
-refLookup :: String -> Map Reference Word64 -> Reference -> Word64
-decodeCacheArgument :: Seq Closure -> IO [(Reference, SuperGroup Symbol)]
-addRefs :: TVar Word64 -> TVar (Map Reference Word64) -> TVar (EnumMap Word64 Reference) -> Set Reference -> STM (Map Reference Word64)
-codeValidate :: [(Reference, SuperGroup Symbol)] -> CCache -> IO (Maybe (Failure Closure))
-cacheAdd0 :: Set Reference -> [(Reference, SuperGroup Symbol)] -> CCache -> IO ()
-cacheAdd :: [(Reference, SuperGroup Symbol)] -> CCache -> IO [Reference]
-reflectValue :: EnumMap Word64 Reference -> Closure -> IO Value
-reifyValue :: CCache -> Value -> IO (Either [Reference] Closure)
-reifyValue0 :: (Map Reference Word64, Map Reference Word64) -> Value -> IO Closure
-closureNum :: Closure -> Int
-universalEq :: (Foreign -> Foreign -> Bool) -> Closure -> Closure -> Bool
-compareAsFloat :: Int -> Int -> Ordering
-compareAsNat :: Int -> Int -> Ordering
-floatTag :: Word64
-natTag :: Word64
-charTag :: Word64
-universalCompare :: (Foreign -> Foreign -> Ordering) -> Closure -> Closure -> Ordering
-
 module Unison.Codebase.Runtime
 type Error = Pretty ColorText
 type Term v = Term v ()
@@ -3570,9 +2644,6 @@ type WatchResults v a = (Either Error ([(v, Term v)], Map v (a, WatchKind, Refer
 evaluateWatches :: forall v a. Var v => CodeLookup v IO a -> PrettyPrintEnv -> (Reference -> IO (Maybe (Term v))) -> Runtime v -> TypecheckedUnisonFile v a -> IO (WatchResults v a)
 evaluateTerm' :: (Var v, Monoid a) => CodeLookup v IO a -> (Reference -> IO (Maybe (Term v))) -> PrettyPrintEnv -> Runtime v -> Term v a -> IO (Either Error (Term v))
 evaluateTerm :: (Var v, Monoid a) => CodeLookup v IO a -> PrettyPrintEnv -> Runtime v -> Term v a -> IO (Either Error (Term v))
-
-module Unison.Runtime.Decompile
-decompile :: Var v => (Word64 -> Word64 -> Maybe (Term v ())) -> Closure -> Either Error (Term v ())
 
 module Unison.Codebase.Init.CreateCodebaseError
 data CreateCodebaseError
@@ -4297,9 +3368,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a6Nyi loc_a6Nyj. Lens' (Env v_a6Nyi loc_a6Nyj) (TypeLookup v_a6Nyi loc_a6Nyj)
-termsByShortname :: forall v_a6Nyi loc_a6Nyj. Lens' (Env v_a6Nyi loc_a6Nyj) (Map Name [NamedReference v_a6Nyi loc_a6Nyj])
-ambientAbilities :: forall v_a6Nyi loc_a6Nyj. Lens' (Env v_a6Nyi loc_a6Nyj) [Type v_a6Nyi loc_a6Nyj]
+typeLookup :: forall v_a6mxp loc_a6mxq. Lens' (Env v_a6mxp loc_a6mxq) (TypeLookup v_a6mxp loc_a6mxq)
+termsByShortname :: forall v_a6mxp loc_a6mxq. Lens' (Env v_a6mxp loc_a6mxq) (Map Name [NamedReference v_a6mxp loc_a6mxq])
+ambientAbilities :: forall v_a6mxp loc_a6mxq. Lens' (Env v_a6mxp loc_a6mxq) [Type v_a6mxp loc_a6mxq]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.
@@ -4487,20 +3558,6 @@ instance GHC.Classes.Eq Unison.TermPrinter.DocLiteralContext
 instance GHC.Show.Show Unison.TermPrinter.PrintAnnotation
 instance GHC.Base.Semigroup Unison.TermPrinter.PrintAnnotation
 instance GHC.Base.Monoid Unison.TermPrinter.PrintAnnotation
-
-module Unison.Runtime.Interface
-startRuntime :: String -> IO (Runtime Symbol)
-standalone :: CCache -> Word64 -> IO StoredCache
-runStandalone :: StoredCache -> Word64 -> IO ()
-data StoredCache
-decodeStandalone :: ByteString -> Either String (Text, Text, Word64, StoredCache)
-instance GHC.Show.Show Unison.Runtime.Interface.StoredCache
-
-module Unison.Runtime.Debug
-traceComb :: Bool -> Word64 -> Comb -> Bool
-traceCombs :: Word64 -> Bool -> EnumMap Word64 Comb -> EnumMap Word64 Comb
-tracePretty :: Var v => PrettyPrintEnv -> Bool -> Term v -> Term v
-tracePrettyGroup :: Var v => Word64 -> Bool -> SuperGroup v -> SuperGroup v
 
 module Unison.PrintError
 type Env = PrettyPrintEnv
@@ -5937,6 +4994,1036 @@ displayPretty :: forall v m. (Var v, Monad m) => PrettyPrintEnvDecl -> (Referenc
 displayDoc :: forall v m. (Var v, Monad m) => PrettyPrintEnvDecl -> (Reference -> m (Maybe (Term v ()))) -> (Referent -> m (Maybe (Type v ()))) -> (Term v () -> m (Maybe (Term v ()))) -> (Reference -> m (Maybe (Decl v ()))) -> Term v () -> m Pretty
 termName :: PrettyPrintEnv -> Referent -> Pretty
 typeName :: PrettyPrintEnv -> Reference -> Pretty
+
+module Unison.Util.Text
+newtype Text
+Text :: Rope Chunk -> Text
+data Chunk
+Chunk :: {-# UNPACK #-} !Int -> {-# UNPACK #-} !Text -> Chunk
+empty :: Text
+one :: Char -> Text
+singleton :: Char -> Text
+threshold :: Int
+replicate :: Int -> Text -> Text
+chunkToText :: Chunk -> Text
+chunk :: Text -> Chunk
+take :: Int -> Text -> Text
+drop :: Int -> Text -> Text
+uncons :: Text -> Maybe (Char, Text)
+unsnoc :: Text -> Maybe (Text, Char)
+at :: Int -> Text -> Maybe Char
+size :: Text -> Int
+reverse :: Text -> Text
+fromUtf8 :: Bytes -> Either String Text
+toUtf8 :: Text -> Bytes
+fromText :: Text -> Text
+pack :: String -> Text
+toString :: Text -> String
+unpack :: Text -> String
+toText :: Text -> Text
+instance GHC.Base.Monoid Unison.Util.Text.Text
+instance GHC.Base.Semigroup Unison.Util.Text.Text
+instance GHC.Classes.Ord Unison.Util.Text.Text
+instance GHC.Classes.Eq Unison.Util.Text.Text
+instance Unison.Util.Rope.Sized Unison.Util.Text.Text
+instance GHC.Show.Show Unison.Util.Text.Text
+instance Data.String.IsString Unison.Util.Text.Text
+instance GHC.Classes.Eq Unison.Util.Text.Chunk
+instance GHC.Classes.Ord Unison.Util.Text.Chunk
+instance GHC.Base.Semigroup Unison.Util.Text.Chunk
+instance GHC.Base.Monoid Unison.Util.Text.Chunk
+instance Unison.Util.Rope.Sized Unison.Util.Text.Chunk
+instance Unison.Util.Rope.Drop Unison.Util.Text.Chunk
+instance Unison.Util.Rope.Take Unison.Util.Text.Chunk
+instance Unison.Util.Rope.Index Unison.Util.Text.Chunk GHC.Types.Char
+instance Unison.Util.Rope.Reverse Unison.Util.Text.Chunk
+
+module Unison.Runtime.ANF
+minimizeCyclesOrCrash :: Var v => Term v a -> Term v a
+pattern TVar :: Var v => v -> Term ANormalF v
+pattern TLit :: Var v => Lit -> Term ANormalF v
+pattern TApp :: Var v => Func v -> [v] -> Term ANormalF v
+pattern TApv :: Var v => v -> [v] -> Term ANormalF v
+pattern TCom :: Var v => Reference -> [v] -> Term ANormalF v
+pattern TCon :: Var v => Reference -> CTag -> [v] -> Term ANormalF v
+pattern TKon :: Var v => v -> [v] -> Term ANormalF v
+pattern TReq :: Var v => Reference -> CTag -> [v] -> Term ANormalF v
+pattern TPrm :: Var v => POp -> [v] -> Term ANormalF v
+pattern TFOp :: Var v => FOp -> [v] -> Term ANormalF v
+pattern THnd :: Var v => [Reference] -> v -> Term ANormalF v -> Term ANormalF v
+pattern TLet :: Var v => Direction Word16 -> v -> Mem -> Term ANormalF v -> Term ANormalF v -> Term ANormalF v
+pattern TLetD :: Var v => v -> Mem -> Term ANormalF v -> Term ANormalF v -> Term ANormalF v
+pattern TFrc :: Var v => v -> Term ANormalF v
+pattern TLets :: Var v => Direction Word16 -> [v] -> [Mem] -> Term ANormalF v -> Term ANormalF v -> Term ANormalF v
+pattern TName :: Var v => v -> Either Reference v -> [v] -> Term ANormalF v -> Term ANormalF v
+pattern TBind :: Var v => Cte v -> ANormal v -> ANormal v
+pattern TBinds :: Var v => [Cte v] -> ANormal v -> ANormal v
+pattern TShift :: Var v => Reference -> v -> Term ANormalF v -> Term ANormalF v
+pattern TMatch :: Var v => v -> Branched (Term ANormalF v) -> Term ANormalF v
+data CompileExn
+CE :: CallStack -> Pretty ColorText -> CompileExn
+internalBug :: HasCallStack => String -> a
+data Mem
+UN :: Mem
+BX :: Mem
+data Lit
+I :: Int64 -> Lit
+N :: Word64 -> Lit
+F :: Double -> Lit
+T :: Text -> Lit
+C :: Char -> Lit
+LM :: Referent -> Lit
+LY :: Reference -> Lit
+data Direction a
+Indirect :: a -> Direction a
+Direct :: Direction a
+data SuperNormal v
+Lambda :: [Mem] -> ANormal v -> SuperNormal v
+[conventions] :: SuperNormal v -> [Mem]
+[bound] :: SuperNormal v -> ANormal v
+data SuperGroup v
+Rec :: [(v, SuperNormal v)] -> SuperNormal v -> SuperGroup v
+[group] :: SuperGroup v -> [(v, SuperNormal v)]
+[entry] :: SuperGroup v -> SuperNormal v
+data POp
+ADDI :: POp
+SUBI :: POp
+MULI :: POp
+DIVI :: POp
+SGNI :: POp
+NEGI :: POp
+MODI :: POp
+POWI :: POp
+SHLI :: POp
+SHRI :: POp
+INCI :: POp
+DECI :: POp
+LEQI :: POp
+EQLI :: POp
+ADDN :: POp
+SUBN :: POp
+MULN :: POp
+DIVN :: POp
+MODN :: POp
+TZRO :: POp
+LZRO :: POp
+POPC :: POp
+POWN :: POp
+SHLN :: POp
+SHRN :: POp
+ANDN :: POp
+IORN :: POp
+XORN :: POp
+COMN :: POp
+INCN :: POp
+DECN :: POp
+LEQN :: POp
+EQLN :: POp
+ADDF :: POp
+SUBF :: POp
+MULF :: POp
+DIVF :: POp
+MINF :: POp
+MAXF :: POp
+LEQF :: POp
+EQLF :: POp
+POWF :: POp
+EXPF :: POp
+SQRT :: POp
+LOGF :: POp
+LOGB :: POp
+ABSF :: POp
+CEIL :: POp
+FLOR :: POp
+TRNF :: POp
+RNDF :: POp
+COSF :: POp
+ACOS :: POp
+COSH :: POp
+ACSH :: POp
+SINF :: POp
+ASIN :: POp
+SINH :: POp
+ASNH :: POp
+TANF :: POp
+ATAN :: POp
+TANH :: POp
+ATNH :: POp
+ATN2 :: POp
+CATT :: POp
+TAKT :: POp
+DRPT :: POp
+SIZT :: POp
+UCNS :: POp
+USNC :: POp
+EQLT :: POp
+LEQT :: POp
+PAKT :: POp
+UPKT :: POp
+CATS :: POp
+TAKS :: POp
+DRPS :: POp
+SIZS :: POp
+CONS :: POp
+SNOC :: POp
+IDXS :: POp
+BLDS :: POp
+VWLS :: POp
+VWRS :: POp
+SPLL :: POp
+SPLR :: POp
+PAKB :: POp
+UPKB :: POp
+TAKB :: POp
+DRPB :: POp
+IDXB :: POp
+SIZB :: POp
+FLTB :: POp
+CATB :: POp
+ITOF :: POp
+NTOF :: POp
+ITOT :: POp
+NTOT :: POp
+TTOI :: POp
+TTON :: POp
+TTOF :: POp
+FTOT :: POp
+FORK :: POp
+EQLU :: POp
+CMPU :: POp
+EROR :: POp
+MISS :: POp
+CACH :: POp
+LKUP :: POp
+LOAD :: POp
+CVLD :: POp
+VALU :: POp
+TLTT :: POp
+PRNT :: POp
+INFO :: POp
+ATOM :: POp
+type FOp = Word64
+close :: (Var v, Monoid a) => Set v -> Term v a -> Term v a
+saturate :: (Var v, Monoid a) => Map (Reference, Int) Int -> Term v a -> Term v a
+float :: (Var v, Monoid a) => Term v a -> (Term v a, [(v, Term v a)])
+lamLift :: (Var v, Monoid a) => Term v a -> (Term v a, [(v, Term v a)])
+inlineAlias :: Var v => Monoid a => Term v a -> Term v a
+addDefaultCases :: Var v => Monoid a => String -> Term v a -> Term v a
+data ANormalF v e
+ALet :: Direction Word16 -> [Mem] -> e -> e -> ANormalF v e
+AName :: Either Reference v -> [v] -> e -> ANormalF v e
+ALit :: Lit -> ANormalF v e
+AMatch :: v -> Branched e -> ANormalF v e
+AShift :: Reference -> e -> ANormalF v e
+AHnd :: [Reference] -> v -> e -> ANormalF v e
+AApp :: Func v -> [v] -> ANormalF v e
+AFrc :: v -> ANormalF v e
+AVar :: v -> ANormalF v e
+pattern AApv :: v -> [v] -> ANormalF v e
+pattern ACom :: Reference -> [v] -> ANormalF v e
+pattern ACon :: Reference -> CTag -> [v] -> ANormalF v e
+pattern AKon :: v -> [v] -> ANormalF v e
+pattern AReq :: Reference -> CTag -> [v] -> ANormalF v e
+pattern APrm :: POp -> [v] -> ANormalF v e
+pattern AFOp :: FOp -> [v] -> ANormalF v e
+type ANormal = Term ANormalF
+data RTag
+data CTag
+class Tag t
+rawTag :: Tag t => t -> Word64
+data GroupRef
+GR :: Reference -> Word64 -> GroupRef
+data Value
+Partial :: GroupRef -> [Word64] -> [Value] -> Value
+Data :: Reference -> Word64 -> [Word64] -> [Value] -> Value
+Cont :: [Word64] -> [Value] -> Cont -> Value
+BLit :: BLit -> Value
+data Cont
+KE :: Cont
+Mark :: [Reference] -> Map Reference Value -> Cont -> Cont
+Push :: Word64 -> Word64 -> Word64 -> Word64 -> GroupRef -> Cont -> Cont
+data BLit
+Text :: Text -> BLit
+List :: Seq Value -> BLit
+TmLink :: Referent -> BLit
+TyLink :: Reference -> BLit
+Bytes :: Bytes -> BLit
+packTags :: RTag -> CTag -> Word64
+unpackTags :: Word64 -> (RTag, CTag)
+maskTags :: Word64 -> Word64
+type ANFM v = ReaderT (Set v) (State (Word64, Word16, [(v, SuperNormal v)]))
+data Branched e
+MatchIntegral :: EnumMap Word64 e -> Maybe e -> Branched e
+MatchText :: Map Text e -> Maybe e -> Branched e
+MatchRequest :: Map Reference (EnumMap CTag ([Mem], e)) -> e -> Branched e
+MatchEmpty :: Branched e
+MatchData :: Reference -> EnumMap CTag ([Mem], e) -> Maybe e -> Branched e
+MatchSum :: EnumMap Word64 ([Mem], e) -> Branched e
+pattern MatchDataCover :: Reference -> EnumMap CTag ([Mem], e) -> Branched e
+data Func v
+FVar :: v -> Func v
+FComb :: !Reference -> Func v
+FCont :: v -> Func v
+FCon :: !Reference -> !CTag -> Func v
+FReq :: !Reference -> !CTag -> Func v
+FPrim :: Either POp FOp -> Func v
+superNormalize :: Var v => Term v a -> SuperGroup v
+anfTerm :: Var v => Term v a -> ANFM v (DNormal v)
+valueTermLinks :: Value -> [Reference]
+valueLinks :: Monoid a => (Bool -> Reference -> a) -> Value -> a
+groupTermLinks :: SuperGroup v -> [Reference]
+groupLinks :: Monoid a => (Bool -> Reference -> a) -> SuperGroup v -> a
+normalLinks :: Monoid a => (Bool -> Reference -> a) -> SuperNormal v -> a
+prettyGroup :: Var v => String -> SuperGroup v -> ShowS
+instance GHC.Show.Show Unison.Runtime.ANF.CompileExn
+instance GHC.Enum.Enum Unison.Runtime.ANF.Mem
+instance GHC.Show.Show Unison.Runtime.ANF.Mem
+instance GHC.Classes.Ord Unison.Runtime.ANF.Mem
+instance GHC.Classes.Eq Unison.Runtime.ANF.Mem
+instance Unison.Util.EnumContainers.EnumKey Unison.Runtime.ANF.RTag
+instance GHC.Read.Read Unison.Runtime.ANF.RTag
+instance GHC.Show.Show Unison.Runtime.ANF.RTag
+instance GHC.Classes.Ord Unison.Runtime.ANF.RTag
+instance GHC.Classes.Eq Unison.Runtime.ANF.RTag
+instance Unison.Util.EnumContainers.EnumKey Unison.Runtime.ANF.CTag
+instance GHC.Read.Read Unison.Runtime.ANF.CTag
+instance GHC.Show.Show Unison.Runtime.ANF.CTag
+instance GHC.Classes.Ord Unison.Runtime.ANF.CTag
+instance GHC.Classes.Eq Unison.Runtime.ANF.CTag
+instance GHC.Show.Show Unison.Runtime.ANF.SeqEnd
+instance GHC.Enum.Enum Unison.Runtime.ANF.SeqEnd
+instance GHC.Classes.Ord Unison.Runtime.ANF.SeqEnd
+instance GHC.Classes.Eq Unison.Runtime.ANF.SeqEnd
+instance Data.Traversable.Traversable Unison.Runtime.ANF.Branched
+instance Data.Foldable.Foldable Unison.Runtime.ANF.Branched
+instance GHC.Base.Functor Unison.Runtime.ANF.Branched
+instance GHC.Show.Show e => GHC.Show.Show (Unison.Runtime.ANF.Branched e)
+instance GHC.Show.Show Unison.Runtime.ANF.Lit
+instance GHC.Classes.Ord Unison.Runtime.ANF.POp
+instance GHC.Classes.Eq Unison.Runtime.ANF.POp
+instance GHC.Show.Show Unison.Runtime.ANF.POp
+instance Data.Traversable.Traversable Unison.Runtime.ANF.Func
+instance Data.Foldable.Foldable Unison.Runtime.ANF.Func
+instance GHC.Base.Functor Unison.Runtime.ANF.Func
+instance GHC.Show.Show v => GHC.Show.Show (Unison.Runtime.ANF.Func v)
+instance Data.Traversable.Traversable Unison.Runtime.ANF.Direction
+instance Data.Foldable.Foldable Unison.Runtime.ANF.Direction
+instance GHC.Base.Functor Unison.Runtime.ANF.Direction
+instance GHC.Show.Show a => GHC.Show.Show (Unison.Runtime.ANF.Direction a)
+instance GHC.Classes.Ord a => GHC.Classes.Ord (Unison.Runtime.ANF.Direction a)
+instance GHC.Classes.Eq a => GHC.Classes.Eq (Unison.Runtime.ANF.Direction a)
+instance (GHC.Show.Show e, GHC.Show.Show v) => GHC.Show.Show (Unison.Runtime.ANF.ANormalF v e)
+instance (GHC.Show.Show v, GHC.Show.Show s) => GHC.Show.Show (Unison.Runtime.ANF.CTE v s)
+instance GHC.Show.Show v => GHC.Show.Show (Unison.Runtime.ANF.SuperNormal v)
+instance GHC.Show.Show v => GHC.Show.Show (Unison.Runtime.ANF.SuperGroup v)
+instance GHC.Show.Show Unison.Runtime.ANF.GroupRef
+instance GHC.Show.Show Unison.Runtime.ANF.Cont
+instance GHC.Show.Show Unison.Runtime.ANF.Value
+instance GHC.Show.Show Unison.Runtime.ANF.BLit
+instance GHC.Base.Semigroup (Unison.Runtime.ANF.BranchAccum v)
+instance GHC.Base.Monoid (Unison.Runtime.ANF.BranchAccum e)
+instance GHC.Base.Functor (Unison.Runtime.ANF.ANormalF v)
+instance Data.Bifunctor.Bifunctor Unison.Runtime.ANF.ANormalF
+instance Data.Bifoldable.Bifoldable Unison.Runtime.ANF.ANormalF
+instance GHC.Base.Semigroup a => GHC.Base.Semigroup (Unison.Runtime.ANF.Direction a)
+instance GHC.Base.Semigroup a => GHC.Base.Monoid (Unison.Runtime.ANF.Direction a)
+instance Unison.Runtime.ANF.Tag Unison.Runtime.ANF.RTag
+instance Unison.Runtime.ANF.Tag Unison.Runtime.ANF.CTag
+instance GHC.Enum.Enum Unison.Runtime.ANF.CTag
+instance GHC.Num.Num Unison.Runtime.ANF.CTag
+instance GHC.Enum.Enum Unison.Runtime.ANF.RTag
+instance GHC.Num.Num Unison.Runtime.ANF.RTag
+instance GHC.Exception.Type.Exception Unison.Runtime.ANF.CompileExn
+
+module Unison.Runtime.Pattern
+type DataSpec = Map Reference (Either Cons Cons)
+splitPatterns :: Var v => DataSpec -> Term v -> Term v
+builtinDataSpec :: DataSpec
+instance GHC.Show.Show v => GHC.Show.Show (Unison.Runtime.Pattern.PatternRow v)
+instance GHC.Show.Show v => GHC.Show.Show (Unison.Runtime.Pattern.PatternMatrix v)
+instance GHC.Show.Show Unison.Runtime.Pattern.SeqMatch
+instance GHC.Classes.Ord Unison.Runtime.Pattern.SeqMatch
+instance GHC.Classes.Eq Unison.Runtime.Pattern.SeqMatch
+instance GHC.Base.Semigroup Unison.Runtime.Pattern.PType
+instance GHC.Base.Monoid Unison.Runtime.Pattern.PType
+
+module Unison.Runtime.MCode
+data Args'
+Arg1 :: !Int -> Args'
+Arg2 :: !Int -> !Int -> Args'
+ArgN :: {-# UNPACK #-} !PrimArray Int -> Args'
+ArgR :: !Int -> !Int -> Args'
+data Args
+ZArgs :: Args
+UArg1 :: !Int -> Args
+UArg2 :: !Int -> !Int -> Args
+BArg1 :: !Int -> Args
+BArg2 :: !Int -> !Int -> Args
+DArg2 :: !Int -> !Int -> Args
+UArgR :: !Int -> !Int -> Args
+BArgR :: !Int -> !Int -> Args
+DArgR :: !Int -> !Int -> !Int -> !Int -> Args
+BArgN :: !PrimArray Int -> Args
+UArgN :: !PrimArray Int -> Args
+DArgN :: !PrimArray Int -> !PrimArray Int -> Args
+DArgV :: !Int -> !Int -> Args
+data RefNums
+RN :: (Reference -> Word64) -> (Reference -> Word64) -> RefNums
+[dnum] :: RefNums -> Reference -> Word64
+[cnum] :: RefNums -> Reference -> Word64
+data MLit
+MI :: !Int -> MLit
+MD :: !Double -> MLit
+MT :: !Text -> MLit
+MM :: !Referent -> MLit
+MY :: !Reference -> MLit
+data Instr
+UPrim1 :: !UPrim1 -> !Int -> Instr
+UPrim2 :: !UPrim2 -> !Int -> !Int -> Instr
+BPrim1 :: !BPrim1 -> !Int -> Instr
+BPrim2 :: !BPrim2 -> !Int -> !Int -> Instr
+ForeignCall :: !Bool -> !Word64 -> !Args -> Instr
+SetDyn :: !Word64 -> !Int -> Instr
+Capture :: !Word64 -> Instr
+Name :: !Ref -> !Args -> Instr
+Info :: !String -> Instr
+Pack :: !Reference -> !Word64 -> !Args -> Instr
+Unpack :: !Maybe Reference -> !Int -> Instr
+Lit :: !MLit -> Instr
+Print :: !Int -> Instr
+Reset :: !EnumSet Word64 -> Instr
+Fork :: !Int -> Instr
+Atomically :: !Int -> Instr
+Seq :: !Args -> Instr
+data Section
+App :: !Bool -> !Ref -> !Args -> Section
+Call :: !Bool -> !Word64 -> !Args -> Section
+Jump :: !Int -> !Args -> Section
+Match :: !Int -> !Branch -> Section
+Yield :: !Args -> Section
+Ins :: !Instr -> !Section -> Section
+Let :: !Section -> !CombIx -> Section
+Die :: String -> Section
+Exit :: Section
+pattern MatchT :: Int -> Section -> Map Text Section -> Section
+pattern MatchW :: Int -> Section -> EnumMap Word64 Section -> Section
+data Comb
+Lam :: !Int -> !Int -> !Int -> !Int -> !Section -> Comb
+type Combs = EnumMap Word64 Comb
+data CombIx
+CIx :: !Reference -> !Word64 -> !Word64 -> CombIx
+data Ref
+Stk :: !Int -> Ref
+Env :: !Word64 -> !Word64 -> Ref
+Dyn :: !Word64 -> Ref
+data UPrim1
+DECI :: UPrim1
+INCI :: UPrim1
+NEGI :: UPrim1
+SGNI :: UPrim1
+LZRO :: UPrim1
+TZRO :: UPrim1
+COMN :: UPrim1
+POPC :: UPrim1
+ABSF :: UPrim1
+EXPF :: UPrim1
+LOGF :: UPrim1
+SQRT :: UPrim1
+COSF :: UPrim1
+ACOS :: UPrim1
+COSH :: UPrim1
+ACSH :: UPrim1
+SINF :: UPrim1
+ASIN :: UPrim1
+SINH :: UPrim1
+ASNH :: UPrim1
+TANF :: UPrim1
+ATAN :: UPrim1
+TANH :: UPrim1
+ATNH :: UPrim1
+ITOF :: UPrim1
+NTOF :: UPrim1
+CEIL :: UPrim1
+FLOR :: UPrim1
+TRNF :: UPrim1
+RNDF :: UPrim1
+data UPrim2
+ADDI :: UPrim2
+SUBI :: UPrim2
+MULI :: UPrim2
+DIVI :: UPrim2
+MODI :: UPrim2
+DIVN :: UPrim2
+MODN :: UPrim2
+SHLI :: UPrim2
+SHRI :: UPrim2
+SHRN :: UPrim2
+POWI :: UPrim2
+EQLI :: UPrim2
+LEQI :: UPrim2
+LEQN :: UPrim2
+ANDN :: UPrim2
+IORN :: UPrim2
+XORN :: UPrim2
+EQLF :: UPrim2
+LEQF :: UPrim2
+ADDF :: UPrim2
+SUBF :: UPrim2
+MULF :: UPrim2
+DIVF :: UPrim2
+ATN2 :: UPrim2
+POWF :: UPrim2
+LOGB :: UPrim2
+MAXF :: UPrim2
+MINF :: UPrim2
+data BPrim1
+SIZT :: BPrim1
+USNC :: BPrim1
+UCNS :: BPrim1
+ITOT :: BPrim1
+NTOT :: BPrim1
+FTOT :: BPrim1
+TTOI :: BPrim1
+TTON :: BPrim1
+TTOF :: BPrim1
+PAKT :: BPrim1
+UPKT :: BPrim1
+VWLS :: BPrim1
+VWRS :: BPrim1
+SIZS :: BPrim1
+PAKB :: BPrim1
+UPKB :: BPrim1
+SIZB :: BPrim1
+FLTB :: BPrim1
+MISS :: BPrim1
+CACH :: BPrim1
+LKUP :: BPrim1
+LOAD :: BPrim1
+CVLD :: BPrim1
+VALU :: BPrim1
+TLTT :: BPrim1
+data BPrim2
+EQLU :: BPrim2
+CMPU :: BPrim2
+DRPT :: BPrim2
+CATT :: BPrim2
+TAKT :: BPrim2
+EQLT :: BPrim2
+LEQT :: BPrim2
+LEST :: BPrim2
+DRPS :: BPrim2
+CATS :: BPrim2
+TAKS :: BPrim2
+CONS :: BPrim2
+SNOC :: BPrim2
+IDXS :: BPrim2
+SPLL :: BPrim2
+SPLR :: BPrim2
+TAKB :: BPrim2
+DRPB :: BPrim2
+IDXB :: BPrim2
+CATB :: BPrim2
+THRO :: BPrim2
+data Branch
+Test1 :: !Word64 -> !Section -> !Section -> Branch
+Test2 :: !Word64 -> !Section -> !Word64 -> !Section -> !Section -> Branch
+TestW :: !Section -> !EnumMap Word64 Section -> Branch
+TestT :: !Section -> !Map Text Section -> Branch
+bcount :: Args -> Int
+ucount :: Args -> Int
+emitCombs :: Var v => RefNums -> Word64 -> SuperGroup v -> EnumMap Word64 Comb
+emitComb :: Var v => RefNums -> Word64 -> RCtx v -> (Word64, SuperNormal v) -> EnumMap Word64 Comb
+emptyRNs :: RefNums
+argsToLists :: Args -> ([Int], [Int])
+combDeps :: Comb -> [Word64]
+combTypes :: Comb -> [Word64]
+prettyCombs :: Word64 -> EnumMap Word64 Comb -> ShowS
+prettyComb :: Word64 -> Word64 -> Comb -> ShowS
+instance GHC.Show.Show Unison.Runtime.MCode.Args'
+instance GHC.Classes.Ord Unison.Runtime.MCode.Args
+instance GHC.Classes.Eq Unison.Runtime.MCode.Args
+instance GHC.Show.Show Unison.Runtime.MCode.Args
+instance GHC.Classes.Ord Unison.Runtime.MCode.UPrim1
+instance GHC.Classes.Eq Unison.Runtime.MCode.UPrim1
+instance GHC.Show.Show Unison.Runtime.MCode.UPrim1
+instance GHC.Classes.Ord Unison.Runtime.MCode.UPrim2
+instance GHC.Classes.Eq Unison.Runtime.MCode.UPrim2
+instance GHC.Show.Show Unison.Runtime.MCode.UPrim2
+instance GHC.Classes.Ord Unison.Runtime.MCode.BPrim1
+instance GHC.Classes.Eq Unison.Runtime.MCode.BPrim1
+instance GHC.Show.Show Unison.Runtime.MCode.BPrim1
+instance GHC.Classes.Ord Unison.Runtime.MCode.BPrim2
+instance GHC.Classes.Eq Unison.Runtime.MCode.BPrim2
+instance GHC.Show.Show Unison.Runtime.MCode.BPrim2
+instance GHC.Classes.Ord Unison.Runtime.MCode.MLit
+instance GHC.Classes.Eq Unison.Runtime.MCode.MLit
+instance GHC.Show.Show Unison.Runtime.MCode.MLit
+instance GHC.Show.Show Unison.Runtime.MCode.CombIx
+instance GHC.Classes.Ord Unison.Runtime.MCode.CombIx
+instance GHC.Classes.Eq Unison.Runtime.MCode.CombIx
+instance GHC.Classes.Ord Unison.Runtime.MCode.Ref
+instance GHC.Classes.Eq Unison.Runtime.MCode.Ref
+instance GHC.Show.Show Unison.Runtime.MCode.Ref
+instance GHC.Classes.Ord Unison.Runtime.MCode.Instr
+instance GHC.Classes.Eq Unison.Runtime.MCode.Instr
+instance GHC.Show.Show Unison.Runtime.MCode.Instr
+instance GHC.Classes.Ord Unison.Runtime.MCode.Section
+instance GHC.Classes.Eq Unison.Runtime.MCode.Section
+instance GHC.Show.Show Unison.Runtime.MCode.Section
+instance GHC.Classes.Ord Unison.Runtime.MCode.Branch
+instance GHC.Classes.Eq Unison.Runtime.MCode.Branch
+instance GHC.Show.Show Unison.Runtime.MCode.Branch
+instance GHC.Classes.Ord Unison.Runtime.MCode.Comb
+instance GHC.Classes.Eq Unison.Runtime.MCode.Comb
+instance GHC.Show.Show Unison.Runtime.MCode.Comb
+instance GHC.Show.Show v => GHC.Show.Show (Unison.Runtime.MCode.Ctx v)
+instance GHC.Base.Functor Unison.Runtime.MCode.Counted
+instance GHC.Base.Functor Unison.Runtime.MCode.Emit
+instance GHC.Base.Applicative Unison.Runtime.MCode.Emit
+instance GHC.Base.Applicative Unison.Runtime.MCode.Counted
+
+module Unison.Runtime.Foreign
+data Foreign
+[Wrap] :: Reference -> !e -> Foreign
+data HashAlgorithm
+[HashAlgorithm] :: HashAlgorithm a => Reference -> a -> HashAlgorithm
+unwrapForeign :: Foreign -> a
+maybeUnwrapForeign :: Reference -> Foreign -> Maybe a
+wrapBuiltin :: forall f. BuiltinForeign f => f -> Foreign
+maybeUnwrapBuiltin :: forall f. BuiltinForeign f => Foreign -> Maybe f
+unwrapBuiltin :: BuiltinForeign f => Foreign -> f
+class BuiltinForeign f
+foreignRef :: BuiltinForeign f => Tagged f Reference
+newtype Tls
+Tls :: Context -> Tls
+data Failure a
+Failure :: Reference -> Text -> a -> Failure a
+instance Unison.Runtime.Foreign.BuiltinForeign Unison.Runtime.Foreign.HashAlgorithm
+instance Unison.Runtime.Foreign.BuiltinForeign Unison.Util.Text.Text
+instance Unison.Runtime.Foreign.BuiltinForeign Unison.Util.Bytes.Bytes
+instance Unison.Runtime.Foreign.BuiltinForeign GHC.IO.Handle.Types.Handle
+instance Unison.Runtime.Foreign.BuiltinForeign Network.Socket.Types.Socket
+instance Unison.Runtime.Foreign.BuiltinForeign GHC.Conc.Sync.ThreadId
+instance Unison.Runtime.Foreign.BuiltinForeign Network.TLS.Parameters.ClientParams
+instance Unison.Runtime.Foreign.BuiltinForeign Network.TLS.Parameters.ServerParams
+instance Unison.Runtime.Foreign.BuiltinForeign Data.X509.SignedCertificate
+instance Unison.Runtime.Foreign.BuiltinForeign Data.X509.PrivateKey.PrivKey
+instance Unison.Runtime.Foreign.BuiltinForeign GHC.IO.FilePath
+instance Unison.Runtime.Foreign.BuiltinForeign Network.TLS.Context.Internal.Context
+instance Unison.Runtime.Foreign.BuiltinForeign (Unison.Runtime.ANF.SuperGroup Unison.Symbol.Symbol)
+instance Unison.Runtime.Foreign.BuiltinForeign Unison.Runtime.ANF.Value
+instance GHC.Classes.Eq Unison.Runtime.Foreign.Foreign
+instance GHC.Classes.Ord Unison.Runtime.Foreign.Foreign
+instance GHC.Show.Show Unison.Runtime.Foreign.Foreign
+
+module Unison.Runtime.Stack
+data K
+KE :: K
+CB :: Callback -> K
+Mark :: !EnumSet Word64 -> !EnumMap Word64 Closure -> !K -> K
+Push :: !Int -> !Int -> !Int -> !Int -> !CombIx -> !K -> K
+data Closure
+PAp :: {-# UNPACK #-} !CombIx -> {-# UNPACK #-} !Seg 'UN -> !Seg 'BX -> Closure
+Enum :: !Reference -> !Word64 -> Closure
+DataU1 :: !Reference -> !Word64 -> !Int -> Closure
+DataU2 :: !Reference -> !Word64 -> !Int -> !Int -> Closure
+DataB1 :: !Reference -> !Word64 -> !Closure -> Closure
+DataB2 :: !Reference -> !Word64 -> !Closure -> !Closure -> Closure
+DataUB :: !Reference -> !Word64 -> !Int -> !Closure -> Closure
+DataG :: !Reference -> !Word64 -> !Seg 'UN -> !Seg 'BX -> Closure
+Captured :: !K -> {-# UNPACK #-} !Seg 'UN -> !Seg 'BX -> Closure
+Foreign :: !Foreign -> Closure
+BlackHole :: Closure
+pattern DataC :: Reference -> Word64 -> [Int] -> [Closure] -> Closure
+pattern PApV :: CombIx -> [Int] -> [Closure] -> Closure
+pattern CapV :: K -> [Int] -> [Closure] -> Closure
+newtype Callback
+Hook :: (Stack 'UN -> Stack 'BX -> IO ()) -> Callback
+data Augment
+I :: Augment
+K :: Augment
+C :: Augment
+data Dump
+A :: Dump
+F :: Int -> Dump
+S :: Dump
+class MEM (b :: Mem) where {
+    data family Stack b :: *;
+    type family Elem b :: *;
+    type family Seg b :: *;
+}
+alloc :: MEM b => IO (Stack b)
+peek :: MEM b => Stack b -> IO (Elem b)
+peekOff :: MEM b => Stack b -> Off -> IO (Elem b)
+poke :: MEM b => Stack b -> Elem b -> IO ()
+pokeOff :: MEM b => Stack b -> Off -> Elem b -> IO ()
+grab :: MEM b => Stack b -> SZ -> IO (Seg b, Stack b)
+ensure :: MEM b => Stack b -> SZ -> IO (Stack b)
+bump :: MEM b => Stack b -> IO (Stack b)
+bumpn :: MEM b => Stack b -> SZ -> IO (Stack b)
+duplicate :: MEM b => Stack b -> IO (Stack b)
+discardFrame :: MEM b => Stack b -> IO (Stack b)
+saveFrame :: MEM b => Stack b -> IO (Stack b, SZ, SZ)
+restoreFrame :: MEM b => Stack b -> SZ -> SZ -> IO (Stack b)
+prepareArgs :: MEM b => Stack b -> Args' -> IO (Stack b)
+acceptArgs :: MEM b => Stack b -> Int -> IO (Stack b)
+frameArgs :: MEM b => Stack b -> IO (Stack b)
+augSeg :: MEM b => Augment -> Stack b -> Seg b -> Maybe Args' -> IO (Seg b)
+dumpSeg :: MEM b => Stack b -> Seg b -> Dump -> IO (Stack b)
+fsize :: MEM b => Stack b -> SZ
+asize :: MEM b => Stack b -> SZ
+type Off = Int
+type SZ = Int
+type FP = Int
+marshalToForeign :: HasCallStack => Closure -> Foreign
+unull :: Seg 'UN
+bnull :: Seg 'BX
+peekD :: Stack 'UN -> IO Double
+peekOffD :: Stack 'UN -> Int -> IO Double
+pokeD :: Stack 'UN -> Double -> IO ()
+pokeOffD :: Stack 'UN -> Int -> Double -> IO ()
+peekN :: Stack 'UN -> IO Word64
+peekOffN :: Stack 'UN -> Int -> IO Word64
+pokeN :: Stack 'UN -> Word64 -> IO ()
+pokeOffN :: Stack 'UN -> Int -> Word64 -> IO ()
+peekBi :: BuiltinForeign b => Stack 'BX -> IO b
+peekOffBi :: BuiltinForeign b => Stack 'BX -> Int -> IO b
+pokeBi :: BuiltinForeign b => Stack 'BX -> b -> IO ()
+pokeOffBi :: BuiltinForeign b => Stack 'BX -> Int -> b -> IO ()
+peekOffS :: Stack 'BX -> Int -> IO (Seq Closure)
+pokeS :: Stack 'BX -> Seq Closure -> IO ()
+pokeOffS :: Stack 'BX -> Int -> Seq Closure -> IO ()
+frameView :: MEM b => Show (Elem b) => Stack b -> IO ()
+uscount :: Seg 'UN -> Int
+bscount :: Seg 'BX -> Int
+instance GHC.Classes.Ord Unison.Runtime.Stack.Closure
+instance GHC.Classes.Eq Unison.Runtime.Stack.Closure
+instance GHC.Show.Show Unison.Runtime.Stack.Closure
+instance GHC.Classes.Ord Unison.Runtime.Stack.K
+instance GHC.Classes.Eq Unison.Runtime.Stack.K
+instance GHC.Show.Show Unison.Runtime.Stack.K
+instance Unison.Runtime.Stack.MEM 'Unison.Runtime.ANF.BX
+instance GHC.Classes.Eq Unison.Runtime.Stack.Callback
+instance GHC.Classes.Ord Unison.Runtime.Stack.Callback
+instance Unison.Runtime.Stack.MEM 'Unison.Runtime.ANF.UN
+instance GHC.Show.Show (Unison.Runtime.Stack.Stack 'Unison.Runtime.ANF.BX)
+instance GHC.Show.Show (Unison.Runtime.Stack.Stack 'Unison.Runtime.ANF.UN)
+
+module Unison.Runtime.Exception
+data RuntimeExn
+PE :: CallStack -> Pretty ColorText -> RuntimeExn
+BU :: Text -> Closure -> RuntimeExn
+die :: HasCallStack => String -> IO a
+exn :: HasCallStack => String -> a
+instance GHC.Show.Show Unison.Runtime.Exception.RuntimeExn
+instance GHC.Exception.Type.Exception Unison.Runtime.Exception.RuntimeExn
+
+module Unison.Runtime.Serialize
+unknownTag :: MonadGet m => String -> Word8 -> m a
+class Tag t
+tag2word :: Tag t => t -> Word8
+word2tag :: (Tag t, MonadGet m) => Word8 -> m t
+putTag :: MonadPut m => Tag t => t -> m ()
+getTag :: MonadGet m => Tag t => m t
+putChar :: MonadPut m => Char -> m ()
+getChar :: MonadGet m => m Char
+putFloat :: MonadPut m => Double -> m ()
+getFloat :: MonadGet m => m Double
+putNat :: MonadPut m => Word64 -> m ()
+getNat :: MonadGet m => m Word64
+putInt :: MonadPut m => Int64 -> m ()
+getInt :: MonadGet m => m Int64
+putLength :: (MonadPut m, Integral n, Integral (Unsigned n), Bits n, Bits (Unsigned n)) => n -> m ()
+getLength :: (MonadGet m, Integral n, Integral (Unsigned n), Bits n, Bits (Unsigned n)) => m n
+putFoldable :: (Foldable f, MonadPut m) => (a -> m ()) -> f a -> m ()
+putMap :: MonadPut m => (a -> m ()) -> (b -> m ()) -> Map a b -> m ()
+getList :: MonadGet m => m a -> m [a]
+getMap :: (MonadGet m, Ord a) => m a -> m b -> m (Map a b)
+putEnumMap :: MonadPut m => EnumKey k => (k -> m ()) -> (v -> m ()) -> EnumMap k v -> m ()
+getEnumMap :: MonadGet m => EnumKey k => m k -> m v -> m (EnumMap k v)
+putEnumSet :: MonadPut m => EnumKey k => (k -> m ()) -> EnumSet k -> m ()
+getEnumSet :: MonadGet m => EnumKey k => m k -> m (EnumSet k)
+putMaybe :: MonadPut m => Maybe a -> (a -> m ()) -> m ()
+getMaybe :: MonadGet m => m a -> m (Maybe a)
+putPair :: MonadPut m => (a -> m ()) -> (b -> m ()) -> (a, b) -> m ()
+getPair :: MonadGet m => m a -> m b -> m (a, b)
+getBytes :: MonadGet m => m Bytes
+putBytes :: MonadPut m => Bytes -> m ()
+getBlock :: MonadGet m => m Chunk
+putBlock :: MonadPut m => Chunk -> m ()
+putHash :: MonadPut m => Hash -> m ()
+getHash :: MonadGet m => m Hash
+putReferent :: MonadPut m => Referent -> m ()
+getReferent :: MonadGet m => m Referent
+getConstructorType :: MonadGet m => m ConstructorType
+putConstructorType :: MonadPut m => ConstructorType -> m ()
+putText :: MonadPut m => Text -> m ()
+getText :: MonadGet m => m Text
+putReference :: MonadPut m => Reference -> m ()
+getReference :: MonadGet m => m Reference
+instance Unison.Runtime.Serialize.Tag Unison.Runtime.MCode.UPrim1
+instance Unison.Runtime.Serialize.Tag Unison.Runtime.MCode.UPrim2
+instance Unison.Runtime.Serialize.Tag Unison.Runtime.MCode.BPrim1
+instance Unison.Runtime.Serialize.Tag Unison.Runtime.MCode.BPrim2
+
+module Unison.Runtime.MCode.Serialize
+putComb :: MonadPut m => Comb -> m ()
+getComb :: MonadGet m => m Comb
+instance Unison.Runtime.Serialize.Tag Unison.Runtime.MCode.Serialize.BranchT
+instance Unison.Runtime.Serialize.Tag Unison.Runtime.MCode.Serialize.MLitT
+instance Unison.Runtime.Serialize.Tag Unison.Runtime.MCode.Serialize.RefT
+instance Unison.Runtime.Serialize.Tag Unison.Runtime.MCode.Serialize.ArgsT
+instance Unison.Runtime.Serialize.Tag Unison.Runtime.MCode.Serialize.InstrT
+instance Unison.Runtime.Serialize.Tag Unison.Runtime.MCode.Serialize.SectionT
+
+module Unison.Runtime.Foreign.Function
+data ForeignFunc
+[FF] :: (Stack 'UN -> Stack 'BX -> Args -> IO a) -> (Stack 'UN -> Stack 'BX -> r -> IO (Stack 'UN, Stack 'BX)) -> (a -> IO r) -> ForeignFunc
+class ForeignConvention a
+readForeign :: ForeignConvention a => [Int] -> [Int] -> Stack 'UN -> Stack 'BX -> IO ([Int], [Int], a)
+writeForeign :: ForeignConvention a => Stack 'UN -> Stack 'BX -> a -> IO (Stack 'UN, Stack 'BX)
+mkForeign :: (ForeignConvention a, ForeignConvention r) => (a -> IO r) -> ForeignFunc
+instance Unison.Runtime.Foreign.Function.ForeignConvention GHC.Types.Int
+instance Unison.Runtime.Foreign.Function.ForeignConvention GHC.Word.Word64
+instance Unison.Runtime.Foreign.Function.ForeignConvention GHC.Types.Char
+instance Unison.Runtime.Foreign.Function.ForeignConvention Unison.Runtime.Stack.Closure
+instance Unison.Runtime.Foreign.Function.ForeignConvention Unison.Util.Text.Text
+instance Unison.Runtime.Foreign.Function.ForeignConvention Unison.Util.Bytes.Bytes
+instance Unison.Runtime.Foreign.Function.ForeignConvention Network.Socket.Types.Socket
+instance Unison.Runtime.Foreign.Function.ForeignConvention GHC.Conc.Sync.ThreadId
+instance Unison.Runtime.Foreign.Function.ForeignConvention GHC.IO.Handle.Types.Handle
+instance Unison.Runtime.Foreign.Function.ForeignConvention Data.Time.Clock.Internal.POSIXTime.POSIXTime
+instance Unison.Runtime.Foreign.Function.ForeignConvention a => Unison.Runtime.Foreign.Function.ForeignConvention (GHC.Maybe.Maybe a)
+instance (Unison.Runtime.Foreign.Function.ForeignConvention a, Unison.Runtime.Foreign.Function.ForeignConvention b) => Unison.Runtime.Foreign.Function.ForeignConvention (Data.Either.Either a b)
+instance Unison.Runtime.Foreign.Function.ForeignConvention GHC.IO.Exception.IOException
+instance Unison.Runtime.Foreign.Function.ForeignConvention GHC.Types.Double
+instance Unison.Runtime.Foreign.Function.ForeignConvention GHC.Types.Bool
+instance Unison.Runtime.Foreign.Function.ForeignConvention GHC.Base.String
+instance Unison.Runtime.Foreign.Function.ForeignConvention GHC.IO.Device.SeekMode
+instance Unison.Runtime.Foreign.Function.ForeignConvention GHC.IO.IOMode.IOMode
+instance Unison.Runtime.Foreign.Function.ForeignConvention ()
+instance (Unison.Runtime.Foreign.Function.ForeignConvention a, Unison.Runtime.Foreign.Function.ForeignConvention b) => Unison.Runtime.Foreign.Function.ForeignConvention (a, b)
+instance Unison.Runtime.Foreign.Function.ForeignConvention a => Unison.Runtime.Foreign.Function.ForeignConvention (Unison.Runtime.Foreign.Failure a)
+instance (Unison.Runtime.Foreign.Function.ForeignConvention a, Unison.Runtime.Foreign.Function.ForeignConvention b, Unison.Runtime.Foreign.Function.ForeignConvention c) => Unison.Runtime.Foreign.Function.ForeignConvention (a, b, c)
+instance Unison.Runtime.Foreign.Function.ForeignConvention GHC.IO.Handle.Types.BufferMode
+instance Unison.Runtime.Foreign.Function.ForeignConvention [Unison.Runtime.Stack.Closure]
+instance Unison.Runtime.Foreign.Function.ForeignConvention [Unison.Runtime.Foreign.Foreign]
+instance Unison.Runtime.Foreign.Function.ForeignConvention (GHC.MVar.MVar Unison.Runtime.Stack.Closure)
+instance Unison.Runtime.Foreign.Function.ForeignConvention (GHC.Conc.Sync.TVar Unison.Runtime.Stack.Closure)
+instance Unison.Runtime.Foreign.Function.ForeignConvention (GHC.IORef.IORef Unison.Runtime.Stack.Closure)
+instance Unison.Runtime.Foreign.Function.ForeignConvention (Unison.Runtime.ANF.SuperGroup Unison.Symbol.Symbol)
+instance Unison.Runtime.Foreign.Function.ForeignConvention Unison.Runtime.ANF.Value
+instance Unison.Runtime.Foreign.Function.ForeignConvention Unison.Runtime.Foreign.Foreign
+instance Unison.Runtime.Foreign.BuiltinForeign b => Unison.Runtime.Foreign.Function.ForeignConvention b
+instance Unison.Runtime.Foreign.BuiltinForeign b => Unison.Runtime.Foreign.Function.ForeignConvention [b]
+instance GHC.Show.Show Unison.Runtime.Foreign.Function.ForeignFunc
+instance GHC.Classes.Eq Unison.Runtime.Foreign.Function.ForeignFunc
+instance GHC.Classes.Ord Unison.Runtime.Foreign.Function.ForeignFunc
+
+module Unison.Runtime.Decompile
+decompile :: Var v => (Word64 -> Word64 -> Maybe (Term v ())) -> Closure -> Either Error (Term v ())
+
+module Unison.Runtime.Debug
+traceComb :: Bool -> Word64 -> Comb -> Bool
+traceCombs :: Word64 -> Bool -> EnumMap Word64 Comb -> EnumMap Word64 Comb
+tracePretty :: Var v => PrettyPrintEnv -> Bool -> Term v -> Term v
+tracePrettyGroup :: Var v => Word64 -> Bool -> SuperGroup v -> SuperGroup v
+
+module Unison.Runtime.ANF.Serialize
+data TmTag
+VarT :: TmTag
+ForceT :: TmTag
+AppT :: TmTag
+HandleT :: TmTag
+ShiftT :: TmTag
+MatchT :: TmTag
+LitT :: TmTag
+NameRefT :: TmTag
+NameVarT :: TmTag
+LetDirT :: TmTag
+LetIndT :: TmTag
+data FnTag
+FVarT :: FnTag
+FCombT :: FnTag
+FContT :: FnTag
+FConT :: FnTag
+FReqT :: FnTag
+FPrimT :: FnTag
+data MtTag
+MIntT :: MtTag
+MTextT :: MtTag
+MReqT :: MtTag
+MEmptyT :: MtTag
+MDataT :: MtTag
+MSumT :: MtTag
+data LtTag
+IT :: LtTag
+NT :: LtTag
+FT :: LtTag
+TT :: LtTag
+CT :: LtTag
+LMT :: LtTag
+LYT :: LtTag
+data BLTag
+TextT :: BLTag
+ListT :: BLTag
+TmLinkT :: BLTag
+TyLinkT :: BLTag
+BytesT :: BLTag
+data VaTag
+PartialT :: VaTag
+DataT :: VaTag
+ContT :: VaTag
+BLitT :: VaTag
+data CoTag
+KET :: CoTag
+MarkT :: CoTag
+PushT :: CoTag
+index :: Eq v => [v] -> v -> Maybe Word64
+deindex :: HasCallStack => [v] -> Word64 -> v
+putIndex :: MonadPut m => Word64 -> m ()
+getIndex :: MonadGet m => m Word64
+putVar :: MonadPut m => Eq v => [v] -> v -> m ()
+getVar :: MonadGet m => [v] -> m v
+putArgs :: MonadPut m => Eq v => [v] -> [v] -> m ()
+getArgs :: MonadGet m => [v] -> m [v]
+putCCs :: MonadPut m => [Mem] -> m ()
+getCCs :: MonadGet m => m [Mem]
+putGroup :: MonadPut m => Var v => SuperGroup v -> m ()
+getGroup :: MonadGet m => Var v => m (SuperGroup v)
+putComb :: MonadPut m => Var v => [v] -> SuperNormal v -> m ()
+getFresh :: Var v => Word64 -> v
+getComb :: MonadGet m => Var v => [v] -> Word64 -> m (SuperNormal v)
+putNormal :: MonadPut m => Var v => [v] -> ANormal v -> m ()
+getNormal :: MonadGet m => Var v => [v] -> Word64 -> m (ANormal v)
+putFunc :: MonadPut m => Var v => [v] -> Func v -> m ()
+getFunc :: MonadGet m => Var v => [v] -> m (Func v)
+putPOp :: MonadPut m => POp -> m ()
+getPOp :: MonadGet m => m POp
+pOpAssoc :: [(POp, Word16)]
+pop2word :: Map POp Word16
+word2pop :: Map Word16 POp
+putLit :: MonadPut m => Lit -> m ()
+getLit :: MonadGet m => m Lit
+putBLit :: MonadPut m => BLit -> m ()
+getBLit :: MonadGet m => m BLit
+putRefs :: MonadPut m => [Reference] -> m ()
+getRefs :: MonadGet m => m [Reference]
+putBranches :: MonadPut m => Var v => [v] -> Branched (ANormal v) -> m ()
+getBranches :: MonadGet m => Var v => [v] -> Word64 -> m (Branched (ANormal v))
+putCase :: MonadPut m => Var v => [v] -> ([Mem], ANormal v) -> m ()
+getCase :: MonadGet m => Var v => [v] -> Word64 -> m ([Mem], ANormal v)
+putCTag :: MonadPut m => CTag -> m ()
+getCTag :: MonadGet m => m CTag
+putGroupRef :: MonadPut m => GroupRef -> m ()
+getGroupRef :: MonadGet m => m GroupRef
+putValue :: MonadPut m => Value -> m ()
+getValue :: MonadGet m => m Value
+putCont :: MonadPut m => Cont -> m ()
+getCont :: MonadGet m => m Cont
+deserializeGroup :: Var v => ByteString -> Either String (SuperGroup v)
+serializeGroup :: Var v => SuperGroup v -> ByteString
+deserializeValue :: ByteString -> Either String Value
+serializeValue :: Value -> ByteString
+serializeValueLazy :: Value -> ByteString
+instance Unison.Runtime.Serialize.Tag Unison.Runtime.ANF.Serialize.CoTag
+instance Unison.Runtime.Serialize.Tag Unison.Runtime.ANF.Serialize.VaTag
+instance Unison.Runtime.Serialize.Tag Unison.Runtime.ANF.Serialize.BLTag
+instance Unison.Runtime.Serialize.Tag Unison.Runtime.ANF.Serialize.LtTag
+instance Unison.Runtime.Serialize.Tag Unison.Runtime.ANF.Serialize.MtTag
+instance Unison.Runtime.Serialize.Tag Unison.Runtime.ANF.Serialize.FnTag
+instance Unison.Runtime.Serialize.Tag Unison.Runtime.ANF.Serialize.TmTag
+
+module Unison.Runtime.Builtin
+builtinLookup :: Var v => Map Reference (SuperNormal v)
+builtinTermNumbering :: Map Reference Word64
+builtinTypeNumbering :: Map Reference Word64
+builtinTermBackref :: EnumMap Word64 Reference
+builtinTypeBackref :: EnumMap Word64 Reference
+builtinForeigns :: EnumMap Word64 ForeignFunc
+numberedTermLookup :: Var v => EnumMap Word64 (SuperNormal v)
+
+module Unison.Runtime.Machine
+type Tag = Word64
+type DEnv = EnumMap Word64 Closure
+data CCache
+CCache :: EnumMap Word64 ForeignFunc -> TVar (EnumMap Word64 Combs) -> TVar (EnumMap Word64 Reference) -> TVar (EnumMap Word64 Reference) -> TVar Word64 -> TVar Word64 -> TVar (Map Reference (SuperGroup Symbol)) -> TVar (Map Reference Word64) -> TVar (Map Reference Word64) -> CCache
+[foreignFuncs] :: CCache -> EnumMap Word64 ForeignFunc
+[combs] :: CCache -> TVar (EnumMap Word64 Combs)
+[combRefs] :: CCache -> TVar (EnumMap Word64 Reference)
+[tagRefs] :: CCache -> TVar (EnumMap Word64 Reference)
+[freshTm] :: CCache -> TVar Word64
+[freshTy] :: CCache -> TVar Word64
+[intermed] :: CCache -> TVar (Map Reference (SuperGroup Symbol))
+[refTm] :: CCache -> TVar (Map Reference Word64)
+[refTy] :: CCache -> TVar (Map Reference Word64)
+refNumsTm :: CCache -> IO (Map Reference Word64)
+refNumsTy :: CCache -> IO (Map Reference Word64)
+refNumTm :: CCache -> Reference -> IO Word64
+refNumTy :: CCache -> Reference -> IO Word64
+refNumTy' :: CCache -> Reference -> IO (Maybe Word64)
+baseCCache :: IO CCache
+info :: Show a => String -> a -> IO ()
+infos :: String -> String -> IO ()
+eval0 :: CCache -> Section -> IO ()
+topDEnv :: Map Reference Word64 -> Map Reference Word64 -> (DEnv, K -> K)
+apply0 :: Maybe (Stack 'UN -> Stack 'BX -> IO ()) -> CCache -> Word64 -> IO ()
+apply1 :: (Stack 'UN -> Stack 'BX -> IO ()) -> CCache -> Closure -> IO ()
+lookupDenv :: Word64 -> DEnv -> Closure
+exec :: CCache -> DEnv -> Stack 'UN -> Stack 'BX -> K -> Instr -> IO (DEnv, Stack 'UN, Stack 'BX, K)
+eval :: CCache -> DEnv -> Stack 'UN -> Stack 'BX -> K -> Section -> IO ()
+forkEval :: CCache -> Closure -> IO ThreadId
+atomicEval :: CCache -> (Closure -> IO ()) -> Closure -> IO ()
+enter :: CCache -> DEnv -> Stack 'UN -> Stack 'BX -> K -> Bool -> Args -> Comb -> IO ()
+name :: Stack 'UN -> Stack 'BX -> Args -> Closure -> IO (Stack 'BX)
+apply :: CCache -> DEnv -> Stack 'UN -> Stack 'BX -> K -> Bool -> Args -> Closure -> IO ()
+jump :: CCache -> DEnv -> Stack 'UN -> Stack 'BX -> K -> Args -> Closure -> IO ()
+repush :: CCache -> Stack 'UN -> Stack 'BX -> DEnv -> K -> K -> IO ()
+moveArgs :: Stack 'UN -> Stack 'BX -> Args -> IO (Stack 'UN, Stack 'BX)
+closureArgs :: Stack 'BX -> Args -> IO [Closure]
+buildData :: Stack 'UN -> Stack 'BX -> Reference -> Tag -> Args -> IO Closure
+dumpData :: Maybe Reference -> Stack 'UN -> Stack 'BX -> Closure -> IO (Stack 'UN, Stack 'BX)
+closeArgs :: Augment -> Stack 'UN -> Stack 'BX -> Seg 'UN -> Seg 'BX -> Args -> IO (Seg 'UN, Seg 'BX)
+peekForeign :: Stack 'BX -> Int -> IO a
+uprim1 :: Stack 'UN -> UPrim1 -> Int -> IO (Stack 'UN)
+uprim2 :: Stack 'UN -> UPrim2 -> Int -> Int -> IO (Stack 'UN)
+bprim1 :: Stack 'UN -> Stack 'BX -> BPrim1 -> Int -> IO (Stack 'UN, Stack 'BX)
+bprim2 :: Stack 'UN -> Stack 'BX -> BPrim2 -> Int -> Int -> IO (Stack 'UN, Stack 'BX)
+yield :: CCache -> DEnv -> Stack 'UN -> Stack 'BX -> K -> IO ()
+selectTextBranch :: Text -> Section -> Map Text Section -> Section
+selectBranch :: Tag -> Branch -> Section
+splitCont :: DEnv -> Stack 'UN -> Stack 'BX -> K -> Word64 -> IO (K, DEnv, Stack 'UN, Stack 'BX, Seg 'UN, Seg 'BX, K)
+discardCont :: DEnv -> Stack 'UN -> Stack 'BX -> K -> Word64 -> IO (DEnv, Stack 'UN, Stack 'BX, K)
+resolve :: CCache -> DEnv -> Stack 'BX -> Ref -> IO Closure
+combSection :: HasCallStack => CCache -> CombIx -> IO Comb
+dummyRef :: Reference
+reserveIds :: Word64 -> TVar Word64 -> IO Word64
+updateMap :: Semigroup s => s -> TVar s -> STM s
+refLookup :: String -> Map Reference Word64 -> Reference -> Word64
+decodeCacheArgument :: Seq Closure -> IO [(Reference, SuperGroup Symbol)]
+addRefs :: TVar Word64 -> TVar (Map Reference Word64) -> TVar (EnumMap Word64 Reference) -> Set Reference -> STM (Map Reference Word64)
+codeValidate :: [(Reference, SuperGroup Symbol)] -> CCache -> IO (Maybe (Failure Closure))
+cacheAdd0 :: Set Reference -> [(Reference, SuperGroup Symbol)] -> CCache -> IO ()
+cacheAdd :: [(Reference, SuperGroup Symbol)] -> CCache -> IO [Reference]
+reflectValue :: EnumMap Word64 Reference -> Closure -> IO Value
+reifyValue :: CCache -> Value -> IO (Either [Reference] Closure)
+reifyValue0 :: (Map Reference Word64, Map Reference Word64) -> Value -> IO Closure
+closureNum :: Closure -> Int
+universalEq :: (Foreign -> Foreign -> Bool) -> Closure -> Closure -> Bool
+compareAsFloat :: Int -> Int -> Ordering
+compareAsNat :: Int -> Int -> Ordering
+floatTag :: Word64
+natTag :: Word64
+charTag :: Word64
+universalCompare :: (Foreign -> Foreign -> Ordering) -> Closure -> Closure -> Ordering
+
+module Unison.Runtime.Interface
+startRuntime :: String -> IO (Runtime Symbol)
+standalone :: CCache -> Word64 -> IO StoredCache
+runStandalone :: StoredCache -> Word64 -> IO ()
+data StoredCache
+decodeStandalone :: ByteString -> Either String (Text, Text, Word64, StoredCache)
+instance GHC.Show.Show Unison.Runtime.Interface.StoredCache
 
 module Unison.Util.TransitiveClosure
 transitiveClosure :: forall m a. (Monad m, Ord a) => (a -> m (Set a)) -> Set a -> m (Set a)

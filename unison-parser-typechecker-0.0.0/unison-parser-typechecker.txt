@@ -5544,7 +5544,7 @@ TestResults :: TestReportStats -> PrettyPrintEnv -> ShowSuccesses -> ShowFailure
 CantUndo :: UndoFailureReason -> Output v
 ListEdits :: Patch -> PrettyPrintEnv -> Output v
 BustedBuiltins :: Set Reference -> Set Reference -> Output v
-GitError :: Input -> GitError -> Output v
+GitError :: GitError -> Output v
 ConfiguredMetadataParseError :: Path' -> String -> Pretty ColorText -> Output v
 NoConfiguredGitUrl :: PushPull -> Path' -> Output v
 ConfiguredGitUrlParseError :: PushPull -> Path' -> Text -> String -> Output v
@@ -5883,8 +5883,6 @@ newNameArg :: ArgumentType
 noCompletions :: ArgumentType
 gitUrlArg :: ArgumentType
 collectNothings :: (a -> Maybe b) -> [a] -> [a]
-patternFromInput :: Input -> InputPattern
-inputStringFromInput :: IsString s => Input -> Pretty s
 
 module Unison.CommandLine.OutputMessages
 type Pretty = Pretty ColorText

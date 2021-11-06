@@ -281,13 +281,6 @@ CouldntFindRemoteBranch :: ReadRepo -> Path -> GitCodebaseError h
 instance GHC.Show.Show Unison.Codebase.GitError.GitProtocolError
 instance GHC.Show.Show h => GHC.Show.Show (Unison.Codebase.GitError.GitCodebaseError h)
 
-module Unison.Codebase.Editor.VersionParser
-
--- | Parse git version strings into valid unison namespaces. "release/M1j"
---   -&gt; "releases._M1j" "release/M1j.2" -&gt; "releases._M1j_2"
---   "latest-*" -&gt; "trunk"
-defaultBaseLib :: Parsec Void Text ReadRemoteNamespace
-
 module Unison.Codebase.SqliteCodebase.SyncEphemeral
 data Dependencies
 Dependencies :: Set Hash -> Set Hash -> Dependencies
@@ -380,20 +373,6 @@ instance GHC.Show.Show Unison.Codebase.Patch.PatchDiff
 instance GHC.Classes.Ord Unison.Codebase.Patch.PatchDiff
 instance GHC.Classes.Eq Unison.Codebase.Patch.PatchDiff
 
-module Unison.Codebase.Editor.TodoOutput
-type Score = Int
-data TodoOutput v a
-TodoOutput :: Score -> ([(Reference, Maybe (Type v a))], [(Reference, DisplayObject () (Decl v a))]) -> ([(Score, Reference, Maybe (Type v a))], [(Score, Reference, DisplayObject () (Decl v a))]) -> Names -> Patch -> TodoOutput v a
-[todoScore] :: TodoOutput v a -> Score
-[todoFrontier] :: TodoOutput v a -> ([(Reference, Maybe (Type v a))], [(Reference, DisplayObject () (Decl v a))])
-[todoFrontierDependents] :: TodoOutput v a -> ([(Score, Reference, Maybe (Type v a))], [(Score, Reference, DisplayObject () (Decl v a))])
-[nameConflicts] :: TodoOutput v a -> Names
-[editConflicts] :: TodoOutput v a -> Patch
-labeledDependencies :: Ord v => TodoOutput v a -> Set LabeledDependency
-noConflicts :: TodoOutput v a -> Bool
-noEdits :: TodoOutput v a -> Bool
-instance (GHC.Show.Show v, GHC.Show.Show a) => GHC.Show.Show (Unison.Codebase.Editor.TodoOutput.TodoOutput v a)
-
 module Unison.Codebase.Verbosity
 data Verbosity
 Default :: Verbosity
@@ -411,25 +390,6 @@ data GitSqliteCodebaseError
 GitCouldntParseRootBranchHash :: ReadRepo -> String -> GitSqliteCodebaseError
 UnrecognizedSchemaVersion :: ReadRepo -> CodebasePath -> SchemaVersion -> GitSqliteCodebaseError
 instance GHC.Show.Show Unison.Codebase.SqliteCodebase.GitError.GitSqliteCodebaseError
-
-
--- | Command-line fuzzy selection of arbitrary values. Shells out to fzf
---   for the actual selection.
-module Unison.CommandLine.FuzzySelect
-
--- | Allows prompting the user to interactively fuzzy-select a result from
---   a list of options, currently shells out to <tt>fzf</tt> under the
---   hood. If fzf is missing, or an error (other than ctrl-c) occurred,
---   returns Nothing.
-fuzzySelect :: forall a. Options -> (a -> Text) -> [a] -> IO (Maybe [a])
-
--- | Fuzzy Selection options
-data Options
-Options :: Bool -> Options
-[allowMultiSelect] :: Options -> Bool
-
--- | Default <a>Options</a>
-defaultOptions :: Options
 
 module Unison.Hashing.V2.Reference
 
@@ -709,12 +669,6 @@ hashClosedTerm :: Var v => Term v a -> Id
 hashTermComponents :: Var v => Map v (Term v a) -> Map v (Id, Term v a)
 typeToReference :: Var v => Type v a -> Reference
 typeToReferenceMentions :: Var v => Type v a -> Set Reference
-
-module Unison.Codebase.Editor.AuthorInfo
-data AuthorInfo v a
-AuthorInfo :: (Id, Term v a, Type v a) -> AuthorInfo v a
-[guid, author, copyrightHolder] :: AuthorInfo v a -> (Id, Term v a, Type v a)
-createAuthorInfo :: forall m v a. MonadIO m => Var v => a -> Text -> m (AuthorInfo v a)
 
 module Unison.Builtin.Decls
 lookupDeclRef :: Text -> Reference
@@ -1165,22 +1119,6 @@ typecheckedToNames :: Var v => TypecheckedUnisonFile v a -> Names
 typecheckedUnisonFile0 :: Ord v => TypecheckedUnisonFile v a
 bindNames :: Var v => Names -> UnisonFile v a -> ResolutionResult v a (UnisonFile v a)
 environmentFor :: forall v a. Var v => Names -> Map v (DataDeclaration v a) -> Map v (EffectDeclaration v a) -> ResolutionResult v a (Either [Error v a] (Env v a))
-
-module Unison.Codebase.Editor.SlurpComponent
-data SlurpComponent v
-SlurpComponent :: Set v -> Set v -> SlurpComponent v
-[types] :: SlurpComponent v -> Set v
-[terms] :: SlurpComponent v -> Set v
-isEmpty :: SlurpComponent v -> Bool
-empty :: Ord v => SlurpComponent v
-difference :: Ord v => SlurpComponent v -> SlurpComponent v -> SlurpComponent v
-intersection :: Ord v => SlurpComponent v -> SlurpComponent v -> SlurpComponent v
-closeWithDependencies :: forall v a. Ord v => TypecheckedUnisonFile v a -> SlurpComponent v -> SlurpComponent v
-instance GHC.Show.Show v => GHC.Show.Show (Unison.Codebase.Editor.SlurpComponent.SlurpComponent v)
-instance GHC.Classes.Ord v => GHC.Classes.Ord (Unison.Codebase.Editor.SlurpComponent.SlurpComponent v)
-instance GHC.Classes.Eq v => GHC.Classes.Eq (Unison.Codebase.Editor.SlurpComponent.SlurpComponent v)
-instance GHC.Classes.Ord v => GHC.Base.Semigroup (Unison.Codebase.Editor.SlurpComponent.SlurpComponent v)
-instance GHC.Classes.Ord v => GHC.Base.Monoid (Unison.Codebase.Editor.SlurpComponent.SlurpComponent v)
 
 module Unison.Codebase.CodeLookup.Util
 fromTypecheckedUnisonFile :: forall m v a. (Var v, Monad m) => TypecheckedUnisonFile v a -> CodeLookup v m a
@@ -1894,23 +1832,6 @@ parseHQSplit' :: String -> Either String HQSplit'
 parseShortHashOrHQSplit' :: String -> Either String (Either ShortHash HQSplit')
 wordyNameSegment :: String -> Either String NameSegment
 
-module Unison.Codebase.Editor.UriParser
-repoPath :: P ReadRemoteNamespace
-writeRepo :: P WriteRepo
-writeRepoPath :: P WriteRemotePath
-instance GHC.Show.Show Unison.Codebase.Editor.UriParser.Scheme
-instance GHC.Classes.Ord Unison.Codebase.Editor.UriParser.Scheme
-instance GHC.Classes.Eq Unison.Codebase.Editor.UriParser.Scheme
-instance GHC.Show.Show Unison.Codebase.Editor.UriParser.User
-instance GHC.Classes.Ord Unison.Codebase.Editor.UriParser.User
-instance GHC.Classes.Eq Unison.Codebase.Editor.UriParser.User
-instance GHC.Show.Show Unison.Codebase.Editor.UriParser.HostInfo
-instance GHC.Classes.Ord Unison.Codebase.Editor.UriParser.HostInfo
-instance GHC.Classes.Eq Unison.Codebase.Editor.UriParser.HostInfo
-instance GHC.Show.Show Unison.Codebase.Editor.UriParser.GitProtocol
-instance GHC.Classes.Ord Unison.Codebase.Editor.UriParser.GitProtocol
-instance GHC.Classes.Eq Unison.Codebase.Editor.UriParser.GitProtocol
-
 module Unison.Util.Star3
 data Star3 fact d1 d2 d3
 Star3 :: Set fact -> Relation fact d1 -> Relation fact d2 -> Relation fact d3 -> Star3 fact d1 d2 d3
@@ -2033,7 +1954,7 @@ isOne :: Branch m -> Bool
 before :: Monad m => Branch m -> Branch m -> m Bool
 lca :: Monad m => Branch m -> Branch m -> m (Maybe (Branch m))
 diff0 :: Monad m => Branch0 m -> Branch0 m -> m BranchDiff
-history :: forall m_a3FXF m_a3Gb3. Iso (Branch m_a3FXF) (Branch m_a3Gb3) (UnwrappedBranch m_a3FXF) (UnwrappedBranch m_a3Gb3)
+history :: forall m_a3p2n m_a3pfL. Iso (Branch m_a3p2n) (Branch m_a3pfL) (UnwrappedBranch m_a3p2n) (UnwrappedBranch m_a3pfL)
 head :: Branch m -> Branch0 m
 headHash :: Branch m -> Hash
 children :: Lens' (Branch0 m) (Map NameSegment (Branch m))
@@ -2068,7 +1989,7 @@ modifyAtM :: forall n m. Functor n => Applicative m => Path -> (Branch m -> n (B
 children0 :: IndexedTraversal' NameSegment (Branch0 m) (Branch0 m)
 terms :: Lens' (Branch0 m) (Star Referent NameSegment)
 types :: Lens' (Branch0 m) (Star Reference NameSegment)
-edits :: forall m_a3FXB. Lens' (Branch0 m_a3FXB) (Map NameSegment (EditHash, m_a3FXB Patch))
+edits :: forall m_a3p2j. Lens' (Branch0 m_a3p2j) (Map NameSegment (EditHash, m_a3p2j Patch))
 deepReferents :: Branch0 m -> Set Referent
 deepTypeReferences :: Branch0 m -> Set Reference
 cachedRead :: forall m. MonadIO m => Cache m -> Deserialize m Raw Raw -> (EditHash -> m Patch) -> Hash -> m (Branch m)
@@ -2083,25 +2004,6 @@ instance GHC.Classes.Ord (Unison.Codebase.Branch.Branch m)
 instance GHC.Classes.Eq (Unison.Codebase.Branch.Branch m)
 instance GHC.Base.Semigroup Unison.Codebase.Branch.BranchDiff
 instance GHC.Base.Monoid Unison.Codebase.Branch.BranchDiff
-
-
--- | Provides Globbing for selecting types, terms and namespaces using
---   wildcards.
-module Unison.CommandLine.Globbing
-
--- | Expand a single glob pattern into all matching targets of the
---   specified types.
-expandGlobs :: forall m. Set TargetType -> Branch0 m -> Absolute -> String -> Maybe [String]
-
--- | Possible targets which a glob may select.
-data TargetType
-Type :: TargetType
-Term :: TargetType
-Namespace :: TargetType
-instance GHC.Show.Show Unison.CommandLine.Globbing.TargetType
-instance GHC.Classes.Ord Unison.CommandLine.Globbing.TargetType
-instance GHC.Classes.Eq Unison.CommandLine.Globbing.TargetType
-instance GHC.Show.Show Unison.CommandLine.Globbing.GlobArg
 
 module Unison.Codebase.Type
 
@@ -2236,16 +2138,6 @@ instance GHC.Base.Semigroup Unison.Codebase.SqliteCodebase.Branch.Dependencies.D
 instance GHC.Generics.Generic Unison.Codebase.SqliteCodebase.Branch.Dependencies.Dependencies'
 instance GHC.Show.Show Unison.Codebase.SqliteCodebase.Branch.Dependencies.Dependencies'
 instance GHC.Classes.Eq Unison.Codebase.SqliteCodebase.Branch.Dependencies.Dependencies'
-
-module Unison.Codebase.Editor.Output.DumpNamespace
-data DumpNamespace
-DumpNamespace :: Map Referent (Set NameSegment, Set Reference) -> Map Reference (Set NameSegment, Set Reference) -> Map NameSegment EditHash -> Map NameSegment Hash -> Set Hash -> DumpNamespace
-[terms] :: DumpNamespace -> Map Referent (Set NameSegment, Set Reference)
-[types] :: DumpNamespace -> Map Reference (Set NameSegment, Set Reference)
-[patches] :: DumpNamespace -> Map NameSegment EditHash
-[children] :: DumpNamespace -> Map NameSegment Hash
-[causalParents] :: DumpNamespace -> Set Hash
-instance GHC.Show.Show Unison.Codebase.Editor.Output.DumpNamespace.DumpNamespace
 
 module Unison.Codebase.BranchUtil
 fromNames :: Monad m => Names -> Branch m
@@ -2667,127 +2559,6 @@ Init :: (DebugName -> CodebasePath -> m (Either Pretty (m (), Codebase m v a))) 
 --   transcript should clone.
 [codebasePath] :: Init m v a -> CodebasePath -> CodebasePath
 
-module Unison.Codebase.Editor.Input
-data Input
-ForkLocalBranchI :: Either ShortBranchHash Path' -> Path' -> Input
-MergeLocalBranchI :: Path' -> Path' -> MergeMode -> Input
-PreviewMergeLocalBranchI :: Path' -> Path' -> Input
-DiffNamespaceI :: Path' -> Path' -> Input
-PullRemoteBranchI :: Maybe ReadRemoteNamespace -> Path' -> SyncMode -> Verbosity -> Input
-PushRemoteBranchI :: Maybe WriteRemotePath -> Path' -> SyncMode -> Input
-CreatePullRequestI :: ReadRemoteNamespace -> ReadRemoteNamespace -> Input
-LoadPullRequestI :: ReadRemoteNamespace -> ReadRemoteNamespace -> Path' -> Input
-ResetRootI :: Either ShortBranchHash Path' -> Input
-CreateMessage :: Pretty ColorText -> Input
-SwitchBranchI :: Maybe Path' -> Input
-UpI :: Input
-PopBranchI :: Input
-NamesI :: HashQualified Name -> Input
-AliasTermI :: HashOrHQSplit' -> Split' -> Input
-AliasTypeI :: HashOrHQSplit' -> Split' -> Input
-AliasManyI :: [HQSplit] -> Path' -> Input
-MoveTermI :: HQSplit' -> Split' -> Input
-MoveTypeI :: HQSplit' -> Split' -> Input
-MoveBranchI :: Maybe Split' -> Split' -> Input
-MovePatchI :: Split' -> Split' -> Input
-CopyPatchI :: Split' -> Split' -> Input
-DeleteI :: HQSplit' -> Input
-DeleteTermI :: HQSplit' -> Input
-DeleteTypeI :: HQSplit' -> Input
-DeleteBranchI :: Maybe Split' -> Input
-DeletePatchI :: Split' -> Input
-ResolveTermNameI :: HQSplit' -> Input
-ResolveTypeNameI :: HQSplit' -> Input
-LoadI :: Maybe FilePath -> Input
-AddI :: [HashQualified Name] -> Input
-PreviewAddI :: [HashQualified Name] -> Input
-UpdateI :: Maybe PatchPath -> [HashQualified Name] -> Input
-PreviewUpdateI :: [HashQualified Name] -> Input
-TodoI :: Maybe PatchPath -> Path' -> Input
-PropagatePatchI :: PatchPath -> Path' -> Input
-ListEditsI :: Maybe PatchPath -> Input
-DeprecateTermI :: PatchPath -> HQSplit' -> Input
-DeprecateTypeI :: PatchPath -> HQSplit' -> Input
-ReplaceI :: HashQualified Name -> HashQualified Name -> Maybe PatchPath -> Input
-RemoveTermReplacementI :: HashQualified Name -> Maybe PatchPath -> Input
-RemoveTypeReplacementI :: HashQualified Name -> Maybe PatchPath -> Input
-UndoI :: Input
-HistoryI :: Maybe Int -> Maybe Int -> BranchId -> Input
-ExecuteI :: String -> [String] -> Input
-IOTestI :: HashQualified Name -> Input
-MakeStandaloneI :: String -> HashQualified Name -> Input
-TestI :: Bool -> Bool -> Input
-LinkI :: HashQualified Name -> [HQSplit'] -> Input
-UnlinkI :: HashQualified Name -> [HQSplit'] -> Input
-LinksI :: HQSplit' -> Maybe String -> Input
-CreateAuthorI :: NameSegment -> Text -> Input
-DisplayI :: OutputLocation -> [HashQualified Name] -> Input
-DocsI :: [HQSplit'] -> Input
-SearchByNameI :: Bool -> Bool -> [String] -> Input
-FindShallowI :: Path' -> Input
-FindPatchI :: Input
-ShowDefinitionI :: OutputLocation -> [HashQualified Name] -> Input
-ShowDefinitionByPrefixI :: OutputLocation -> [HashQualified Name] -> Input
-ShowReflogI :: Input
-UpdateBuiltinsI :: Input
-MergeBuiltinsI :: Input
-MergeIOBuiltinsI :: Input
-ListDependenciesI :: HashQualified Name -> Input
-ListDependentsI :: HashQualified Name -> Input
-DebugNumberedArgsI :: Input
-DebugTypecheckedUnisonFileI :: Input
-DebugDumpNamespacesI :: Input
-DebugDumpNamespaceSimpleI :: Input
-DebugClearWatchI :: Input
-QuitI :: Input
-UiI :: Input
-DocsToHtmlI :: Path' -> FilePath -> Input
-data Event
-UnisonFileChanged :: SourceName -> Source -> Event
-IncomingRootBranch :: Set Hash -> Event
-data OutputLocation
-ConsoleLocation :: OutputLocation
-LatestFileLocation :: OutputLocation
-FileLocation :: FilePath -> OutputLocation
-type PatchPath = Split'
-type BranchId = Either ShortBranchHash Path'
-parseBranchId :: String -> Either String BranchId
-type HashOrHQSplit' = Either ShortHash HQSplit'
-instance GHC.Show.Show Unison.Codebase.Editor.Input.OutputLocation
-instance GHC.Classes.Eq Unison.Codebase.Editor.Input.OutputLocation
-instance GHC.Show.Show Unison.Codebase.Editor.Input.Input
-instance GHC.Classes.Eq Unison.Codebase.Editor.Input.Input
-
-module Unison.CommandLine.Welcome
-data Welcome
-Welcome :: Onboarding -> DownloadBase -> FilePath -> String -> Welcome
-[onboarding] :: Welcome -> Onboarding
-[downloadBase] :: Welcome -> DownloadBase
-[watchDir] :: Welcome -> FilePath
-[unisonVersion] :: Welcome -> String
-data DownloadBase
-DownloadBase :: ReadRemoteNamespace -> DownloadBase
-DontDownloadBase :: DownloadBase
-data CodebaseInitStatus
-NewlyCreatedCodebase :: CodebaseInitStatus
-PreviouslyCreatedCodebase :: CodebaseInitStatus
-data Onboarding
-Init :: CodebaseInitStatus -> Onboarding
-DownloadingBase :: ReadRemoteNamespace -> Onboarding
-Author :: Onboarding
-Finished :: Onboarding
-PreviouslyOnboarded :: Onboarding
-welcome :: CodebaseInitStatus -> DownloadBase -> FilePath -> String -> Welcome
-pullBase :: ReadRemoteNamespace -> Either Event Input
-run :: Codebase IO v a -> Welcome -> IO [Either Event Input]
-toInput :: Pretty ColorText -> Either Event Input
-determineFirstStep :: DownloadBase -> Codebase IO v a -> IO Onboarding
-asciiartUnison :: Pretty ColorText
-downloading :: Path -> Pretty ColorText
-header :: String -> Pretty ColorText
-authorSuggestion :: Pretty ColorText
-getStarted :: FilePath -> IO (Pretty ColorText)
-
 module Unison.PrettyTerminal
 stripSurroundingBlanks :: String -> String
 putPrettyLn :: Pretty ColorText -> IO ()
@@ -2844,37 +2615,6 @@ instance GHC.Show.Show Unison.Codebase.SqliteCodebase.CreateCodebaseError
 instance GHC.Show.Show a => GHC.Show.Show (Unison.Codebase.SqliteCodebase.BufferEntry a)
 instance GHC.Classes.Eq a => GHC.Classes.Eq (Unison.Codebase.SqliteCodebase.BufferEntry a)
 instance GHC.Show.Show (Unison.Codebase.SqliteCodebase.Entity m)
-
-module Unison.CommandLine.InputPattern
-data IsOptional
-Required :: IsOptional
-Optional :: IsOptional
-ZeroPlus :: IsOptional
-OnePlus :: IsOptional
-data InputPattern
-InputPattern :: String -> [String] -> [(IsOptional, ArgumentType)] -> Pretty ColorText -> ([String] -> Either (Pretty ColorText) Input) -> InputPattern
-[patternName] :: InputPattern -> String
-[aliases] :: InputPattern -> [String]
-[argTypes] :: InputPattern -> [(IsOptional, ArgumentType)]
-[help] :: InputPattern -> Pretty ColorText
-[parse] :: InputPattern -> [String] -> Either (Pretty ColorText) Input
-data ArgumentType
-ArgumentType :: String -> (forall m v a. Monad m => String -> Codebase m v a -> Branch m -> Absolute -> m [Completion]) -> Set TargetType -> ArgumentType
-[typeName] :: ArgumentType -> String
-
--- | Generate completion suggestions for this argument type
-[suggestions] :: ArgumentType -> forall m v a. Monad m => String -> Codebase m v a -> Branch m -> Absolute -> m [Completion]
-
--- | Select which targets glob patterns may expand into for this argument.
---   An empty set disables globbing.
-[globTargets] :: ArgumentType -> Set TargetType
-argType :: InputPattern -> Int -> Maybe ArgumentType
-minArgs :: InputPattern -> Int
-maxArgs :: InputPattern -> Maybe Int
-noSuggestions :: Monad m => String -> Codebase m v a -> Branch m -> Absolute -> m [Completion]
-instance GHC.Classes.Eq Unison.CommandLine.InputPattern.IsOptional
-instance GHC.Show.Show Unison.CommandLine.InputPattern.IsOptional
-instance GHC.Show.Show Unison.CommandLine.InputPattern.ArgumentType
 
 
 -- | Duplicate of the Unison.Util.SyntaxText module, but we expect these to
@@ -3369,9 +3109,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a6mVo loc_a6mVp. Lens' (Env v_a6mVo loc_a6mVp) (TypeLookup v_a6mVo loc_a6mVp)
-termsByShortname :: forall v_a6mVo loc_a6mVp. Lens' (Env v_a6mVo loc_a6mVp) (Map Name [NamedReference v_a6mVo loc_a6mVp])
-ambientAbilities :: forall v_a6mVo loc_a6mVp. Lens' (Env v_a6mVo loc_a6mVp) [Type v_a6mVo loc_a6mVp]
+typeLookup :: forall v_a5GAj loc_a5GAk. Lens' (Env v_a5GAj loc_a5GAk) (TypeLookup v_a5GAj loc_a5GAk)
+termsByShortname :: forall v_a5GAj loc_a5GAk. Lens' (Env v_a5GAj loc_a5GAk) (Map Name [NamedReference v_a5GAj loc_a5GAk])
+ambientAbilities :: forall v_a5GAj loc_a5GAk. Lens' (Env v_a5GAj loc_a5GAk) [Type v_a5GAj loc_a5GAk]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.
@@ -3859,55 +3599,6 @@ instance GHC.Show.Show a => GHC.Show.Show (Unison.Codebase.BranchDiff.DiffType a
 instance GHC.Show.Show r => GHC.Show.Show (Unison.Codebase.BranchDiff.NamespaceSlice r)
 instance GHC.Show.Show r => GHC.Show.Show (Unison.Codebase.BranchDiff.DiffSlice r)
 instance GHC.Show.Show Unison.Codebase.BranchDiff.BranchDiff
-
-module Unison.Codebase.Editor.Output.BranchDiff
-data MetadataDiff tm
-MetadataDiff :: [tm] -> [tm] -> MetadataDiff tm
-[addedMetadata] :: MetadataDiff tm -> [tm]
-[removedMetadata] :: MetadataDiff tm -> [tm]
-data BranchDiffOutput v a
-BranchDiffOutput :: [UpdateTypeDisplay v a] -> [UpdateTermDisplay v a] -> [UpdateTypeDisplay v a] -> [UpdateTermDisplay v a] -> [UpdateTypeDisplay v a] -> [UpdateTermDisplay v a] -> Int -> [PatchDisplay] -> [AddedTypeDisplay v a] -> [AddedTermDisplay v a] -> [PatchDisplay] -> [RemovedTypeDisplay v a] -> [RemovedTermDisplay v a] -> [PatchDisplay] -> [RenameTypeDisplay v a] -> [RenameTermDisplay v a] -> BranchDiffOutput v a
-[updatedTypes] :: BranchDiffOutput v a -> [UpdateTypeDisplay v a]
-[updatedTerms] :: BranchDiffOutput v a -> [UpdateTermDisplay v a]
-[newTypeConflicts] :: BranchDiffOutput v a -> [UpdateTypeDisplay v a]
-[newTermConflicts] :: BranchDiffOutput v a -> [UpdateTermDisplay v a]
-[resolvedTypeConflicts] :: BranchDiffOutput v a -> [UpdateTypeDisplay v a]
-[resolvedTermConflicts] :: BranchDiffOutput v a -> [UpdateTermDisplay v a]
-[propagatedUpdates] :: BranchDiffOutput v a -> Int
-[updatedPatches] :: BranchDiffOutput v a -> [PatchDisplay]
-[addedTypes] :: BranchDiffOutput v a -> [AddedTypeDisplay v a]
-[addedTerms] :: BranchDiffOutput v a -> [AddedTermDisplay v a]
-[addedPatches] :: BranchDiffOutput v a -> [PatchDisplay]
-[removedTypes] :: BranchDiffOutput v a -> [RemovedTypeDisplay v a]
-[removedTerms] :: BranchDiffOutput v a -> [RemovedTermDisplay v a]
-[removedPatches] :: BranchDiffOutput v a -> [PatchDisplay]
-[renamedTypes] :: BranchDiffOutput v a -> [RenameTypeDisplay v a]
-[renamedTerms] :: BranchDiffOutput v a -> [RenameTermDisplay v a]
-isEmpty :: BranchDiffOutput v a -> Bool
-type TermDisplay v a = (HashQualified Name, Referent, Maybe (Type v a), MetadataDiff (MetadataDisplay v a))
-type TypeDisplay v a = (HashQualified Name, Reference, Maybe (DeclOrBuiltin v a), MetadataDiff (MetadataDisplay v a))
-type AddedTermDisplay v a = ([(HashQualified Name, [MetadataDisplay v a])], Referent, Maybe (Type v a))
-type AddedTypeDisplay v a = ([(HashQualified Name, [MetadataDisplay v a])], Reference, Maybe (DeclOrBuiltin v a))
-type RemovedTermDisplay v a = ([HashQualified Name], Referent, Maybe (Type v a))
-type RemovedTypeDisplay v a = ([HashQualified Name], Reference, Maybe (DeclOrBuiltin v a))
-type SimpleTermDisplay v a = (HashQualified Name, Referent, Maybe (Type v a))
-type SimpleTypeDisplay v a = (HashQualified Name, Reference, Maybe (DeclOrBuiltin v a))
-type UpdateTermDisplay v a = (Maybe [SimpleTermDisplay v a], [TermDisplay v a])
-type UpdateTypeDisplay v a = (Maybe [SimpleTypeDisplay v a], [TypeDisplay v a])
-type MetadataDisplay v a = (HashQualified Name, Referent, Maybe (Type v a))
-type RenameTermDisplay v a = (Referent, Maybe (Type v a), Set (HashQualified Name), Set (HashQualified Name))
-type RenameTypeDisplay v a = (Reference, Maybe (DeclOrBuiltin v a), Set (HashQualified Name), Set (HashQualified Name))
-type PatchDisplay = (Name, PatchDiff)
-toOutput :: forall m v a. Monad m => (Referent -> m (Maybe (Type v a))) -> (Reference -> m (Maybe (DeclOrBuiltin v a))) -> Int -> Names -> Names -> PrettyPrintEnv -> BranchDiff -> m (BranchDiffOutput v a)
-instance GHC.Show.Show tm => GHC.Show.Show (Unison.Codebase.Editor.Output.BranchDiff.MetadataDiff tm)
-instance Data.Traversable.Traversable Unison.Codebase.Editor.Output.BranchDiff.MetadataDiff
-instance Data.Foldable.Foldable Unison.Codebase.Editor.Output.BranchDiff.MetadataDiff
-instance GHC.Base.Functor Unison.Codebase.Editor.Output.BranchDiff.MetadataDiff
-instance GHC.Classes.Eq tm => GHC.Classes.Eq (Unison.Codebase.Editor.Output.BranchDiff.MetadataDiff tm)
-instance GHC.Classes.Ord tm => GHC.Classes.Ord (Unison.Codebase.Editor.Output.BranchDiff.MetadataDiff tm)
-instance (GHC.Show.Show a, GHC.Show.Show v) => GHC.Show.Show (Unison.Codebase.Editor.Output.BranchDiff.BranchDiffOutput v a)
-instance GHC.Base.Semigroup (Unison.Codebase.Editor.Output.BranchDiff.MetadataDiff tm)
-instance GHC.Base.Monoid (Unison.Codebase.Editor.Output.BranchDiff.MetadataDiff tm)
 
 module Unison.DeclPrinter
 type SyntaxText = SyntaxText' Reference
@@ -4487,273 +4178,6 @@ instance Servant.API.ContentTypes.MimeRender Unison.Server.CodebaseServer.HTML U
 instance Servant.API.ContentTypes.Accept Unison.Server.CodebaseServer.HTML
 instance Servant.Docs.Internal.ToSample GHC.Types.Char
 
-module Unison.Codebase.Editor.SlurpResult
-data Aliases
-AddAliases :: Set Name -> Aliases
-UpdateAliases :: Set Name -> Set Name -> Aliases
-[oldRefNames] :: Aliases -> Set Name
-[newRefNames] :: Aliases -> Set Name
-data SlurpResult v
-SlurpResult :: TypecheckedUnisonFile v Ann -> SlurpComponent v -> SlurpComponent v -> SlurpComponent v -> SlurpComponent v -> SlurpComponent v -> SlurpComponent v -> Set v -> Set v -> Map v Aliases -> Map v Aliases -> SlurpComponent v -> SlurpResult v
-[originalFile] :: SlurpResult v -> TypecheckedUnisonFile v Ann
-[extraDefinitions] :: SlurpResult v -> SlurpComponent v
-[adds] :: SlurpResult v -> SlurpComponent v
-[duplicates] :: SlurpResult v -> SlurpComponent v
-[collisions] :: SlurpResult v -> SlurpComponent v
-[conflicts] :: SlurpResult v -> SlurpComponent v
-[updates] :: SlurpResult v -> SlurpComponent v
-[termExistingConstructorCollisions] :: SlurpResult v -> Set v
-[constructorExistingTermCollisions] :: SlurpResult v -> Set v
-[termAlias] :: SlurpResult v -> Map v Aliases
-[typeAlias] :: SlurpResult v -> Map v Aliases
-[defsWithBlockedDependencies] :: SlurpResult v -> SlurpComponent v
-constructorsFor :: Var v => Set v -> TypecheckedUnisonFile v Ann -> Set v
-subtractComponent :: forall v. Var v => SlurpComponent v -> SlurpResult v -> SlurpResult v
-disallowUpdates :: forall v. Var v => SlurpResult v -> SlurpResult v
-isNonempty :: Ord v => SlurpResult v -> Bool
-data Status
-Add :: Status
-Update :: Status
-Duplicate :: Status
-Collision :: Status
-Conflicted :: Status
-TermExistingConstructorCollision :: Status
-ConstructorExistingTermCollision :: Status
-ExtraDefinition :: Status
-BlockedDependency :: Status
-isFailure :: Status -> Bool
-prettyStatus :: Status -> Pretty ColorText
-type IsPastTense = Bool
-prettyVar :: Var v => v -> Pretty ColorText
-aliasesToShow :: Int
-pretty :: forall v. Var v => IsPastTense -> PrettyPrintEnv -> SlurpResult v -> Pretty ColorText
-isOk :: Ord v => SlurpResult v -> Bool
-isAllDuplicates :: Ord v => SlurpResult v -> Bool
-ex :: Pretty ColorText
-instance GHC.Classes.Ord Unison.Codebase.Editor.SlurpResult.Aliases
-instance GHC.Classes.Eq Unison.Codebase.Editor.SlurpResult.Aliases
-instance GHC.Show.Show Unison.Codebase.Editor.SlurpResult.Aliases
-instance GHC.Show.Show v => GHC.Show.Show (Unison.Codebase.Editor.SlurpResult.SlurpResult v)
-instance GHC.Show.Show Unison.Codebase.Editor.SlurpResult.Status
-instance GHC.Classes.Eq Unison.Codebase.Editor.SlurpResult.Status
-instance GHC.Classes.Ord Unison.Codebase.Editor.SlurpResult.Status
-
-module Unison.Codebase.Editor.Output
-data Output v
-Success :: Output v
-NoUnisonFile :: Output v
-PrintMessage :: Pretty ColorText -> Output v
-InvalidSourceName :: String -> Output v
-SourceLoadFailed :: String -> Output v
-NoMainFunction :: String -> PrettyPrintEnv -> [Type v Ann] -> Output v
-BadMainFunction :: String -> Type v Ann -> PrettyPrintEnv -> [Type v Ann] -> Output v
-BranchEmpty :: Either ShortBranchHash Path' -> Output v
-BranchNotEmpty :: Path' -> Output v
-LoadPullRequest :: ReadRemoteNamespace -> ReadRemoteNamespace -> Path' -> Path' -> Path' -> Path' -> Output v
-CreatedNewBranch :: Absolute -> Output v
-BranchAlreadyExists :: Path' -> Output v
-PatchAlreadyExists :: Split' -> Output v
-NoExactTypeMatches :: Output v
-TypeAlreadyExists :: Split' -> Set Reference -> Output v
-TypeParseError :: String -> Err v -> Output v
-ParseResolutionFailures :: String -> [ResolutionFailure v Ann] -> Output v
-TypeHasFreeVars :: Type v Ann -> Output v
-TermAlreadyExists :: Split' -> Set Referent -> Output v
-LabeledReferenceAmbiguous :: Int -> HashQualified Name -> Set LabeledDependency -> Output v
-LabeledReferenceNotFound :: HashQualified Name -> Output v
-DeleteNameAmbiguous :: Int -> HQSplit' -> Set Referent -> Set Reference -> Output v
-TermAmbiguous :: HashQualified Name -> Set Referent -> Output v
-HashAmbiguous :: ShortHash -> Set Referent -> Output v
-BranchHashAmbiguous :: ShortBranchHash -> Set ShortBranchHash -> Output v
-BranchNotFound :: Path' -> Output v
-NameNotFound :: HQSplit' -> Output v
-PatchNotFound :: Split' -> Output v
-TypeNotFound :: HQSplit' -> Output v
-TermNotFound :: HQSplit' -> Output v
-TypeNotFound' :: ShortHash -> Output v
-TermNotFound' :: ShortHash -> Output v
-TypeTermMismatch :: HashQualified Name -> HashQualified Name -> Output v
-SearchTermsNotFound :: [HashQualified Name] -> Output v
-DeleteBranchConfirmation :: [(Path', (Names, [SearchResult' v Ann]))] -> Output v
-CantDelete :: PrettyPrintEnv -> [SearchResult' v Ann] -> [SearchResult' v Ann] -> Output v
-DeleteEverythingConfirmation :: Output v
-DeletedEverything :: Output v
-ListNames :: Int -> [(Reference, Set (HashQualified Name))] -> [(Referent, Set (HashQualified Name))] -> Output v
-ListOfDefinitions :: PrettyPrintEnv -> ListDetailed -> [SearchResult' v Ann] -> Output v
-ListOfLinks :: PrettyPrintEnv -> [(HashQualified Name, Reference, Maybe (Type v Ann))] -> Output v
-ListShallow :: PrettyPrintEnv -> [ShallowListEntry v Ann] -> Output v
-ListOfPatches :: Set Name -> Output v
-SlurpOutput :: Input -> PrettyPrintEnv -> SlurpResult v -> Output v
-ParseErrors :: Text -> [Err v] -> Output v
-TypeErrors :: Text -> PrettyPrintEnv -> [ErrorNote v Ann] -> Output v
-CompilerBugs :: Text -> PrettyPrintEnv -> [CompilerBug v Ann] -> Output v
-DisplayConflicts :: Relation Name Referent -> Relation Name Reference -> Output v
-EvaluationFailure :: Error -> Output v
-Evaluated :: SourceFileContents -> PrettyPrintEnv -> [(v, Term v ())] -> Map v (Ann, WatchKind, Term v (), IsCacheHit) -> Output v
-Typechecked :: SourceName -> PrettyPrintEnv -> SlurpResult v -> TypecheckedUnisonFile v Ann -> Output v
-DisplayRendered :: Maybe FilePath -> Pretty ColorText -> Output v
-DisplayDefinitions :: Maybe FilePath -> PrettyPrintEnvDecl -> Map Reference (DisplayObject () (Decl v Ann)) -> Map Reference (DisplayObject (Type v Ann) (Term v Ann)) -> Output v
-
--- | Invariant: there's at least one conflict or edit in the TodoOutput.
-TodoOutput :: PrettyPrintEnvDecl -> TodoOutput v Ann -> Output v
-TestIncrementalOutputStart :: PrettyPrintEnv -> (Int, Int) -> Reference -> Term v Ann -> Output v
-TestIncrementalOutputEnd :: PrettyPrintEnv -> (Int, Int) -> Reference -> Term v Ann -> Output v
-TestResults :: TestReportStats -> PrettyPrintEnv -> ShowSuccesses -> ShowFailures -> [(Reference, Text)] -> [(Reference, Text)] -> Output v
-CantUndo :: UndoFailureReason -> Output v
-ListEdits :: Patch -> PrettyPrintEnv -> Output v
-BustedBuiltins :: Set Reference -> Set Reference -> Output v
-GitError :: GitError -> Output v
-ConfiguredMetadataParseError :: Path' -> String -> Pretty ColorText -> Output v
-NoConfiguredGitUrl :: PushPull -> Path' -> Output v
-ConfiguredGitUrlParseError :: PushPull -> Path' -> Text -> String -> Output v
-MetadataMissingType :: PrettyPrintEnv -> Referent -> Output v
-TermMissingType :: Reference -> Output v
-MetadataAmbiguous :: HashQualified Name -> PrettyPrintEnv -> [Referent] -> Output v
-NothingToPatch :: PatchPath -> Path' -> Output v
-PatchNeedsToBeConflictFree :: Output v
-PatchInvolvesExternalDependents :: PrettyPrintEnv -> Set Reference -> Output v
-WarnIncomingRootBranch :: ShortBranchHash -> Set ShortBranchHash -> Output v
-StartOfCurrentPathHistory :: Output v
-History :: Maybe Int -> [(ShortBranchHash, Diff)] -> HistoryTail -> Output v
-ShowReflog :: [ReflogEntry] -> Output v
-PullAlreadyUpToDate :: ReadRemoteNamespace -> Path' -> Output v
-MergeAlreadyUpToDate :: Path' -> Path' -> Output v
-PreviewMergeAlreadyUpToDate :: Path' -> Path' -> Output v
-
--- | No conflicts or edits remain for the current patch.
-NoConflictsOrEdits :: Output v
-NotImplemented :: Output v
-NoBranchWithHash :: ShortBranchHash -> Output v
-ListDependencies :: Int -> LabeledDependency -> [(Name, Reference)] -> Set Reference -> Output v
-ListDependents :: Int -> LabeledDependency -> [(Name, Reference)] -> Set Reference -> Output v
-DumpNumberedArgs :: NumberedArgs -> Output v
-DumpBitBooster :: Hash -> Map Hash [Hash] -> Output v
-DumpUnisonFileHashes :: Int -> [(Name, Id)] -> [(Name, Id)] -> [(Name, Id)] -> Output v
-BadName :: String -> Output v
-DefaultMetadataNotification :: Output v
-BadRootBranch :: GetRootBranchError -> Output v
-CouldntLoadBranch :: Hash -> Output v
-NamespaceEmpty :: Either Absolute (Absolute, Absolute) -> Output v
-NoOp :: Output v
-data NumberedOutput v
-ShowDiffNamespace :: Absolute -> Absolute -> PrettyPrintEnv -> BranchDiffOutput v Ann -> NumberedOutput v
-ShowDiffAfterUndo :: PrettyPrintEnv -> BranchDiffOutput v Ann -> NumberedOutput v
-ShowDiffAfterDeleteDefinitions :: PrettyPrintEnv -> BranchDiffOutput v Ann -> NumberedOutput v
-ShowDiffAfterDeleteBranch :: Absolute -> PrettyPrintEnv -> BranchDiffOutput v Ann -> NumberedOutput v
-ShowDiffAfterModifyBranch :: Path' -> Absolute -> PrettyPrintEnv -> BranchDiffOutput v Ann -> NumberedOutput v
-ShowDiffAfterMerge :: Path' -> Absolute -> PrettyPrintEnv -> BranchDiffOutput v Ann -> NumberedOutput v
-ShowDiffAfterMergePropagate :: Path' -> Absolute -> Path' -> PrettyPrintEnv -> BranchDiffOutput v Ann -> NumberedOutput v
-ShowDiffAfterMergePreview :: Path' -> Absolute -> PrettyPrintEnv -> BranchDiffOutput v Ann -> NumberedOutput v
-ShowDiffAfterPull :: Path' -> Absolute -> PrettyPrintEnv -> BranchDiffOutput v Ann -> NumberedOutput v
-ShowDiffAfterCreatePR :: ReadRemoteNamespace -> ReadRemoteNamespace -> PrettyPrintEnv -> BranchDiffOutput v Ann -> NumberedOutput v
-ShowDiffAfterCreateAuthor :: NameSegment -> Path' -> Absolute -> PrettyPrintEnv -> BranchDiffOutput v Ann -> NumberedOutput v
-type NumberedArgs = [String]
-type ListDetailed = Bool
-data HistoryTail
-EndOfLog :: ShortBranchHash -> HistoryTail
-MergeTail :: ShortBranchHash -> [ShortBranchHash] -> HistoryTail
-PageEnd :: ShortBranchHash -> Int -> HistoryTail
-data TestReportStats
-CachedTests :: TotalCount -> CachedCount -> TestReportStats
-NewlyComputed :: TestReportStats
-data UndoFailureReason
-CantUndoPastStart :: UndoFailureReason
-CantUndoPastMerge :: UndoFailureReason
-data PushPull
-Push :: PushPull
-Pull :: PushPull
-data ReflogEntry
-ReflogEntry :: ShortBranchHash -> Text -> ReflogEntry
-[hash] :: ReflogEntry -> ShortBranchHash
-[reason] :: ReflogEntry -> Text
-pushPull :: a -> a -> PushPull -> a
-isFailure :: Ord v => Output v -> Bool
-isNumberedFailure :: NumberedOutput v -> Bool
-instance GHC.Show.Show Unison.Codebase.Editor.Output.PushPull
-instance GHC.Classes.Ord Unison.Codebase.Editor.Output.PushPull
-instance GHC.Classes.Eq Unison.Codebase.Editor.Output.PushPull
-instance GHC.Show.Show Unison.Codebase.Editor.Output.ReflogEntry
-instance GHC.Show.Show Unison.Codebase.Editor.Output.HistoryTail
-instance GHC.Show.Show Unison.Codebase.Editor.Output.TestReportStats
-instance GHC.Show.Show Unison.Codebase.Editor.Output.UndoFailureReason
-instance Unison.Var.Var v => GHC.Show.Show (Unison.Codebase.Editor.Output.Output v)
-
-module Unison.Codebase.Editor.Command
-data Command m i v a
-[Eval] :: m a -> Command m i v a
-[UI] :: Command m i v ()
-[DocsToHtml] :: Branch m -> Path -> FilePath -> Command m i v ()
-[HQNameQuery] :: Maybe Path -> Branch m -> [HashQualified Name] -> Command m i v QueryResult
-[LoadSearchResults] :: [SearchResult] -> Command m i v [SearchResult' v Ann]
-[GetDefinitionsBySuffixes] :: Maybe Path -> Branch m -> IncludeCycles -> [HashQualified Name] -> Command m i v (DefinitionResults v)
-[FindShallow] :: Absolute -> Command m i v (Either BackendError [ShallowListEntry v Ann])
-[ConfigLookup] :: Configured a => Text -> Command m i v (Maybe a)
-[Input] :: Command m i v i
-[Notify] :: Output v -> Command m i v ()
-[NotifyNumbered] :: NumberedOutput v -> Command m i v NumberedArgs
-[AddDefsToCodebase] :: TypecheckedUnisonFile v Ann -> Command m i v ()
-[CodebaseHashLength] :: Command m i v Int
-[TypeReferencesByShortHash] :: ShortHash -> Command m i v (Set Reference)
-[TermReferencesByShortHash] :: ShortHash -> Command m i v (Set Reference)
-[TermReferentsByShortHash] :: ShortHash -> Command m i v (Set Referent)
-[BranchHashLength] :: Command m i v Int
-[BranchHashesByPrefix] :: ShortBranchHash -> Command m i v (Set Hash)
-[ParseType] :: NamesWithHistory -> LexedSource -> Command m i v (Either (Err v) (Type v Ann))
-[LoadSource] :: SourceName -> Command m i v LoadSourceResult
-[Typecheck] :: AmbientAbilities v -> NamesWithHistory -> SourceName -> LexedSource -> Command m i v (TypecheckingResult v)
-[TypecheckFile] :: UnisonFile v Ann -> [Type v Ann] -> Command m i v (TypecheckingResult v)
-[Evaluate] :: PrettyPrintEnv -> TypecheckedUnisonFile v Ann -> Command m i v (Either Error (EvalResult v))
-[Evaluate1] :: PrettyPrintEnv -> UseCache -> Term v Ann -> Command m i v (Either Error (Term v Ann))
-[PutWatch] :: WatchKind -> Id -> Term v Ann -> Command m i v ()
-[LoadWatches] :: WatchKind -> Set Reference -> Command m i v [(Reference, Term v Ann)]
-[LoadLocalRootBranch] :: Command m i v (Branch m)
-[LoadLocalBranch] :: Hash -> Command m i v (Branch m)
-[Merge] :: MergeMode -> Branch m -> Branch m -> Command m i v (Branch m)
-[ViewRemoteBranch] :: ReadRemoteNamespace -> Command m i v (Either GitError (m (), Branch m))
-[ImportRemoteBranch] :: ReadRemoteNamespace -> SyncMode -> Command m i v (Either GitError (Branch m))
-[SyncLocalRootBranch] :: Branch m -> Command m i v ()
-[SyncRemoteRootBranch] :: WriteRepo -> Branch m -> SyncMode -> Command m i v (Either GitError ())
-[AppendToReflog] :: Text -> Branch m -> Branch m -> Command m i v ()
-[LoadReflog] :: Command m i v [Entry Hash]
-[LoadTerm] :: Id -> Command m i v (Maybe (Term v Ann))
-[LoadType] :: Id -> Command m i v (Maybe (Decl v Ann))
-[LoadTypeOfTerm] :: Reference -> Command m i v (Maybe (Type v Ann))
-[PutTerm] :: Id -> Term v Ann -> Type v Ann -> Command m i v ()
-[PutDecl] :: Id -> Decl v Ann -> Command m i v ()
-[IsTerm] :: Reference -> Command m i v Bool
-[IsType] :: Reference -> Command m i v Bool
-[GetDependents] :: Reference -> Command m i v (Set Reference)
-[GetTermsOfType] :: Type v Ann -> Command m i v (Set Referent)
-[GetTermsMentioningType] :: Type v Ann -> Command m i v (Set Referent)
-[Execute] :: PrettyPrintEnv -> TypecheckedUnisonFile v Ann -> [String] -> Command m i v (WatchResults v Ann)
-[CreateAuthorInfo] :: Text -> Command m i v (AuthorInfo v Ann)
-[RuntimeMain] :: Command m i v (Type v Ann)
-[RuntimeTest] :: Command m i v (Type v Ann)
-[ClearWatchCache] :: Command m i v ()
-[MakeStandalone] :: PrettyPrintEnv -> Reference -> String -> Command m i v (Maybe Error)
-
--- | Trigger an interactive fuzzy search over the provided options and
---   return all selected results.
-[FuzzySelect] :: Options -> (a -> Text) -> [a] -> Command m i v (Maybe [a])
-type AmbientAbilities v = [Type v Ann]
-type LexedSource = (Text, [Token Lexeme])
-type Source = Text
-type SourceName = Text
-type TypecheckingResult v = Result (Seq (Note v Ann)) (Either Names (TypecheckedUnisonFile v Ann))
-data LoadSourceResult
-InvalidSourceNameError :: LoadSourceResult
-LoadError :: LoadSourceResult
-LoadSuccess :: Text -> LoadSourceResult
-type UseCache = Bool
-type EvalResult v = ([(v, Term v ())], Map v (Ann, WatchKind, Reference, Term v (), Term v (), IsCacheHit))
-commandName :: Command m i v a -> String
-lookupEvalResult :: Ord v => v -> EvalResult v -> Maybe (Term v ())
-
-module Unison.Codebase.Editor.HandleCommand
-typecheck :: (Monad m, Var v) => [Type v Ann] -> Codebase m v Ann -> ParsingEnv -> SourceName -> LexedSource -> m (TypecheckingResult v)
-typecheck' :: Monad m => Var v => [Type v Ann] -> Codebase m v Ann -> UnisonFile v Ann -> m (TypecheckingResult v)
-commandLine :: forall i v a gen. (Var v, DRG gen) => Config -> IO i -> (Branch IO -> IO ()) -> Runtime v -> (Output v -> IO ()) -> (NumberedOutput v -> IO NumberedArgs) -> (SourceName -> IO LoadSourceResult) -> Codebase IO v Ann -> Maybe BaseUrl -> (Int -> IO gen) -> Free (Command IO i v) a -> IO a
-
 module Unison.Util.TQueue
 data TQueue a
 TQueue :: TVar (Seq a) -> TVar Word64 -> TQueue a
@@ -4778,222 +4202,6 @@ untilJust :: Monad m => m (Maybe a) -> m a
 watchDirectory' :: forall m. MonadIO m => FilePath -> m (IO (), IO (FilePath, UTCTime))
 collectUntilPause :: forall a. TQueue a -> Int -> IO [a]
 watchDirectory :: forall m. MonadIO m => FilePath -> (FilePath -> Bool) -> m (IO (), IO (FilePath, Text))
-
-module Unison.CommandLine
-allow :: FilePath -> Bool
-backtick :: IsString s => Pretty s -> Pretty s
-aside :: (ListLike s Char, IsString s) => Pretty s -> Pretty s -> Pretty s
-bigproblem :: (ListLike s Char, IsString s) => Pretty s -> Pretty s
-note :: (ListLike s Char, IsString s) => Pretty s -> Pretty s
-nothingTodo :: (ListLike s Char, IsString s) => Pretty s -> Pretty s
-plural :: Foldable f => f a -> b -> b -> b
-plural' :: Integral a => a -> b -> b -> b
-problem :: (ListLike s Char, IsString s) => Pretty s -> Pretty s
-tip :: (ListLike s Char, IsString s) => Pretty s -> Pretty s
-warn :: (ListLike s Char, IsString s) => Pretty s -> Pretty s
-warnNote :: String -> String
-completion :: String -> Completion
-completion' :: String -> Completion
-
--- | Constructs a list of <tt>Completion</tt>s from a query and completion
---   options by filtering them for prefix matches. A completion will be
---   selected if it's an exact match for a provided option.
-exactComplete :: String -> [String] -> [Completion]
-fuzzyComplete :: String -> [String] -> [Completion]
-fuzzyCompleteHashQualified :: Names -> String -> [Completion]
-prefixIncomplete :: String -> [String] -> [Completion]
-prettyCompletion :: Bool -> (String, Pretty ColorText) -> Completion
-fixupCompletion :: String -> [Completion] -> [Completion]
-
--- | Completes a list of options, limiting options to the same namespace as
---   the query, or the namespace's children if the query is itself a
---   namespace.
---   
---   E.g. query: "base" would match: ["base", "base.List", "base2"]
---   wouldn't match: ["base.List.map", "contrib", "base2.List"]
-completeWithinQueryNamespace :: String -> [String] -> [Completion]
-parseInput :: Branch0 m -> Absolute -> [String] -> Map String InputPattern -> [String] -> Either (Pretty ColorText) Input
-prompt :: String
-watchBranchUpdates :: IO (Branch IO) -> TQueue Event -> Codebase IO v a -> IO (IO ())
-watchConfig :: FilePath -> IO (Config, IO ())
-watchFileSystem :: TQueue Event -> FilePath -> IO (IO ())
-
-module Unison.CommandLine.InputPatterns
-showPatternHelp :: InputPattern -> Pretty ColorText
-patternName :: InputPattern -> Pretty ColorText
-makeExample :: InputPattern -> [Pretty ColorText] -> Pretty ColorText
-makeExampleNoBackticks :: InputPattern -> [Pretty ColorText] -> Pretty ColorText
-makeExample' :: InputPattern -> Pretty ColorText
-makeExampleEOS :: InputPattern -> [Pretty ColorText] -> Pretty ColorText
-helpFor :: InputPattern -> Either (Pretty ColorText) Input
-mergeBuiltins :: InputPattern
-mergeIOBuiltins :: InputPattern
-updateBuiltins :: InputPattern
-todo :: InputPattern
-load :: InputPattern
-add :: InputPattern
-previewAdd :: InputPattern
-update :: InputPattern
-previewUpdate :: InputPattern
-patch :: InputPattern
-view :: InputPattern
-display :: InputPattern
-displayTo :: InputPattern
-docs :: InputPattern
-ui :: InputPattern
-undo :: InputPattern
-viewByPrefix :: InputPattern
-find :: InputPattern
-findShallow :: InputPattern
-findVerbose :: InputPattern
-findPatch :: InputPattern
-renameTerm :: InputPattern
-renameType :: InputPattern
-delete :: InputPattern
-deleteTerm :: InputPattern
-deleteType :: InputPattern
-deleteTermReplacementCommand :: String
-deleteTypeReplacementCommand :: String
-deleteReplacement :: Bool -> InputPattern
-deleteTermReplacement :: InputPattern
-deleteTypeReplacement :: InputPattern
-parseHashQualifiedName :: String -> Either (Pretty ColorText) (HashQualified Name)
-aliasTerm :: InputPattern
-aliasType :: InputPattern
-aliasMany :: InputPattern
-up :: InputPattern
-cd :: InputPattern
-back :: InputPattern
-deleteBranch :: InputPattern
-deletePatch :: InputPattern
-movePatch :: String -> String -> Either (Pretty ColorText) Input
-copyPatch' :: String -> String -> Either (Pretty ColorText) Input
-copyPatch :: InputPattern
-renamePatch :: InputPattern
-renameBranch :: InputPattern
-history :: InputPattern
-forkLocal :: InputPattern
-resetRoot :: InputPattern
-pullSilent :: InputPattern
-pull :: InputPattern
-pullImpl :: String -> Verbosity -> InputPattern
-pullExhaustive :: InputPattern
-push :: InputPattern
-pushExhaustive :: InputPattern
-createPullRequest :: InputPattern
-loadPullRequest :: InputPattern
-parseUri :: String -> String -> Either (Pretty ColorText) ReadRemoteNamespace
-parseWriteRepo :: String -> String -> Either (Pretty ColorText) WriteRepo
-parsePushPath :: String -> String -> Either (Pretty ColorText) WriteRemotePath
-squashMerge :: InputPattern
-mergeLocal :: InputPattern
-diffNamespace :: InputPattern
-previewMergeLocal :: InputPattern
-replaceEdit :: (HashQualified Name -> HashQualified Name -> Maybe PatchPath -> Input) -> InputPattern
-replace :: InputPattern
-viewReflog :: InputPattern
-edit :: InputPattern
-topicNameArg :: ArgumentType
-helpTopics :: InputPattern
-helpTopicsMap :: Map String (Pretty ColorText)
-help :: InputPattern
-quit :: InputPattern
-viewPatch :: InputPattern
-link :: InputPattern
-links :: InputPattern
-unlink :: InputPattern
-names :: InputPattern
-dependents :: InputPattern
-dependencies :: InputPattern
-debugNumberedArgs :: InputPattern
-debugFileHashes :: InputPattern
-debugDumpNamespace :: InputPattern
-debugDumpNamespaceSimple :: InputPattern
-debugClearWatchCache :: InputPattern
-test :: InputPattern
-docsToHtml :: InputPattern
-execute :: InputPattern
-ioTest :: InputPattern
-makeStandalone :: InputPattern
-createAuthor :: InputPattern
-validInputs :: [InputPattern]
-commandNames :: [String]
-commandNameArg :: ArgumentType
-exactDefinitionOrPathArg :: ArgumentType
-fuzzyDefinitionQueryArg :: ArgumentType
-definitionQueryArg :: ArgumentType
-exactDefinitionTypeQueryArg :: ArgumentType
-exactDefinitionTermQueryArg :: ArgumentType
-typeCompletor :: Applicative m => (String -> [String] -> [Completion]) -> String -> Codebase m v a -> Branch m -> Absolute -> m [Completion]
-termCompletor :: Applicative m => (String -> [String] -> [Completion]) -> String -> Codebase m v a -> Branch m -> Absolute -> m [Completion]
-patchArg :: ArgumentType
-allCompletors :: Monad m => [String -> Codebase m v a -> Branch m -> Absolute -> m [Completion]] -> String -> Codebase m v a -> Branch m -> Absolute -> m [Completion]
-bothCompletors :: Monad m => (String -> t2 -> t3 -> t4 -> m [Completion]) -> (String -> t2 -> t3 -> t4 -> m [Completion]) -> String -> t2 -> t3 -> t4 -> m [Completion]
-
-pathCompletor :: Applicative f => (String -> [String] -> [Completion]) -> (Branch0 m -> Set Text) -> String -> codebase -> Branch m -> Absolute -> f [Completion]
-namespaceArg :: ArgumentType
-
--- | Recursively collects all names of namespaces which are children of the
---   branch.
-allSubNamespaces :: Branch0 m -> [Text]
-newNameArg :: ArgumentType
-noCompletions :: ArgumentType
-gitUrlArg :: ArgumentType
-collectNothings :: (a -> Maybe b) -> [a] -> [a]
-
-module Unison.CommandLine.OutputMessages
-type Pretty = Pretty ColorText
-shortenDirectory :: FilePath -> IO FilePath
-renderFileName :: FilePath -> IO Pretty
-notifyNumbered :: Var v => NumberedOutput v -> (Pretty, NumberedArgs)
-prettyRemoteNamespace :: (ReadRepo, Maybe ShortBranchHash, Path) -> Pretty ColorText
-notifyUser :: forall v. Var v => FilePath -> Output v -> IO Pretty
-prettyPath' :: Path' -> Pretty
-prettyRelative :: Relative -> Pretty
-prettySBH :: IsString s => ShortBranchHash -> Pretty s
-formatMissingStuff :: (Show tm, Show typ) => [(HashQualified Name, tm)] -> [(HashQualified Name, typ)] -> Pretty
-displayDefinitions' :: Var v => Ord a1 => PrettyPrintEnvDecl -> Map Reference (DisplayObject () (Decl v a1)) -> Map Reference (DisplayObject (Type v a1) (Term v a1)) -> Pretty
-displayRendered :: Maybe FilePath -> Pretty -> IO Pretty
-displayDefinitions :: Var v => Ord a1 => Maybe FilePath -> PrettyPrintEnvDecl -> Map Reference (DisplayObject () (Decl v a1)) -> Map Reference (DisplayObject (Type v a1) (Term v a1)) -> IO Pretty
-displayTestResults :: Bool -> PrettyPrintEnv -> [(Reference, Text)] -> [(Reference, Text)] -> Pretty
-unsafePrettyTermResultSig' :: Var v => PrettyPrintEnv -> TermResult' v a -> Pretty
-unsafePrettyTermResultSigFull' :: Var v => PrettyPrintEnv -> TermResult' v a -> Pretty
-prettyTypeResultHeader' :: Var v => TypeResult' v a -> Pretty
-prettyTypeResultHeaderFull' :: Var v => TypeResult' v a -> Pretty
-prettyDeclTriple :: Var v => (HashQualified Name, Reference, DisplayObject () (Decl v a)) -> Pretty
-prettyDeclPair :: Var v => PrettyPrintEnv -> (Reference, DisplayObject () (Decl v a)) -> Pretty
-renderNameConflicts :: Set Name -> Set Name -> Pretty
-renderEditConflicts :: PrettyPrintEnv -> Patch -> Pretty
-type Numbered = State (Int, Seq String)
-todoOutput :: Var v => PrettyPrintEnvDecl -> TodoOutput v a -> Pretty
-listOfDefinitions :: Var v => PrettyPrintEnv -> ListDetailed -> [SearchResult' v a] -> IO Pretty
-listOfLinks :: Var v => PrettyPrintEnv -> [(HashQualified Name, Maybe (Type v a))] -> IO Pretty
-data ShowNumbers
-ShowNumbers :: ShowNumbers
-HideNumbers :: ShowNumbers
-
--- | <tt>ppe</tt> is just for rendering type signatures `oldPath, newPath
---   :: Path.Absolute` are just for producing fully-qualified numbered args
-showDiffNamespace :: forall v. Var v => ShowNumbers -> PrettyPrintEnv -> Absolute -> Absolute -> BranchDiffOutput v Ann -> (Pretty, NumberedArgs)
-noResults :: Pretty
-listOfDefinitions' :: Var v => PrettyPrintEnv -> ListDetailed -> [SearchResult' v a] -> Pretty
-watchPrinter :: Var v => Text -> PrettyPrintEnv -> Ann -> WatchKind -> Term v () -> IsCacheHit -> Pretty
-filestatusTip :: Pretty
-prettyDiff :: Diff -> Pretty
-prettyTermName :: PrettyPrintEnv -> Referent -> Pretty
-prettyReadRepo :: ReadRepo -> Pretty
-prettyWriteRepo :: WriteRepo -> Pretty
-isTestOk :: Term v Ann -> Bool
-
-module Unison.CommandLine.DisplayValues
-type Pretty = Pretty ColorText
-displayTerm :: (Var v, Monad m) => PrettyPrintEnvDecl -> (Reference -> m (Maybe (Term v ()))) -> (Referent -> m (Maybe (Type v ()))) -> (Term v () -> m (Maybe (Term v ()))) -> (Reference -> m (Maybe (Decl v ()))) -> Term v () -> m Pretty
-type ElideUnit = Bool
-displayTerm' :: (Var v, Monad m) => ElideUnit -> PrettyPrintEnvDecl -> (Reference -> m (Maybe (Term v ()))) -> (Referent -> m (Maybe (Type v ()))) -> (Term v () -> m (Maybe (Term v ()))) -> (Reference -> m (Maybe (Decl v ()))) -> Term v () -> m Pretty
-displayPretty :: forall v m. (Var v, Monad m) => PrettyPrintEnvDecl -> (Reference -> m (Maybe (Term v ()))) -> (Referent -> m (Maybe (Type v ()))) -> (Term v () -> m (Maybe (Term v ()))) -> (Reference -> m (Maybe (Decl v ()))) -> Term v () -> m Pretty
-displayDoc :: forall v m. (Var v, Monad m) => PrettyPrintEnvDecl -> (Reference -> m (Maybe (Term v ()))) -> (Referent -> m (Maybe (Type v ()))) -> (Term v () -> m (Maybe (Term v ()))) -> (Reference -> m (Maybe (Decl v ()))) -> Term v () -> m Pretty
-termName :: PrettyPrintEnv -> Referent -> Pretty
-typeName :: PrettyPrintEnv -> Reference -> Pretty
 
 module Unison.Util.Text
 newtype Text
@@ -6030,46 +5238,3 @@ transitiveClosure :: forall m a. (Monad m, Ord a) => (a -> m (Set a)) -> Set a -
 transitiveClosure' :: Ord a => (a -> Set a) -> Set a -> Set a
 transitiveClosure1 :: forall m a. (Monad m, Ord a) => (a -> m (Set a)) -> a -> m (Set a)
 transitiveClosure1' :: Ord a => (a -> Set a) -> a -> Set a
-
-module Unison.Codebase.Editor.Propagate
-propagateAndApply :: forall m i v. (Applicative m, Var v) => Names -> Patch -> Branch0 m -> F m i v (Branch0 m)
-instance GHC.Show.Show v => GHC.Show.Show (Unison.Codebase.Editor.Propagate.Edits v)
-instance Unison.ABT.Var v => GHC.Classes.Eq (Unison.Codebase.Editor.Propagate.Edits v)
-
-module Unison.Codebase.Editor.HandleInput
-loop :: forall m v. (Monad m, Var v) => Action m (Either Event Input) v ()
-loopState0 :: Branch m -> Absolute -> LoopState m v
-data LoopState m v
-LoopState :: Branch m -> Branch m -> NonEmpty Absolute -> Maybe (FilePath, SkipNextUpdate) -> Maybe (TypecheckedUnisonFile v Ann) -> Maybe Input -> NumberedArgs -> LoopState m v
-[_root] :: LoopState m v -> Branch m
-[_lastSavedRoot] :: LoopState m v -> Branch m
-[_currentPathStack] :: LoopState m v -> NonEmpty Absolute
-[_latestFile] :: LoopState m v -> Maybe (FilePath, SkipNextUpdate)
-[_latestTypecheckedFile] :: LoopState m v -> Maybe (TypecheckedUnisonFile v Ann)
-[_lastInput] :: LoopState m v -> Maybe Input
-[_numberedArgs] :: LoopState m v -> NumberedArgs
-currentPath :: Getter (LoopState m v) Absolute
-parseSearchType :: (Monad m, Var v) => SrcLoc -> String -> Action' m v (Either (Output v) (Type v Ann))
-
-module Unison.CommandLine.Main
-main :: FilePath -> Welcome -> Absolute -> (Config, IO ()) -> [Either Event Input] -> Runtime Symbol -> Codebase IO Symbol Ann -> Maybe BaseUrl -> IO ()
-
-module Unison.Codebase.TranscriptParser
-data Stanza
-Ucm :: Hidden -> ExpectingError -> [UcmCommand] -> Stanza
-Unison :: Hidden -> ExpectingError -> Maybe ScratchFileName -> Text -> Stanza
-UnprocessedFence :: FenceType -> Text -> Stanza
-Unfenced :: Text -> Stanza
-type FenceType = Text
-type ExpectingError = Bool
-data Hidden
-type Err = String
-data UcmCommand
-UcmCommand :: Absolute -> Text -> UcmCommand
-run :: String -> FilePath -> FilePath -> [Stanza] -> Codebase IO Symbol Ann -> IO Text
-parse :: String -> Text -> Either Err [Stanza]
-parseFile :: FilePath -> IO (Either Err [Stanza])
-instance GHC.Show.Show Unison.Codebase.TranscriptParser.Hidden
-instance GHC.Classes.Eq Unison.Codebase.TranscriptParser.Hidden
-instance GHC.Show.Show Unison.Codebase.TranscriptParser.Stanza
-instance GHC.Show.Show Unison.Codebase.TranscriptParser.UcmCommand

@@ -18,7 +18,7 @@ MergeLocalBranchI :: Path' -> Path' -> MergeMode -> Input
 PreviewMergeLocalBranchI :: Path' -> Path' -> Input
 DiffNamespaceI :: Path' -> Path' -> Input
 PullRemoteBranchI :: Maybe ReadRemoteNamespace -> Path' -> SyncMode -> Verbosity -> Input
-PushRemoteBranchI :: Maybe WriteRemotePath -> Path' -> SyncMode -> Input
+PushRemoteBranchI :: Maybe WriteRemotePath -> Path' -> PushBehavior -> SyncMode -> Input
 CreatePullRequestI :: ReadRemoteNamespace -> ReadRemoteNamespace -> Input
 LoadPullRequestI :: ReadRemoteNamespace -> ReadRemoteNamespace -> Path' -> Input
 ResetRootI :: Either ShortBranchHash Path' -> Input
@@ -339,6 +339,7 @@ BadRootBranch :: GetRootBranchError -> Output v
 CouldntLoadBranch :: Hash -> Output v
 NamespaceEmpty :: Either Absolute (Absolute, Absolute) -> Output v
 NoOp :: Output v
+RefusedToPush :: PushBehavior -> Output v
 data NumberedOutput v
 ShowDiffNamespace :: Absolute -> Absolute -> PrettyPrintEnv -> BranchDiffOutput v Ann -> NumberedOutput v
 ShowDiffAfterUndo :: PrettyPrintEnv -> BranchDiffOutput v Ann -> NumberedOutput v
@@ -656,6 +657,7 @@ pull :: InputPattern
 pullImpl :: String -> Verbosity -> InputPattern
 pullExhaustive :: InputPattern
 push :: InputPattern
+pushCreate :: InputPattern
 pushExhaustive :: InputPattern
 createPullRequest :: InputPattern
 loadPullRequest :: InputPattern

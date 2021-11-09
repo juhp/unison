@@ -3109,9 +3109,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5GAj loc_a5GAk. Lens' (Env v_a5GAj loc_a5GAk) (TypeLookup v_a5GAj loc_a5GAk)
-termsByShortname :: forall v_a5GAj loc_a5GAk. Lens' (Env v_a5GAj loc_a5GAk) (Map Name [NamedReference v_a5GAj loc_a5GAk])
-ambientAbilities :: forall v_a5GAj loc_a5GAk. Lens' (Env v_a5GAj loc_a5GAk) [Type v_a5GAj loc_a5GAk]
+typeLookup :: forall v_a5GAl loc_a5GAm. Lens' (Env v_a5GAl loc_a5GAm) (TypeLookup v_a5GAl loc_a5GAm)
+termsByShortname :: forall v_a5GAl loc_a5GAm. Lens' (Env v_a5GAl loc_a5GAm) (Map Name [NamedReference v_a5GAl loc_a5GAm])
+ambientAbilities :: forall v_a5GAl loc_a5GAm. Lens' (Env v_a5GAl loc_a5GAm) [Type v_a5GAl loc_a5GAm]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.
@@ -3823,7 +3823,7 @@ data EmbeddedSource
 EmbeddedSource :: SyntaxText -> SyntaxText -> EmbeddedSource
 Builtin :: SyntaxText -> EmbeddedSource
 embeddedSource :: Ref (UnisonHash, DisplayObject SyntaxText Src) -> Maybe EmbeddedSource
-inlineCode :: [Attribute] -> Html () -> Html ()
+inlineCode :: [Text] -> Html () -> Html ()
 codeBlock :: [Attribute] -> Html () -> Html ()
 normalizeHref :: Map Referent Name -> Doc -> NamedLinkHref
 data IsFolded

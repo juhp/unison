@@ -3601,19 +3601,9 @@ instance GHC.Show.Show r => GHC.Show.Show (Unison.Codebase.BranchDiff.DiffSlice 
 instance GHC.Show.Show Unison.Codebase.BranchDiff.BranchDiff
 
 module Unison.DeclPrinter
-type SyntaxText = SyntaxText' Reference
 prettyDecl :: Var v => PrettyPrintEnvDecl -> Reference -> HashQualified Name -> Decl v a -> Pretty SyntaxText
-prettyEffectDecl :: Var v => PrettyPrintEnv -> Reference -> HashQualified Name -> EffectDeclaration v a -> Pretty SyntaxText
-prettyGADT :: Var v => PrettyPrintEnv -> ConstructorType -> Reference -> HashQualified Name -> DataDeclaration v a -> Pretty SyntaxText
-prettyPattern :: PrettyPrintEnv -> ConstructorType -> Reference -> HashQualified Name -> Int -> Pretty SyntaxText
-prettyDataDecl :: Var v => PrettyPrintEnvDecl -> Reference -> HashQualified Name -> DataDeclaration v a -> Pretty SyntaxText
-fieldNames :: forall v a. Var v => PrettyPrintEnv -> Reference -> HashQualified Name -> DataDeclaration v a -> Maybe [HashQualified Name]
-prettyModifier :: Modifier -> Pretty SyntaxText
-prettyDataHeader :: Var v => HashQualified Name -> DataDeclaration v a -> Pretty SyntaxText
-prettyEffectHeader :: Var v => HashQualified Name -> EffectDeclaration v a -> Pretty SyntaxText
 prettyDeclHeader :: Var v => HashQualified Name -> Either (EffectDeclaration v a) (DataDeclaration v a) -> Pretty SyntaxText
 prettyDeclOrBuiltinHeader :: Var v => HashQualified Name -> DeclOrBuiltin v a -> Pretty SyntaxText
-fmt :: Element r -> Pretty (SyntaxText' r) -> Pretty (SyntaxText' r)
 
 module Unison.Server.Doc
 type Nat = Word64

@@ -997,6 +997,10 @@ fromName :: n -> HashQualified n
 matchesNamedReferent :: Eq n => n -> Referent -> HashQualified n -> Bool
 matchesNamedReference :: Eq n => n -> Reference -> HashQualified n -> Bool
 requalify :: HashQualified Name -> Referent -> HashQualified Name
+
+-- | Sort the list of names by length of segments: smaller number of
+--   segments is listed first. NameOnly &lt; HashQualified
+sortByLength :: [HashQualified Name] -> [HashQualified Name]
 instance Data.Foldable.Foldable Unison.HashQualified'.HashQualified
 instance GHC.Generics.Generic (Unison.HashQualified'.HashQualified n)
 instance GHC.Base.Functor Unison.HashQualified'.HashQualified

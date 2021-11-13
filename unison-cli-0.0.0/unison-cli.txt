@@ -329,7 +329,9 @@ NoConflictsOrEdits :: Output v
 NotImplemented :: Output v
 NoBranchWithHash :: ShortBranchHash -> Output v
 ListDependencies :: Int -> LabeledDependency -> [(Name, Reference)] -> Set Reference -> Output v
-ListDependents :: Int -> LabeledDependency -> [(Name, Reference)] -> Set Reference -> Output v
+
+-- | List dependents of a type or term.
+ListDependents :: Int -> LabeledDependency -> [(Reference, Maybe Name)] -> Output v
 DumpNumberedArgs :: NumberedArgs -> Output v
 DumpBitBooster :: Hash -> Map Hash [Hash] -> Output v
 DumpUnisonFileHashes :: Int -> [(Name, Id)] -> [(Name, Id)] -> [(Name, Id)] -> Output v

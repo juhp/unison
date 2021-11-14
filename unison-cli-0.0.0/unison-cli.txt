@@ -495,7 +495,7 @@ InvalidSourceNameError :: LoadSourceResult
 LoadError :: LoadSourceResult
 LoadSuccess :: Text -> LoadSourceResult
 type UseCache = Bool
-type EvalResult v = ([(v, Term v ())], Map v (Ann, WatchKind, Reference, Term v (), Term v (), IsCacheHit))
+type EvalResult v = ([(v, Term v ())], Map v (Ann, WatchKind, Id, Term v (), Term v (), IsCacheHit))
 commandName :: Command m i v a -> String
 lookupEvalResult :: Ord v => v -> EvalResult v -> Maybe (Term v ())
 

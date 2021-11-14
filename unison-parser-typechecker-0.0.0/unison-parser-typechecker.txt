@@ -2249,7 +2249,7 @@ installUcmDependencies :: forall m. Monad m => Codebase m Symbol Ann -> m ()
 getTypeOfTerm :: (Applicative m, Var v, BuiltinAnnotation a) => Codebase m v a -> Reference -> m (Maybe (Type v a))
 getTypeOfReferent :: (BuiltinAnnotation a, Var v, Monad m) => Codebase m v a -> Referent -> m (Maybe (Type v a))
 lca :: Monad m => Codebase m v a -> Branch m -> Branch m -> m (Maybe (Branch m))
-lookupWatchCache :: Monad m => Codebase m v a -> Reference -> m (Maybe (Term v a))
+lookupWatchCache :: Monad m => Codebase m v a -> Id -> m (Maybe (Term v a))
 toCodeLookup :: Codebase m v a -> CodeLookup v m a
 typeLookupForDependencies :: (Monad m, Var v, BuiltinAnnotation a) => Codebase m v a -> Set Reference -> m (TypeLookup v a)
 
@@ -2547,10 +2547,10 @@ Runtime :: IO () -> (CodeLookup v IO () -> PrettyPrintEnv -> Term v -> IO (Eithe
 [mainType] :: Runtime v -> Type v Ann
 [ioTestType] :: Runtime v -> Type v Ann
 type IsCacheHit = Bool
-noCache :: Reference -> IO (Maybe (Term v))
-type WatchResults v a = (Either Error ([(v, Term v)], Map v (a, WatchKind, Reference, Term v, Term v, IsCacheHit)))
-evaluateWatches :: forall v a. Var v => CodeLookup v IO a -> PrettyPrintEnv -> (Reference -> IO (Maybe (Term v))) -> Runtime v -> TypecheckedUnisonFile v a -> IO (WatchResults v a)
-evaluateTerm' :: (Var v, Monoid a) => CodeLookup v IO a -> (Reference -> IO (Maybe (Term v))) -> PrettyPrintEnv -> Runtime v -> Term v a -> IO (Either Error (Term v))
+noCache :: Id -> IO (Maybe (Term v))
+type WatchResults v a = (Either Error ([(v, Term v)], Map v (a, WatchKind, Id, Term v, Term v, IsCacheHit)))
+evaluateWatches :: forall v a. Var v => CodeLookup v IO a -> PrettyPrintEnv -> (Id -> IO (Maybe (Term v))) -> Runtime v -> TypecheckedUnisonFile v a -> IO (WatchResults v a)
+evaluateTerm' :: (Var v, Monoid a) => CodeLookup v IO a -> (Id -> IO (Maybe (Term v))) -> PrettyPrintEnv -> Runtime v -> Term v a -> IO (Either Error (Term v))
 evaluateTerm :: (Var v, Monoid a) => CodeLookup v IO a -> PrettyPrintEnv -> Runtime v -> Term v a -> IO (Either Error (Term v))
 
 module Unison.Codebase.Init.CreateCodebaseError
@@ -3124,9 +3124,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5GDU loc_a5GDV. Lens' (Env v_a5GDU loc_a5GDV) (TypeLookup v_a5GDU loc_a5GDV)
-termsByShortname :: forall v_a5GDU loc_a5GDV. Lens' (Env v_a5GDU loc_a5GDV) (Map Name [NamedReference v_a5GDU loc_a5GDV])
-ambientAbilities :: forall v_a5GDU loc_a5GDV. Lens' (Env v_a5GDU loc_a5GDV) [Type v_a5GDU loc_a5GDV]
+typeLookup :: forall v_a5GCv loc_a5GCw. Lens' (Env v_a5GCv loc_a5GCw) (TypeLookup v_a5GCv loc_a5GCw)
+termsByShortname :: forall v_a5GCv loc_a5GCw. Lens' (Env v_a5GCv loc_a5GCw) (Map Name [NamedReference v_a5GCv loc_a5GCw])
+ambientAbilities :: forall v_a5GCv loc_a5GCw. Lens' (Env v_a5GCv loc_a5GCw) [Type v_a5GCv loc_a5GCw]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.

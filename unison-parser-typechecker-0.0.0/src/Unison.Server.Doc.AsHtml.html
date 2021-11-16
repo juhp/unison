@@ -221,13 +221,13 @@ forall arg result. Term arg result =&gt; arg -&gt; result
 </span><a href="#local-6989586621680851285"><span class="hs-identifier hs-var hs-var">attrsWithOpen</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-96"></span><span>            </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
 </span><a href="#local-6989586621680851288"><span class="hs-identifier hs-var">isFolded</span></a></span><span>
-</span><span id="line-97"></span><span>              </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">UnisonHash -&gt; Attribute
+</span><span id="line-97"></span><span>              </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">[Attribute]
+</span><a href="#local-6989586621680851293"><span class="hs-identifier hs-var">attrs</span></a></span><span>
+</span><span id="line-98"></span><span>              </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">UnisonHash -&gt; Attribute
 </span><span class="hs-identifier hs-var">open_</span></span><span> </span><span class="annot"><span class="annottext">UnisonHash
 </span><span class="hs-string">&quot;open&quot;</span></span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; [Attribute] -&gt; [Attribute]
 forall a. a -&gt; [a] -&gt; [a]
 </span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[Attribute]
-</span><a href="#local-6989586621680851293"><span class="hs-identifier hs-var">attrs</span></a></span><span>
-</span><span id="line-98"></span><span>              </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">[Attribute]
 </span><a href="#local-6989586621680851293"><span class="hs-identifier hs-var">attrs</span></a></span><span>
 </span><span id="line-99"></span><span>       </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">[Attribute] -&gt; Html () -&gt; Html ()
 forall arg result. Term arg result =&gt; arg -&gt; result

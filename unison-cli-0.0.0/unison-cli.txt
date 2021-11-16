@@ -78,6 +78,10 @@ MergeBuiltinsI :: Input
 MergeIOBuiltinsI :: Input
 ListDependenciesI :: HashQualified Name -> Input
 ListDependentsI :: HashQualified Name -> Input
+
+-- | List all external dependencies of a given namespace, or the current
+--   namespace if no path is provided.
+NamespaceDependenciesI :: Maybe Path' -> Input
 DebugNumberedArgsI :: Input
 DebugTypecheckedUnisonFileI :: Input
 DebugDumpNamespacesI :: Input
@@ -332,6 +336,10 @@ ListDependencies :: Int -> LabeledDependency -> [(Name, Reference)] -> Set Refer
 
 -- | List dependents of a type or term.
 ListDependents :: Int -> LabeledDependency -> [(Reference, Maybe Name)] -> Output v
+
+-- | List all direct dependencies which don't have any names in the current
+--   branch
+ListNamespaceDependencies :: PrettyPrintEnv -> Absolute -> Map LabeledDependency (Set Name) -> Output v
 DumpNumberedArgs :: NumberedArgs -> Output v
 DumpBitBooster :: Hash -> Map Hash [Hash] -> Output v
 DumpUnisonFileHashes :: Int -> [(Name, Id)] -> [(Name, Id)] -> [(Name, Id)] -> Output v
@@ -472,6 +480,11 @@ data Command m i v a
 [PutDecl] :: Id -> Decl v Ann -> Command m i v ()
 [IsTerm] :: Reference -> Command m i v Bool
 [IsType] :: Reference -> Command m i v Bool
+
+-- | Get the immediate (not transitive) dependents of the given reference
+--   This might include historical definitions not in any current path;
+--   these should be filtered by the caller of this command if that's not
+--   desired.
 [GetDependents] :: Reference -> Command m i v (Set Reference)
 [GetTermsOfType] :: Type v Ann -> Command m i v (Set Referent)
 [GetTermsMentioningType] :: Type v Ann -> Command m i v (Set Referent)
@@ -503,6 +516,52 @@ module Unison.Codebase.Editor.Propagate
 propagateAndApply :: forall m i v. (Applicative m, Var v) => Names -> Patch -> Branch0 m -> F m i v (Branch0 m)
 instance GHC.Show.Show v => GHC.Show.Show (Unison.Codebase.Editor.Propagate.Edits v)
 instance Unison.ABT.Var v => GHC.Classes.Eq (Unison.Codebase.Editor.Propagate.Edits v)
+
+module Unison.Codebase.Editor.HandleInput.LoopState
+type F m i v = Free (Command m i v)
+type Action m i v = MaybeT (StateT (LoopState m v) (F m i v))
+type NumberedArgs = [String]
+data LoopState m v
+LoopState :: Branch m -> Branch m -> NonEmpty Absolute -> Maybe (FilePath, SkipNextUpdate) -> Maybe (TypecheckedUnisonFile v Ann) -> Maybe Input -> NumberedArgs -> LoopState m v
+[_root] :: LoopState m v -> Branch m
+[_lastSavedRoot] :: LoopState m v -> Branch m
+[_currentPathStack] :: LoopState m v -> NonEmpty Absolute
+[_latestFile] :: LoopState m v -> Maybe (FilePath, SkipNextUpdate)
+[_latestTypecheckedFile] :: LoopState m v -> Maybe (TypecheckedUnisonFile v Ann)
+[_lastInput] :: LoopState m v -> Maybe Input
+[_numberedArgs] :: LoopState m v -> NumberedArgs
+type Action' m v = Action m (Either Event Input) v
+type SkipNextUpdate = Bool
+type InputDescription = Text
+root :: forall m_a1t1J v_a1t1K. Lens' (LoopState m_a1t1J v_a1t1K) (Branch m_a1t1J)
+numberedArgs :: forall m_a1t1J v_a1t1K. Lens' (LoopState m_a1t1J v_a1t1K) NumberedArgs
+latestTypecheckedFile :: forall m_a1t1J v_a1t1K v_a1t8l. Lens (LoopState m_a1t1J v_a1t1K) (LoopState m_a1t1J v_a1t8l) (Maybe (TypecheckedUnisonFile v_a1t1K Ann)) (Maybe (TypecheckedUnisonFile v_a1t8l Ann))
+latestFile :: forall m_a1t1J v_a1t1K. Lens' (LoopState m_a1t1J v_a1t1K) (Maybe (FilePath, SkipNextUpdate))
+lastSavedRoot :: forall m_a1t1J v_a1t1K. Lens' (LoopState m_a1t1J v_a1t1K) (Branch m_a1t1J)
+lastInput :: forall m_a1t1J v_a1t1K. Lens' (LoopState m_a1t1J v_a1t1K) (Maybe Input)
+currentPathStack :: forall m_a1t1J v_a1t1K. Lens' (LoopState m_a1t1J v_a1t1K) (NonEmpty Absolute)
+currentPath :: Getter (LoopState m v) Absolute
+loopState0 :: Branch m -> Absolute -> LoopState m v
+eval :: Command m i v a -> Action m i v a
+
+module Unison.Codebase.Editor.HandleInput.NamespaceDependencies
+
+-- | Check the dependencies of all types, terms, and metadata in the
+--   current namespace, returns a map of dependencies which do not have a
+--   name within the current namespace, alongside the names of all of that
+--   thing's dependents.
+--   
+--   This is non-transitive, i.e. only the first layer of external
+--   dependencies is returned.
+--   
+--   So if my namespace depends on .base.Bag.map; which depends on
+--   base.Map.mapKeys, only .base.Bag.map is returned unless some other
+--   definition inside my namespace depends on base.Map.mapKeys directly.
+--   
+--   Returns a Set of names rather than using the PPE since we already have
+--   the correct names in scope on this branch, and also want to list ALL
+--   names of dependents, including aliases.
+namespaceDependencies :: forall m i v. Ord v => Branch0 m -> Action m i v (Map LabeledDependency (Set Name))
 
 module Unison.Codebase.Editor.HandleCommand
 typecheck :: (Monad m, Var v) => [Type v Ann] -> Codebase m v Ann -> ParsingEnv -> SourceName -> LexedSource -> m (TypecheckingResult v)
@@ -686,6 +745,7 @@ unlink :: InputPattern
 names :: InputPattern
 dependents :: InputPattern
 dependencies :: InputPattern
+namespaceDependencies :: InputPattern
 debugNumberedArgs :: InputPattern
 debugFileHashes :: InputPattern
 debugDumpNamespace :: InputPattern
@@ -731,6 +791,7 @@ prettyRemoteNamespace :: (ReadRepo, Maybe ShortBranchHash, Path) -> Pretty Color
 notifyUser :: forall v. Var v => FilePath -> Output v -> IO Pretty
 prettyPath' :: Path' -> Pretty
 prettyRelative :: Relative -> Pretty
+prettyAbsolute :: Absolute -> Pretty
 prettySBH :: IsString s => ShortBranchHash -> Pretty s
 formatMissingStuff :: (Show tm, Show typ) => [(HashQualified Name, tm)] -> [(HashQualified Name, typ)] -> Pretty
 displayDefinitions' :: Var v => Ord a1 => PrettyPrintEnvDecl -> Map Reference (DisplayObject () (Decl v a1)) -> Map Reference (DisplayObject (Type v a1) (Term v a1)) -> Pretty
@@ -778,17 +839,6 @@ typeName :: PrettyPrintEnv -> Reference -> Pretty
 
 module Unison.Codebase.Editor.HandleInput
 loop :: forall m v. (Monad m, Var v) => Action m (Either Event Input) v ()
-loopState0 :: Branch m -> Absolute -> LoopState m v
-data LoopState m v
-LoopState :: Branch m -> Branch m -> NonEmpty Absolute -> Maybe (FilePath, SkipNextUpdate) -> Maybe (TypecheckedUnisonFile v Ann) -> Maybe Input -> NumberedArgs -> LoopState m v
-[_root] :: LoopState m v -> Branch m
-[_lastSavedRoot] :: LoopState m v -> Branch m
-[_currentPathStack] :: LoopState m v -> NonEmpty Absolute
-[_latestFile] :: LoopState m v -> Maybe (FilePath, SkipNextUpdate)
-[_latestTypecheckedFile] :: LoopState m v -> Maybe (TypecheckedUnisonFile v Ann)
-[_lastInput] :: LoopState m v -> Maybe Input
-[_numberedArgs] :: LoopState m v -> NumberedArgs
-currentPath :: Getter (LoopState m v) Absolute
 parseSearchType :: (Monad m, Var v) => SrcLoc -> String -> Action' m v (Either (Output v) (Type v Ann))
 
 module Unison.CommandLine.Welcome

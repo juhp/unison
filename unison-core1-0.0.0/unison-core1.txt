@@ -222,6 +222,7 @@ readSuffix :: Text -> Either String (Pos, Size)
 showShort :: Int -> Reference -> Text
 showSuffix :: Pos -> Size -> Text
 toId :: Reference -> Maybe Id
+fromId :: Id -> Reference
 toText :: Reference -> Text
 unsafeId :: Reference -> Id
 toShortHash :: Reference -> ShortHash
@@ -256,6 +257,11 @@ pattern RefId :: Id -> Id
 pattern ConId :: Id -> ConstructorId -> ConstructorType -> Id
 fold :: (r -> a) -> (r -> Int -> ConstructorType -> a) -> Referent' r -> a
 toReference :: Referent -> Reference
+toReferenceId :: Referent -> Maybe Id
+
+-- | Inject a Term Reference into a Referent
+fromTermReference :: Reference -> Referent
+fromTermReferenceId :: Id -> Referent
 fromText :: Text -> Maybe Referent
 
 -- | A lens onto the reference in a referent.

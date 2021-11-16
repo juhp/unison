@@ -252,6 +252,9 @@ d12 :: Relation3 a b c -> Relation a b
 
 -- | Project out a relation that only includes the 1st and 3rd dimensions.
 d13 :: Relation3 a b c -> Relation a c
+
+-- | Project out a relation that only includes the 2nd and 3rd dimensions.
+d23 :: Relation3 a b c -> Relation b c
 filter :: (Ord a, Ord b, Ord c) => ((a, b, c) -> Bool) -> Relation3 a b c -> Relation3 a b c
 mapD1 :: (Ord a, Ord a', Ord b, Ord c) => (a -> a') -> Relation3 a b c -> Relation3 a' b c
 
@@ -306,6 +309,7 @@ fromList :: (Ord a, Ord b, Ord c, Ord d) => [(a, b, c, d)] -> Relation4 a b c d
 filter :: (Ord a, Ord b, Ord c, Ord d) => ((a, b, c, d) -> Bool) -> Relation4 a b c d -> Relation4 a b c d
 selectD3 :: (Ord a, Ord b, Ord c, Ord d) => c -> Relation4 a b c d -> Relation4 a b c d
 selectD34 :: (Ord a, Ord b, Ord c, Ord d) => c -> d -> Relation4 a b c d -> Relation4 a b c d
+keys :: Relation4 a b c d -> (Set a, Set b, Set c, Set d)
 d1set :: Ord a => Relation4 a b c d -> Set a
 d12 :: (Ord a, Ord b) => Relation4 a b c d -> Relation a b
 d34 :: (Ord c, Ord d) => Relation4 a b c d -> Relation c d
@@ -313,6 +317,10 @@ d34 :: (Ord c, Ord d) => Relation4 a b c d -> Relation c d
 -- | Project out a relation that only includes the 1st, 2nd, and 4th
 --   dimensions.
 d124 :: (Ord a, Ord b, Ord c, Ord d) => Relation4 a b c d -> Relation3 a b d
+
+-- | Project out a relation that only includes the 2nd, 3rd, and 4th
+--   dimensions.
+d234 :: (Ord a, Ord b, Ord c, Ord d) => Relation4 a b c d -> Relation3 b c d
 d12s :: (Ord a, Ord b) => Relation4 a b c d -> [(a, b)]
 insert :: (Ord a, Ord b, Ord c, Ord d) => a -> b -> c -> d -> Relation4 a b c d -> Relation4 a b c d
 delete :: (Ord a, Ord b, Ord c, Ord d) => a -> b -> c -> d -> Relation4 a b c d -> Relation4 a b c d

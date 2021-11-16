@@ -533,7 +533,18 @@ mapMaybe :: (Ord a, Ord b) => (a -> Maybe b) -> Set a -> Set b
 
 module Unison.WatchKind
 type WatchKind = String
+
+-- | A non-test watch, such as <tt> &gt; 3 + 4 </tt>
 pattern RegularWatch :: (Eq a, IsString a) => a
+
+-- | A named test watch, such as
+--   
+--   <pre>
+--   test&gt; x = expect (1 == 1)
+--   </pre>
+--   
+--   Note: currently test watches don't need to be named by the user, but
+--   that "feature" will be removed soon.
 pattern TestWatch :: (Eq a, IsString a) => a
 
 module Unison.Var

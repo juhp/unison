@@ -397,6 +397,8 @@ instance GHC.Show.Show Unison.Codebase.Verbosity.Verbosity
 instance GHC.Classes.Eq Unison.Codebase.Verbosity.Verbosity
 
 module Unison.CodebasePath
+
+-- | A directory that contains a codebase.
 type CodebasePath = FilePath
 getCodebaseDir :: MonadIO m => Maybe CodebasePath -> m CodebasePath
 
@@ -2023,45 +2025,158 @@ instance GHC.Base.Monoid Unison.Codebase.Branch.BranchDiff
 module Unison.Codebase.Type
 
 -- | Abstract interface to a user's codebase.
---   
---   One implementation is <a>FileCodebase</a> which uses the filesystem.
 data Codebase m v a
 Codebase :: (Id -> m (Maybe (Term v a))) -> (Id -> m (Maybe (Type v a))) -> (Id -> m (Maybe (Decl v a))) -> (Id -> Term v a -> Type v a -> m ()) -> (Id -> Decl v a -> m ()) -> m (Either GetRootBranchError (Branch m)) -> (Branch m -> m ()) -> m (IO (), IO (Set Hash)) -> (Hash -> m (Maybe (Branch m))) -> (Branch m -> m ()) -> (Hash -> m Bool) -> (EditHash -> m (Maybe Patch)) -> (EditHash -> Patch -> m ()) -> (EditHash -> m Bool) -> (Reference -> m (Set Id)) -> (CodebasePath -> SyncMode -> Branch m -> m ()) -> (CodebasePath -> SyncMode -> Branch m -> m ()) -> (ReadRemoteNamespace -> m (Either GitError (m (), Branch m, CodebasePath))) -> (Branch m -> WriteRepo -> SyncMode -> m (Either GitError ())) -> (WatchKind -> m [Id]) -> (WatchKind -> Id -> m (Maybe (Term v a))) -> (WatchKind -> Id -> Term v a -> m ()) -> m () -> m [Entry Hash] -> (Text -> Branch m -> Branch m -> m ()) -> (Reference -> m (Set Id)) -> (Reference -> m (Set Id)) -> m Int -> (ShortHash -> m (Set Id)) -> (ShortHash -> m (Set Id)) -> (ShortHash -> m (Set Id)) -> m Int -> (ShortBranchHash -> m (Set Hash)) -> Maybe (Hash -> Hash -> m (Maybe Hash)) -> Maybe (Hash -> Hash -> m Bool) -> Codebase m v a
+
+-- | Get a user-defined term from the codebase.
+--   
+--   Note that it is possible to call <a>putTerm</a>, then <a>getTerm</a>,
+--   and receive <tt>Nothing</tt>, per the semantics of <a>putTerm</a>.
 [getTerm] :: Codebase m v a -> Id -> m (Maybe (Term v a))
+
+-- | Get the type of a user-defined term.
+--   
+--   Note that it is possible to call <a>putTerm</a>, then
+--   <a>getTypeOfTermImpl</a>, and receive <tt>Nothing</tt>, per the
+--   semantics of <a>putTerm</a>.
 [getTypeOfTermImpl] :: Codebase m v a -> Id -> m (Maybe (Type v a))
+
+-- | Get a type declaration.
+--   
+--   Note that it is possible to call <a>putTypeDeclaration</a>, then
+--   <a>getTypeDeclaration</a>, and receive <tt>Nothing</tt>, per the
+--   semantics of <a>putTypeDeclaration</a>.
 [getTypeDeclaration] :: Codebase m v a -> Id -> m (Maybe (Decl v a))
+
+-- | Enqueue the put of a user-defined term (with its type) into the
+--   codebase, if it doesn't already exist. The implementation may choose
+--   to delay the put until all of the term's (and its type's) references
+--   are stored as well.
 [putTerm] :: Codebase m v a -> Id -> Term v a -> Type v a -> m ()
+
+-- | Enqueue the put of a type declaration into the codebase, if it doesn't
+--   already exist. The implementation may choose to delay the put until
+--   all of the type declaration's references are stored as well.
 [putTypeDeclaration] :: Codebase m v a -> Id -> Decl v a -> m ()
+
+-- | Get the root branch.
 [getRootBranch] :: Codebase m v a -> m (Either GetRootBranchError (Branch m))
+
+-- | Like <a>putBranch</a>, but also adjusts the root branch pointer
+--   afterwards.
 [putRootBranch] :: Codebase m v a -> Branch m -> m ()
 [rootBranchUpdates] :: Codebase m v a -> m (IO (), IO (Set Hash))
 [getBranchForHashImpl] :: Codebase m v a -> Hash -> m (Maybe (Branch m))
+
+-- | Put a branch into the codebase, which includes its children, its
+--   patches, and the branch itself, if they don't already exist.
+--   
+--   The terms and type declarations that a branch references must already
+--   exist in the codebase.
 [putBranch] :: Codebase m v a -> Branch m -> m ()
+
+-- | Check whether the given branch exists in the codebase.
 [branchExists] :: Codebase m v a -> Hash -> m Bool
+
+-- | Get a patch from the codebase.
 [getPatch] :: Codebase m v a -> EditHash -> m (Maybe Patch)
+
+-- | Put a patch into the codebase.
+--   
+--   Note that <a>putBranch</a> may also put patches.
 [putPatch] :: Codebase m v a -> EditHash -> Patch -> m ()
+
+-- | Check whether the given patch exists in the codebase.
 [patchExists] :: Codebase m v a -> EditHash -> m Bool
+
+-- | Get the set of user-defined terms and type declarations that depend on
+--   the given term, type declaration, or builtin type.
 [dependentsImpl] :: Codebase m v a -> Reference -> m (Set Id)
+
+-- | Copy a branch and all of its dependencies from the given codebase into
+--   this one.
 [syncFromDirectory] :: Codebase m v a -> CodebasePath -> SyncMode -> Branch m -> m ()
+
+-- | Copy a branch and all of its dependencies from this codebase into the
+--   given codebase.
 [syncToDirectory] :: Codebase m v a -> CodebasePath -> SyncMode -> Branch m -> m ()
 [viewRemoteBranch'] :: Codebase m v a -> ReadRemoteNamespace -> m (Either GitError (m (), Branch m, CodebasePath))
+
+-- | Push the given branch to the given repo, and set it as the root
+--   branch.
 [pushGitRootBranch] :: Codebase m v a -> Branch m -> WriteRepo -> SyncMode -> m (Either GitError ())
+
+-- | <tt>watches k</tt> returns all of the references <tt>r</tt> that were
+--   previously put by a <tt>putWatch k r t</tt>. <tt>t</tt> can be
+--   retrieved by <tt>getWatch k r</tt>.
 [watches] :: Codebase m v a -> WatchKind -> m [Id]
+
+-- | <tt>getWatch k r</tt> returns watch result <tt>t</tt> that was
+--   previously put by <tt>putWatch k r t</tt>.
 [getWatch] :: Codebase m v a -> WatchKind -> Id -> m (Maybe (Term v a))
+
+-- | <tt>putWatch k r t</tt> puts a watch of kind <tt>k</tt>, with
+--   hash-of-expression <tt>r</tt> and decompiled result <tt>t</tt> into
+--   the codebase.
+--   
+--   For example, in the watch expression below, <tt>k</tt> is
+--   <a>Regular</a>, <tt>r</tt> is the hash of <tt>x</tt>, and <tt>t</tt>
+--   is <tt>7</tt>.
+--   
+--   <pre>
+--   &gt; x = 3 + 4
+--     ⧩
+--     7
+--   </pre>
 [putWatch] :: Codebase m v a -> WatchKind -> Id -> Term v a -> m ()
+
+-- | Delete all watches that were put by <a>putWatch</a>.
 [clearWatches] :: Codebase m v a -> m ()
+
+-- | Get the entire reflog.
 [getReflog] :: Codebase m v a -> m [Entry Hash]
+
+-- | <tt>appendReflog reason before after</tt> appends a reflog entry.
+--   
+--   FIXME: this could have type
+--   
+--   <pre>
+--   appendReflog :: Reflog.Entry (Branch m) -&gt; m ()
+--   </pre>
 [appendReflog] :: Codebase m v a -> Text -> Branch m -> Branch m -> m ()
+
+-- | Get the set of user-defined terms-or-constructors that have the given
+--   type.
 [termsOfTypeImpl] :: Codebase m v a -> Reference -> m (Set Id)
+
+-- | Get the set of user-defined terms-or-constructors mention the given
+--   type anywhere in their signature.
 [termsMentioningTypeImpl] :: Codebase m v a -> Reference -> m (Set Id)
+
+-- | The number of base32 characters needed to distinguish any two
+--   references in the codebase.
 [hashLength] :: Codebase m v a -> m Int
+
+-- | Get the set of user-defined terms whose hash matches the given prefix.
 [termReferencesByPrefix] :: Codebase m v a -> ShortHash -> m (Set Id)
+
+-- | Get the set of type declarations whose hash matches the given prefix.
 [typeReferencesByPrefix] :: Codebase m v a -> ShortHash -> m (Set Id)
+
+-- | Get the set of user-defined terms-or-constructors whose hash matches
+--   the given prefix.
 [termReferentsByPrefix] :: Codebase m v a -> ShortHash -> m (Set Id)
+
+-- | The number of base32 characters needed to distinguish any two branch
+--   in the codebase.
 [branchHashLength] :: Codebase m v a -> m Int
+
+-- | Get the set of branches whose hash matches the given prefix.
 [branchHashesByPrefix] :: Codebase m v a -> ShortBranchHash -> m (Set Hash)
 [lcaImpl] :: Codebase m v a -> Maybe (Hash -> Hash -> m (Maybe Hash))
 [beforeImpl] :: Codebase m v a -> Maybe (Hash -> Hash -> m Bool)
+
+-- | A directory that contains a codebase.
 type CodebasePath = FilePath
 data GitError
 GitProtocolError :: GitProtocolError -> GitError
@@ -2193,90 +2308,219 @@ instance GHC.Classes.Eq Unison.Codebase.Branch.Merge.MergeMode
 module Unison.Codebase
 
 -- | Abstract interface to a user's codebase.
---   
---   One implementation is <a>FileCodebase</a> which uses the filesystem.
 data Codebase m v a
-Codebase :: (Id -> m (Maybe (Term v a))) -> (Id -> m (Maybe (Type v a))) -> (Id -> m (Maybe (Decl v a))) -> (Id -> Term v a -> Type v a -> m ()) -> (Id -> Decl v a -> m ()) -> m (Either GetRootBranchError (Branch m)) -> (Branch m -> m ()) -> m (IO (), IO (Set Hash)) -> (Hash -> m (Maybe (Branch m))) -> (Branch m -> m ()) -> (Hash -> m Bool) -> (EditHash -> m (Maybe Patch)) -> (EditHash -> Patch -> m ()) -> (EditHash -> m Bool) -> (Reference -> m (Set Id)) -> (CodebasePath -> SyncMode -> Branch m -> m ()) -> (CodebasePath -> SyncMode -> Branch m -> m ()) -> (ReadRemoteNamespace -> m (Either GitError (m (), Branch m, CodebasePath))) -> (Branch m -> WriteRepo -> SyncMode -> m (Either GitError ())) -> (WatchKind -> m [Id]) -> (WatchKind -> Id -> m (Maybe (Term v a))) -> (WatchKind -> Id -> Term v a -> m ()) -> m () -> m [Entry Hash] -> (Text -> Branch m -> Branch m -> m ()) -> (Reference -> m (Set Id)) -> (Reference -> m (Set Id)) -> m Int -> (ShortHash -> m (Set Id)) -> (ShortHash -> m (Set Id)) -> (ShortHash -> m (Set Id)) -> m Int -> (ShortBranchHash -> m (Set Hash)) -> Maybe (Hash -> Hash -> m (Maybe Hash)) -> Maybe (Hash -> Hash -> m Bool) -> Codebase m v a
-[getTerm] :: Codebase m v a -> Id -> m (Maybe (Term v a))
-[getTypeOfTermImpl] :: Codebase m v a -> Id -> m (Maybe (Type v a))
-[getTypeDeclaration] :: Codebase m v a -> Id -> m (Maybe (Decl v a))
-[putTerm] :: Codebase m v a -> Id -> Term v a -> Type v a -> m ()
-[putTypeDeclaration] :: Codebase m v a -> Id -> Decl v a -> m ()
-[getRootBranch] :: Codebase m v a -> m (Either GetRootBranchError (Branch m))
-[putRootBranch] :: Codebase m v a -> Branch m -> m ()
-[rootBranchUpdates] :: Codebase m v a -> m (IO (), IO (Set Hash))
-[getBranchForHashImpl] :: Codebase m v a -> Hash -> m (Maybe (Branch m))
-[putBranch] :: Codebase m v a -> Branch m -> m ()
-[branchExists] :: Codebase m v a -> Hash -> m Bool
-[getPatch] :: Codebase m v a -> EditHash -> m (Maybe Patch)
-[putPatch] :: Codebase m v a -> EditHash -> Patch -> m ()
-[patchExists] :: Codebase m v a -> EditHash -> m Bool
-[dependentsImpl] :: Codebase m v a -> Reference -> m (Set Id)
-[syncFromDirectory] :: Codebase m v a -> CodebasePath -> SyncMode -> Branch m -> m ()
-[syncToDirectory] :: Codebase m v a -> CodebasePath -> SyncMode -> Branch m -> m ()
-[viewRemoteBranch'] :: Codebase m v a -> ReadRemoteNamespace -> m (Either GitError (m (), Branch m, CodebasePath))
-[pushGitRootBranch] :: Codebase m v a -> Branch m -> WriteRepo -> SyncMode -> m (Either GitError ())
-[watches] :: Codebase m v a -> WatchKind -> m [Id]
-[getWatch] :: Codebase m v a -> WatchKind -> Id -> m (Maybe (Term v a))
-[putWatch] :: Codebase m v a -> WatchKind -> Id -> Term v a -> m ()
-[clearWatches] :: Codebase m v a -> m ()
-[getReflog] :: Codebase m v a -> m [Entry Hash]
-[appendReflog] :: Codebase m v a -> Text -> Branch m -> Branch m -> m ()
-[termsOfTypeImpl] :: Codebase m v a -> Reference -> m (Set Id)
-[termsMentioningTypeImpl] :: Codebase m v a -> Reference -> m (Set Id)
-[hashLength] :: Codebase m v a -> m Int
-[termReferencesByPrefix] :: Codebase m v a -> ShortHash -> m (Set Id)
-[typeReferencesByPrefix] :: Codebase m v a -> ShortHash -> m (Set Id)
-[termReferentsByPrefix] :: Codebase m v a -> ShortHash -> m (Set Id)
-[branchHashLength] :: Codebase m v a -> m Int
-[branchHashesByPrefix] :: Codebase m v a -> ShortBranchHash -> m (Set Hash)
-[lcaImpl] :: Codebase m v a -> Maybe (Hash -> Hash -> m (Maybe Hash))
-[beforeImpl] :: Codebase m v a -> Maybe (Hash -> Hash -> m Bool)
-type CodebasePath = FilePath
+
+-- | Get a user-defined term from the codebase.
+--   
+--   Note that it is possible to call <a>putTerm</a>, then <a>getTerm</a>,
+--   and receive <tt>Nothing</tt>, per the semantics of <a>putTerm</a>.
+getTerm :: Codebase m v a -> Id -> m (Maybe (Term v a))
+
+-- | Like <a>getTerm</a>, for when the term is known to exist in the
+--   codebase.
+unsafeGetTerm :: (HasCallStack, Monad m) => Codebase m v a -> Id -> m (Term v a)
+
+-- | Like <a>unsafeGetTerm</a>, but returns the type of the term, too.
+unsafeGetTermWithType :: (HasCallStack, Monad m) => Codebase m v a -> Id -> m (Term v a, Type v a)
+
+-- | Get the type of a term.
+--   
+--   Note that it is possible to call <a>putTerm</a>, then
+--   <a>getTypeOfTerm</a>, and receive <tt>Nothing</tt>, per the semantics
+--   of <a>putTerm</a>.
+getTypeOfTerm :: (Applicative m, Var v, BuiltinAnnotation a) => Codebase m v a -> Reference -> m (Maybe (Type v a))
+
+-- | Like <a>getTypeOfTerm</a>, but for when the term is known to exist in
+--   the codebase.
+unsafeGetTypeOfTermById :: (HasCallStack, Monad m) => Codebase m v a -> Id -> m (Type v a)
+
+-- | Check whether a reference is a term.
+isTerm :: (Applicative m, Var v, BuiltinAnnotation a) => Codebase m v a -> Reference -> m Bool
+
+-- | Enqueue the put of a user-defined term (with its type) into the
+--   codebase, if it doesn't already exist. The implementation may choose
+--   to delay the put until all of the term's (and its type's) references
+--   are stored as well.
+putTerm :: Codebase m v a -> Id -> Term v a -> Type v a -> m ()
+
+-- | Get the type of a referent.
+getTypeOfReferent :: (BuiltinAnnotation a, Var v, Monad m) => Codebase m v a -> Referent -> m (Maybe (Type v a))
+
+-- | Get the set of terms-or-constructors that have the given type.
+termsOfType :: (Var v, Functor m) => Codebase m v a -> Type v a -> m (Set Referent)
+
+-- | Get the set of terms-or-constructors mention the given type anywhere
+--   in their signature.
+termsMentioningType :: (Var v, Functor m) => Codebase m v a -> Type v a -> m (Set Referent)
+
+-- | Get the set of user-defined terms whose hash matches the given prefix.
+termReferencesByPrefix :: Codebase m v a -> ShortHash -> m (Set Id)
+
+-- | Get the set of user-defined terms-or-constructors whose hash matches
+--   the given prefix.
+termReferentsByPrefix :: Codebase m v a -> ShortHash -> m (Set Id)
+
+-- | Get a type declaration.
+--   
+--   Note that it is possible to call <a>putTypeDeclaration</a>, then
+--   <a>getTypeDeclaration</a>, and receive <tt>Nothing</tt>, per the
+--   semantics of <a>putTypeDeclaration</a>.
+getTypeDeclaration :: Codebase m v a -> Id -> m (Maybe (Decl v a))
+
+-- | Like <a>getTypeDeclaration</a>, for when the type declaration is known
+--   to exist in the codebase.
+unsafeGetTypeDeclaration :: (HasCallStack, Monad m) => Codebase m v a -> Id -> m (Decl v a)
+
+-- | Enqueue the put of a type declaration into the codebase, if it doesn't
+--   already exist. The implementation may choose to delay the put until
+--   all of the type declaration's references are stored as well.
+putTypeDeclaration :: Codebase m v a -> Id -> Decl v a -> m ()
+
+-- | Get the set of type declarations whose hash matches the given prefix.
+typeReferencesByPrefix :: Codebase m v a -> ShortHash -> m (Set Id)
+isType :: Applicative m => Codebase m v a -> Reference -> m Bool
+
+-- | Check whether the given branch exists in the codebase.
+branchExists :: Codebase m v a -> Hash -> m Bool
+
+-- | Get a branch from the codebase.
+getBranchForHash :: Monad m => Codebase m v a -> Hash -> m (Maybe (Branch m))
+
+-- | Put a branch into the codebase, which includes its children, its
+--   patches, and the branch itself, if they don't already exist.
+--   
+--   The terms and type declarations that a branch references must already
+--   exist in the codebase.
+putBranch :: Codebase m v a -> Branch m -> m ()
+
+-- | Get the set of branches whose hash matches the given prefix.
+branchHashesByPrefix :: Codebase m v a -> ShortBranchHash -> m (Set Hash)
+
+-- | Get the lowest common ancestor of two branches, i.e. the most recent
+--   branch that is an ancestor of both branches.
+lca :: Monad m => Codebase m v a -> Branch m -> Branch m -> m (Maybe (Branch m))
+beforeImpl :: Codebase m v a -> Maybe (Hash -> Hash -> m Bool)
+
+-- | Get the root branch.
+getRootBranch :: Codebase m v a -> m (Either GetRootBranchError (Branch m))
 data GetRootBranchError
 NoRootBranch :: GetRootBranchError
 CouldntParseRootBranch :: String -> GetRootBranchError
 CouldntLoadRootBranch :: Hash -> GetRootBranchError
-getBranchForHash :: Monad m => Codebase m v a -> Hash -> m (Maybe (Branch m))
-getCodebaseDir :: MonadIO m => Maybe CodebasePath -> m CodebasePath
-isBlank :: Applicative m => Codebase m v a -> m Bool
-type SyncToDir m = CodebasePath -> SyncMode -> Branch m -> m ()
-addDefsToCodebase :: forall m v a. (Monad m, Var v, Show a) => Codebase m v a -> TypecheckedUnisonFile v a -> m ()
 
--- | Write all of UCM's dependencies (builtins types and an empty
---   namespace) into the codebase
-installUcmDependencies :: forall m. Monad m => Codebase m Symbol Ann -> m ()
-getTypeOfTerm :: (Applicative m, Var v, BuiltinAnnotation a) => Codebase m v a -> Reference -> m (Maybe (Type v a))
-getTypeOfReferent :: (BuiltinAnnotation a, Var v, Monad m) => Codebase m v a -> Referent -> m (Maybe (Type v a))
-lca :: Monad m => Codebase m v a -> Branch m -> Branch m -> m (Maybe (Branch m))
+-- | Return whether the root branch is empty.
+isBlank :: Applicative m => Codebase m v a -> m Bool
+
+-- | Like <a>putBranch</a>, but also adjusts the root branch pointer
+--   afterwards.
+putRootBranch :: Codebase m v a -> Branch m -> m ()
+rootBranchUpdates :: Codebase m v a -> m (IO (), IO (Set Hash))
+
+-- | Check whether the given patch exists in the codebase.
+patchExists :: Codebase m v a -> EditHash -> m Bool
+
+-- | Get a patch from the codebase.
+getPatch :: Codebase m v a -> EditHash -> m (Maybe Patch)
+
+-- | Put a patch into the codebase.
+--   
+--   Note that <a>putBranch</a> may also put patches.
+putPatch :: Codebase m v a -> EditHash -> Patch -> m ()
+
+-- | <tt>getWatch k r</tt> returns watch result <tt>t</tt> that was
+--   previously put by <tt>putWatch k r t</tt>.
+getWatch :: Codebase m v a -> WatchKind -> Id -> m (Maybe (Term v a))
+
+-- | Like <a>getWatch</a>, but first looks up the given reference as a
+--   regular watch, then as a test watch.
+--   
+--   <pre>
+--   lookupWatchCache codebase ref =
+--     runMaybeT do
+--       MaybeT (getWatch codebase RegularWatch ref)
+--         <a>|</a> MaybeT (getWatch codebase TestWatch ref))
+--   </pre>
 lookupWatchCache :: Monad m => Codebase m v a -> Id -> m (Maybe (Term v a))
-toCodeLookup :: Codebase m v a -> CodeLookup v m a
-typeLookupForDependencies :: (Monad m, Var v, BuiltinAnnotation a) => Codebase m v a -> Set Reference -> m (TypeLookup v a)
+
+-- | <tt>watches k</tt> returns all of the references <tt>r</tt> that were
+--   previously put by a <tt>putWatch k r t</tt>. <tt>t</tt> can be
+--   retrieved by <tt>getWatch k r</tt>.
+watches :: Codebase m v a -> WatchKind -> m [Id]
+
+-- | <tt>putWatch k r t</tt> puts a watch of kind <tt>k</tt>, with
+--   hash-of-expression <tt>r</tt> and decompiled result <tt>t</tt> into
+--   the codebase.
+--   
+--   For example, in the watch expression below, <tt>k</tt> is
+--   <a>Regular</a>, <tt>r</tt> is the hash of <tt>x</tt>, and <tt>t</tt>
+--   is <tt>7</tt>.
+--   
+--   <pre>
+--   &gt; x = 3 + 4
+--     ⧩
+--     7
+--   </pre>
+putWatch :: Codebase m v a -> WatchKind -> Id -> Term v a -> m ()
+
+-- | Delete all watches that were put by <a>putWatch</a>.
+clearWatches :: Codebase m v a -> m ()
+
+-- | Get the entire reflog.
+getReflog :: Codebase m v a -> m [Entry Hash]
+
+-- | <tt>appendReflog reason before after</tt> appends a reflog entry.
+--   
+--   FIXME: this could have type
+--   
+--   <pre>
+--   appendReflog :: Reflog.Entry (Branch m) -&gt; m ()
+--   </pre>
+appendReflog :: Codebase m v a -> Text -> Branch m -> Branch m -> m ()
+
+-- | The number of base32 characters needed to distinguish any two
+--   references in the codebase.
+hashLength :: Codebase m v a -> m Int
+
+-- | The number of base32 characters needed to distinguish any two branch
+--   in the codebase.
+branchHashLength :: Codebase m v a -> m Int
+
+-- | Get the set of terms, type declarations, and builtin types that depend
+--   on the given term, type declaration, or builtin type.
+dependents :: Functor m => Codebase m v a -> Reference -> m (Set Reference)
+
+-- | Copy a branch and all of its dependencies from the given codebase into
+--   this one.
+syncFromDirectory :: Codebase m v a -> CodebasePath -> SyncMode -> Branch m -> m ()
+
+-- | Copy a branch and all of its dependencies from this codebase into the
+--   given codebase.
+syncToDirectory :: Codebase m v a -> CodebasePath -> SyncMode -> Branch m -> m ()
+
+-- | Pull a git branch and view it from the cache, without syncing into the
+--   local codebase.
+viewRemoteBranch :: MonadIO m => Codebase m v a -> ReadRemoteNamespace -> m (Either GitError (m (), Branch m))
 
 -- | Sync elements as needed from a remote codebase into the local one. If
 --   <tt>sbh</tt> is supplied, we try to load the specified branch hash;
 --   otherwise we try to load the root branch.
 importRemoteBranch :: forall m v a. MonadIO m => Codebase m v a -> ReadRemoteNamespace -> SyncMode -> m (Either GitError (Branch m))
 
--- | Pull a git branch and view it from the cache, without syncing into the
---   local codebase.
-viewRemoteBranch :: MonadIO m => Codebase m v a -> ReadRemoteNamespace -> m (Either GitError (m (), Branch m))
-termsOfType :: (Var v, Functor m) => Codebase m v a -> Type v a -> m (Set Referent)
-termsMentioningType :: (Var v, Functor m) => Codebase m v a -> Type v a -> m (Set Referent)
+-- | Push the given branch to the given repo, and set it as the root
+--   branch.
+pushGitRootBranch :: Codebase m v a -> Branch m -> WriteRepo -> SyncMode -> m (Either GitError ())
+getCodebaseDir :: MonadIO m => Maybe CodebasePath -> m CodebasePath
 
--- | The dependents of a builtin type includes the set of builtin terms
---   which mention that type.
-dependents :: Functor m => Codebase m v a -> Reference -> m (Set Reference)
-isTerm :: (Applicative m, Var v, BuiltinAnnotation a) => Codebase m v a -> Reference -> m Bool
-isType :: Applicative m => Codebase m v a -> Reference -> m Bool
-unsafeGetTerm :: (HasCallStack, Monad m) => Codebase m v a -> Id -> m (Term v a)
+-- | A directory that contains a codebase.
+type CodebasePath = FilePath
+type SyncToDir m = CodebasePath -> SyncMode -> Branch m -> m ()
+addDefsToCodebase :: forall m v a. (Monad m, Var v, Show a) => Codebase m v a -> TypecheckedUnisonFile v a -> m ()
 
--- | Get a term with its type.
---   
---   Precondition: the term exists in the codebase.
-unsafeGetTermWithType :: (HasCallStack, Monad m) => Codebase m v a -> Id -> m (Term v a, Type v a)
-unsafeGetTypeDeclaration :: (HasCallStack, Monad m) => Codebase m v a -> Id -> m (Decl v a)
-unsafeGetTypeOfTermById :: (HasCallStack, Monad m) => Codebase m v a -> Id -> m (Type v a)
+-- | Write all of UCM's dependencies (builtins types and an empty
+--   namespace) into the codebase
+installUcmDependencies :: forall m. Monad m => Codebase m Symbol Ann -> m ()
+toCodeLookup :: Codebase m v a -> CodeLookup v m a
+typeLookupForDependencies :: (Monad m, Var v, BuiltinAnnotation a) => Codebase m v a -> Set Reference -> m (TypeLookup v a)
 
 module Unison.Codebase.FileCodebase
 codebaseExists :: MonadIO m => CodebasePath -> m Bool
@@ -3124,9 +3368,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5GCv loc_a5GCw. Lens' (Env v_a5GCv loc_a5GCw) (TypeLookup v_a5GCv loc_a5GCw)
-termsByShortname :: forall v_a5GCv loc_a5GCw. Lens' (Env v_a5GCv loc_a5GCw) (Map Name [NamedReference v_a5GCv loc_a5GCw])
-ambientAbilities :: forall v_a5GCv loc_a5GCw. Lens' (Env v_a5GCv loc_a5GCw) [Type v_a5GCv loc_a5GCw]
+typeLookup :: forall v_a5GCu loc_a5GCv. Lens' (Env v_a5GCu loc_a5GCv) (TypeLookup v_a5GCu loc_a5GCv)
+termsByShortname :: forall v_a5GCu loc_a5GCv. Lens' (Env v_a5GCu loc_a5GCv) (Map Name [NamedReference v_a5GCu loc_a5GCv])
+ambientAbilities :: forall v_a5GCu loc_a5GCv. Lens' (Env v_a5GCu loc_a5GCv) [Type v_a5GCu loc_a5GCv]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.

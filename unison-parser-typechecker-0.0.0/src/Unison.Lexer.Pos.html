@@ -9,14 +9,14 @@
 </span><span id="line-9"></span><span class="hs-keyword">type</span><span> </span><span id="Line"><span class="annot"><a href="Unison.Lexer.Pos.html#Line"><span class="hs-identifier hs-var">Line</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
 </span><span id="line-10"></span><span class="hs-keyword">type</span><span> </span><span id="Column"><span class="annot"><a href="Unison.Lexer.Pos.html#Column"><span class="hs-identifier hs-var">Column</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
 </span><span id="line-11"></span><span>
-</span><span id="line-12"></span><span class="hs-keyword">data</span><span> </span><span id="Pos"><span class="annot"><a href="Unison.Lexer.Pos.html#Pos"><span class="hs-identifier hs-var">Pos</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Pos"><span class="annot"><a href="Unison.Lexer.Pos.html#Pos"><span class="hs-identifier hs-var">Pos</span></a></span></span><span> </span><span class="hs-pragma">{-# UNPACK</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="hs-glyph">!</span><span class="annot"><a href="Unison.Lexer.Pos.html#Line"><span class="hs-identifier hs-type">Line</span></a></span><span> </span><span class="hs-pragma">{-# UNPACK</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="hs-glyph">!</span><span class="annot"><a href="Unison.Lexer.Pos.html#Column"><span class="hs-identifier hs-type">Column</span></a></span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680818040"><span id="local-6989586621680818042"><span class="annot"><span class="annottext">Pos -&gt; Pos -&gt; Bool
+</span><span id="line-12"></span><span class="hs-keyword">data</span><span> </span><span id="Pos"><span class="annot"><a href="Unison.Lexer.Pos.html#Pos"><span class="hs-identifier hs-var">Pos</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Pos"><span class="annot"><a href="Unison.Lexer.Pos.html#Pos"><span class="hs-identifier hs-var">Pos</span></a></span></span><span> </span><span class="hs-pragma">{-# UNPACK</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="hs-glyph">!</span><span class="annot"><a href="Unison.Lexer.Pos.html#Line"><span class="hs-identifier hs-type">Line</span></a></span><span> </span><span class="hs-pragma">{-# UNPACK</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="hs-glyph">!</span><span class="annot"><a href="Unison.Lexer.Pos.html#Column"><span class="hs-identifier hs-type">Column</span></a></span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680818041"><span id="local-6989586621680818043"><span class="annot"><span class="annottext">Pos -&gt; Pos -&gt; Bool
 (Pos -&gt; Pos -&gt; Bool) -&gt; (Pos -&gt; Pos -&gt; Bool) -&gt; Eq Pos
 forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
 /= :: Pos -&gt; Pos -&gt; Bool
 $c/= :: Pos -&gt; Pos -&gt; Bool
 == :: Pos -&gt; Pos -&gt; Bool
 $c== :: Pos -&gt; Pos -&gt; Bool
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680818024"><span id="local-6989586621680818026"><span id="local-6989586621680818028"><span id="local-6989586621680818030"><span id="local-6989586621680818032"><span id="local-6989586621680818034"><span id="local-6989586621680818036"><span class="annot"><span class="annottext">Eq Pos
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680818025"><span id="local-6989586621680818027"><span id="local-6989586621680818029"><span id="local-6989586621680818031"><span id="local-6989586621680818033"><span id="local-6989586621680818035"><span id="local-6989586621680818037"><span class="annot"><span class="annottext">Eq Pos
 Eq Pos
 -&gt; (Pos -&gt; Pos -&gt; Ordering)
 -&gt; (Pos -&gt; Pos -&gt; Bool)
@@ -58,28 +58,28 @@ $cp1Ord :: Eq Pos
 </span><span id="line-13"></span><span>
 </span><span id="line-14"></span><span class="annot"><a href="Unison.Lexer.Pos.html#line"><span class="hs-identifier hs-type">line</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Lexer.Pos.html#Pos"><span class="hs-identifier hs-type">Pos</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Lexer.Pos.html#Line"><span class="hs-identifier hs-type">Line</span></a></span><span>
 </span><span id="line-15"></span><span id="line"><span class="annot"><span class="annottext">line :: Pos -&gt; Line
-</span><a href="Unison.Lexer.Pos.html#line"><span class="hs-identifier hs-var hs-var">line</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Lexer.Pos.html#Pos"><span class="hs-identifier hs-type">Pos</span></a></span><span> </span><span id="local-6989586621680818022"><span class="annot"><span class="annottext">Line
-</span><a href="#local-6989586621680818022"><span class="hs-identifier hs-var">line</span></a></span></span><span> </span><span class="annot"><span class="annottext">Line
+</span><a href="Unison.Lexer.Pos.html#line"><span class="hs-identifier hs-var hs-var">line</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Lexer.Pos.html#Pos"><span class="hs-identifier hs-type">Pos</span></a></span><span> </span><span id="local-6989586621680818023"><span class="annot"><span class="annottext">Line
+</span><a href="#local-6989586621680818023"><span class="hs-identifier hs-var">line</span></a></span></span><span> </span><span class="annot"><span class="annottext">Line
 </span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Line
-</span><a href="#local-6989586621680818022"><span class="hs-identifier hs-var">line</span></a></span><span>
+</span><a href="#local-6989586621680818023"><span class="hs-identifier hs-var">line</span></a></span><span>
 </span><span id="line-16"></span><span>
 </span><span id="line-17"></span><span class="annot"><a href="Unison.Lexer.Pos.html#column"><span class="hs-identifier hs-type">column</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Lexer.Pos.html#Pos"><span class="hs-identifier hs-type">Pos</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Lexer.Pos.html#Column"><span class="hs-identifier hs-type">Column</span></a></span><span>
 </span><span id="line-18"></span><span id="column"><span class="annot"><span class="annottext">column :: Pos -&gt; Line
 </span><a href="Unison.Lexer.Pos.html#column"><span class="hs-identifier hs-var hs-var">column</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Lexer.Pos.html#Pos"><span class="hs-identifier hs-type">Pos</span></a></span><span> </span><span class="annot"><span class="annottext">Line
-</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621680818021"><span class="annot"><span class="annottext">Line
-</span><a href="#local-6989586621680818021"><span class="hs-identifier hs-var">column</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Line
-</span><a href="#local-6989586621680818021"><span class="hs-identifier hs-var">column</span></a></span><span>
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621680818022"><span class="annot"><span class="annottext">Line
+</span><a href="#local-6989586621680818022"><span class="hs-identifier hs-var">column</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Line
+</span><a href="#local-6989586621680818022"><span class="hs-identifier hs-var">column</span></a></span><span>
 </span><span id="line-19"></span><span>
-</span><span id="line-20"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680818016"><span id="local-6989586621680818019"><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="Unison.Lexer.Pos.html#Pos"><span class="hs-identifier hs-type">Pos</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621680818014"><span class="annot"><span class="annottext">show :: Pos -&gt; String
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var">show</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Lexer.Pos.html#Pos"><span class="hs-identifier hs-type">Pos</span></a></span><span> </span><span id="local-6989586621680818012"><span class="annot"><span class="annottext">Line
-</span><a href="#local-6989586621680818012"><span class="hs-identifier hs-var">line</span></a></span></span><span> </span><span id="local-6989586621680818011"><span class="annot"><span class="annottext">Line
-</span><a href="#local-6989586621680818011"><span class="hs-identifier hs-var">col</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span id="line-20"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680818017"><span id="local-6989586621680818020"><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="Unison.Lexer.Pos.html#Pos"><span class="hs-identifier hs-type">Pos</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621680818015"><span class="annot"><span class="annottext">show :: Pos -&gt; String
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">show</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Lexer.Pos.html#Pos"><span class="hs-identifier hs-type">Pos</span></a></span><span> </span><span id="local-6989586621680818013"><span class="annot"><span class="annottext">Line
+</span><a href="#local-6989586621680818013"><span class="hs-identifier hs-var">line</span></a></span></span><span> </span><span id="local-6989586621680818012"><span class="annot"><span class="annottext">Line
+</span><a href="#local-6989586621680818012"><span class="hs-identifier hs-var">col</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;line &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Line -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">Line
-</span><a href="#local-6989586621680818012"><span class="hs-identifier hs-var">line</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="#local-6989586621680818013"><span class="hs-identifier hs-var">line</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;, column &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
@@ -87,42 +87,42 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Line -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">Line
-</span><a href="#local-6989586621680818011"><span class="hs-identifier hs-var">col</span></a></span><span>
+</span><a href="#local-6989586621680818012"><span class="hs-identifier hs-var">col</span></a></span><span>
 </span><span id="line-21"></span><span>
-</span><span id="line-22"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680818006"><span id="local-6989586621680818008"><span class="annot"><span class="hs-identifier hs-type">Semigroup</span></span><span> </span><span class="annot"><a href="Unison.Lexer.Pos.html#Pos"><span class="hs-identifier hs-type">Pos</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621680818004"><span class="annot"><span class="annottext">&lt;&gt; :: Pos -&gt; Pos -&gt; Pos
+</span><span id="line-22"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680818007"><span id="local-6989586621680818009"><span class="annot"><span class="hs-identifier hs-type">Semigroup</span></span><span> </span><span class="annot"><a href="Unison.Lexer.Pos.html#Pos"><span class="hs-identifier hs-type">Pos</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621680818005"><span class="annot"><span class="annottext">&lt;&gt; :: Pos -&gt; Pos -&gt; Pos
 </span><span class="hs-operator hs-var hs-var hs-var hs-var">(&lt;&gt;)</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Pos -&gt; Pos -&gt; Pos
 forall a. Monoid a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-identifier hs-var">mappend</span></span><span>
 </span><span id="line-23"></span><span>
-</span><span id="line-24"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680817999"><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="Unison.Lexer.Pos.html#Pos"><span class="hs-identifier hs-type">Pos</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-25"></span><span>  </span><span id="local-6989586621680817997"><span class="annot"><span class="annottext">mempty :: Pos
+</span><span id="line-24"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680818000"><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="Unison.Lexer.Pos.html#Pos"><span class="hs-identifier hs-type">Pos</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-25"></span><span>  </span><span id="local-6989586621680817998"><span class="annot"><span class="annottext">mempty :: Pos
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var">mempty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Line -&gt; Line -&gt; Pos
 </span><a href="Unison.Lexer.Pos.html#Pos"><span class="hs-identifier hs-var">Pos</span></a></span><span> </span><span class="annot"><span class="annottext">Line
 </span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">Line
 </span><span class="hs-number">0</span></span><span>
-</span><span id="line-26"></span><span>  </span><span class="annot"><a href="Unison.Lexer.Pos.html#Pos"><span class="hs-identifier hs-type">Pos</span></a></span><span> </span><span id="local-6989586621680817996"><span class="annot"><span class="annottext">Line
-</span><a href="#local-6989586621680817996"><span class="hs-identifier hs-var">line</span></a></span></span><span> </span><span id="local-6989586621680817995"><span class="annot"><span class="annottext">Line
-</span><a href="#local-6989586621680817995"><span class="hs-identifier hs-var">col</span></a></span></span><span> </span><span id="local-6989586621680817994"><span class="annot"><span class="annottext">mappend :: Pos -&gt; Pos -&gt; Pos
-</span><span class="hs-operator hs-var hs-var hs-var hs-var">`mappend`</span></span></span><span> </span><span class="annot"><a href="Unison.Lexer.Pos.html#Pos"><span class="hs-identifier hs-type">Pos</span></a></span><span> </span><span id="local-6989586621680817993"><span class="annot"><span class="annottext">Line
-</span><a href="#local-6989586621680817993"><span class="hs-identifier hs-var">line2</span></a></span></span><span> </span><span id="local-6989586621680817992"><span class="annot"><span class="annottext">Line
-</span><a href="#local-6989586621680817992"><span class="hs-identifier hs-var">col2</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-26"></span><span>  </span><span class="annot"><a href="Unison.Lexer.Pos.html#Pos"><span class="hs-identifier hs-type">Pos</span></a></span><span> </span><span id="local-6989586621680817997"><span class="annot"><span class="annottext">Line
+</span><a href="#local-6989586621680817997"><span class="hs-identifier hs-var">line</span></a></span></span><span> </span><span id="local-6989586621680817996"><span class="annot"><span class="annottext">Line
+</span><a href="#local-6989586621680817996"><span class="hs-identifier hs-var">col</span></a></span></span><span> </span><span id="local-6989586621680817995"><span class="annot"><span class="annottext">mappend :: Pos -&gt; Pos -&gt; Pos
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">`mappend`</span></span></span><span> </span><span class="annot"><a href="Unison.Lexer.Pos.html#Pos"><span class="hs-identifier hs-type">Pos</span></a></span><span> </span><span id="local-6989586621680817994"><span class="annot"><span class="annottext">Line
+</span><a href="#local-6989586621680817994"><span class="hs-identifier hs-var">line2</span></a></span></span><span> </span><span id="local-6989586621680817993"><span class="annot"><span class="annottext">Line
+</span><a href="#local-6989586621680817993"><span class="hs-identifier hs-var">col2</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-27"></span><span>    </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Line
-</span><a href="#local-6989586621680817993"><span class="hs-identifier hs-var">line2</span></a></span><span> </span><span class="annot"><span class="annottext">Line -&gt; Line -&gt; Bool
+</span><a href="#local-6989586621680817994"><span class="hs-identifier hs-var">line2</span></a></span><span> </span><span class="annot"><span class="annottext">Line -&gt; Line -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Line
 </span><span class="hs-number">0</span></span><span>
 </span><span id="line-28"></span><span>      </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Line -&gt; Line -&gt; Pos
 </span><a href="Unison.Lexer.Pos.html#Pos"><span class="hs-identifier hs-var">Pos</span></a></span><span> </span><span class="annot"><span class="annottext">Line
-</span><a href="#local-6989586621680817996"><span class="hs-identifier hs-var">line</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Line
-</span><a href="#local-6989586621680817995"><span class="hs-identifier hs-var">col</span></a></span><span> </span><span class="annot"><span class="annottext">Line -&gt; Line -&gt; Line
+</span><a href="#local-6989586621680817997"><span class="hs-identifier hs-var">line</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Line
+</span><a href="#local-6989586621680817996"><span class="hs-identifier hs-var">col</span></a></span><span> </span><span class="annot"><span class="annottext">Line -&gt; Line -&gt; Line
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Line
-</span><a href="#local-6989586621680817992"><span class="hs-identifier hs-var">col2</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621680817993"><span class="hs-identifier hs-var">col2</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-29"></span><span>      </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Line -&gt; Line -&gt; Pos
 </span><a href="Unison.Lexer.Pos.html#Pos"><span class="hs-identifier hs-var">Pos</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Line
-</span><a href="#local-6989586621680817996"><span class="hs-identifier hs-var">line</span></a></span><span> </span><span class="annot"><span class="annottext">Line -&gt; Line -&gt; Line
+</span><a href="#local-6989586621680817997"><span class="hs-identifier hs-var">line</span></a></span><span> </span><span class="annot"><span class="annottext">Line -&gt; Line -&gt; Line
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Line
-</span><a href="#local-6989586621680817993"><span class="hs-identifier hs-var">line2</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Line
-</span><a href="#local-6989586621680817992"><span class="hs-identifier hs-var">col2</span></a></span><span>
+</span><a href="#local-6989586621680817994"><span class="hs-identifier hs-var">line2</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Line
+</span><a href="#local-6989586621680817993"><span class="hs-identifier hs-var">col2</span></a></span><span>
 </span><span id="line-30"></span></pre></body></html>

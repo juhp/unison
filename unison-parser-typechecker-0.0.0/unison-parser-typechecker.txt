@@ -1230,7 +1230,7 @@ gitTextIn :: MonadIO m => FilePath -> [Text] -> m Text
 
 -- | Given a remote git repo url, and branch/commit hash (currently not
 --   allowed): checks for git, clones or updates a cached copy of the repo
-pullBranch :: (MonadIO m, MonadCatch m, MonadError GitProtocolError m) => ReadRepo -> m CodebasePath
+pullBranch :: (MonadIO m, MonadError GitProtocolError m) => ReadRepo -> m CodebasePath
 
 -- | Perform an IO action, passing any IO exception to <tt>handler</tt>
 withIOError :: MonadIO m => IO a -> (IOException -> m a) -> m a
@@ -1971,7 +1971,7 @@ isOne :: Branch m -> Bool
 before :: Monad m => Branch m -> Branch m -> m Bool
 lca :: Monad m => Branch m -> Branch m -> m (Maybe (Branch m))
 diff0 :: Monad m => Branch0 m -> Branch0 m -> m BranchDiff
-history :: forall m_a3oCY m_a3oQm. Iso (Branch m_a3oCY) (Branch m_a3oQm) (UnwrappedBranch m_a3oCY) (UnwrappedBranch m_a3oQm)
+history :: forall m_a3oDs m_a3oQQ. Iso (Branch m_a3oDs) (Branch m_a3oQQ) (UnwrappedBranch m_a3oDs) (UnwrappedBranch m_a3oQQ)
 head :: Branch m -> Branch0 m
 headHash :: Branch m -> Hash
 children :: Lens' (Branch0 m) (Map NameSegment (Branch m))
@@ -2006,7 +2006,7 @@ modifyAtM :: forall n m. Functor n => Applicative m => Path -> (Branch m -> n (B
 children0 :: IndexedTraversal' NameSegment (Branch0 m) (Branch0 m)
 terms :: Lens' (Branch0 m) (Star Referent NameSegment)
 types :: Lens' (Branch0 m) (Star Reference NameSegment)
-edits :: forall m_a3oCU. Lens' (Branch0 m_a3oCU) (Map NameSegment (EditHash, m_a3oCU Patch))
+edits :: forall m_a3oDo. Lens' (Branch0 m_a3oDo) (Map NameSegment (EditHash, m_a3oDo Patch))
 deepReferents :: Branch0 m -> Set Referent
 deepTypeReferences :: Branch0 m -> Set Reference
 cachedRead :: forall m. MonadIO m => Cache m -> Deserialize m Raw Raw -> (EditHash -> m Patch) -> Hash -> m (Branch m)
@@ -2867,9 +2867,7 @@ openOrCreateCodebase :: MonadIO m => Init m v a -> DebugName -> CodebaseInitOpti
 openNewUcmCodebaseOrExit :: MonadIO m => Init m Symbol Ann -> DebugName -> CodebasePath -> m (m (), Codebase m Symbol Ann)
 
 module Unison.Codebase.SqliteCodebase
-init :: HasCallStack => (MonadIO m, MonadCatch m) => Init m Symbol Ann
-unsafeGetConnection :: MonadIO m => DebugName -> CodebasePath -> m Connection
-shutdownConnection :: MonadIO m => Connection -> m ()
+init :: HasCallStack => MonadUnliftIO m => Init m Symbol Ann
 instance GHC.Show.Show Unison.Codebase.SqliteCodebase.CreateCodebaseError
 instance GHC.Show.Show a => GHC.Show.Show (Unison.Codebase.SqliteCodebase.BufferEntry a)
 instance GHC.Classes.Eq a => GHC.Classes.Eq (Unison.Codebase.SqliteCodebase.BufferEntry a)
@@ -3366,9 +3364,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5GDi loc_a5GDj. Lens' (Env v_a5GDi loc_a5GDj) (TypeLookup v_a5GDi loc_a5GDj)
-termsByShortname :: forall v_a5GDi loc_a5GDj. Lens' (Env v_a5GDi loc_a5GDj) (Map Name [NamedReference v_a5GDi loc_a5GDj])
-ambientAbilities :: forall v_a5GDi loc_a5GDj. Lens' (Env v_a5GDi loc_a5GDj) [Type v_a5GDi loc_a5GDj]
+typeLookup :: forall v_a5GCz loc_a5GCA. Lens' (Env v_a5GCz loc_a5GCA) (TypeLookup v_a5GCz loc_a5GCA)
+termsByShortname :: forall v_a5GCz loc_a5GCA. Lens' (Env v_a5GCz loc_a5GCA) (Map Name [NamedReference v_a5GCz loc_a5GCA])
+ambientAbilities :: forall v_a5GCz loc_a5GCA. Lens' (Env v_a5GCz loc_a5GCA) [Type v_a5GCz loc_a5GCA]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.

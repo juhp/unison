@@ -25,7 +25,7 @@ RawMerge :: e -> Set (RawHash h) -> Raw h e
 newtype RawHash a
 RawHash :: Hash -> RawHash a
 [unRawHash] :: RawHash a -> Hash
-head_ :: forall m_am2G h_am2H e_am2I. Lens' (Causal m_am2G h_am2H e_am2I) e_am2I
+head_ :: forall m_am2T h_am2U e_am2V. Lens' (Causal m_am2T h_am2U e_am2V) e_am2V
 one :: Hashable e => e -> Causal m h e
 cons :: (Applicative m, Hashable e) => e -> Causal m h e -> Causal m h e
 cons' :: Hashable e => e -> RawHash h -> m (Causal m h e) -> Causal m h e
@@ -846,8 +846,8 @@ data PrettyPrintEnv
 PrettyPrintEnv :: (Referent -> Maybe (HashQualified Name)) -> (Reference -> Maybe (HashQualified Name)) -> PrettyPrintEnv
 [terms] :: PrettyPrintEnv -> Referent -> Maybe (HashQualified Name)
 [types] :: PrettyPrintEnv -> Reference -> Maybe (HashQualified Name)
-patterns :: PrettyPrintEnv -> Reference -> Int -> Maybe (HashQualified Name)
-patternName :: PrettyPrintEnv -> Reference -> Int -> HashQualified Name
+patterns :: PrettyPrintEnv -> ConstructorReference -> Maybe (HashQualified Name)
+patternName :: PrettyPrintEnv -> ConstructorReference -> HashQualified Name
 termName :: PrettyPrintEnv -> Referent -> HashQualified Name
 typeName :: PrettyPrintEnv -> Reference -> HashQualified Name
 todoHashLength :: Int
@@ -1006,8 +1006,8 @@ TypeLookup :: Map Reference (Type v a) -> Map Reference (DataDeclaration v a) ->
 typeOfReferent :: TypeLookup v a -> Referent -> Maybe (Type v a)
 unsafeConstructorType :: TypeLookup v a -> Reference -> ConstructorType
 constructorType :: TypeLookup v a -> Reference -> Maybe ConstructorType
-typeOfDataConstructor :: TypeLookup v a -> Reference -> ConstructorId -> Maybe (Type v a)
-typeOfEffectConstructor :: TypeLookup v a -> Reference -> ConstructorId -> Maybe (Type v a)
+typeOfDataConstructor :: TypeLookup v a -> ConstructorReference -> Maybe (Type v a)
+typeOfEffectConstructor :: TypeLookup v a -> ConstructorReference -> Maybe (Type v a)
 typeOfTerm :: TypeLookup v a -> Reference -> Maybe (Type v a)
 typeOfTerm' :: TypeLookup v a -> Reference -> Either Reference (Type v a)
 instance (GHC.Show.Show v, GHC.Show.Show a) => GHC.Show.Show (Unison.Typechecker.TypeLookup.TypeLookup v a)
@@ -1637,8 +1637,8 @@ data Error v
 SignatureNeedsAccompanyingBody :: Token v -> Error v
 DisallowedAbsoluteName :: Token Name -> Error v
 EmptyBlock :: Token String -> Error v
-UnknownAbilityConstructor :: Token (HashQualified Name) -> Set (Reference, Int) -> Error v
-UnknownDataConstructor :: Token (HashQualified Name) -> Set (Reference, Int) -> Error v
+UnknownAbilityConstructor :: Token (HashQualified Name) -> Set ConstructorReference -> Error v
+UnknownDataConstructor :: Token (HashQualified Name) -> Set ConstructorReference -> Error v
 UnknownTerm :: Token (HashQualified Name) -> Set Referent -> Error v
 UnknownType :: Token (HashQualified Name) -> Set Reference -> Error v
 UnknownId :: Token (HashQualified Name) -> Set Referent -> Set Reference -> Error v
@@ -1916,11 +1916,11 @@ newtype Branch m
 Branch :: UnwrappedBranch m -> Branch m
 [_history] :: Branch m -> UnwrappedBranch m
 data BranchDiff
-BranchDiff :: Star Referent NameSegment -> Star Referent NameSegment -> Star Reference NameSegment -> Star Reference NameSegment -> Map NameSegment PatchDiff -> BranchDiff
+BranchDiff :: Star Referent NameSegment -> Star Referent NameSegment -> Star TypeReference NameSegment -> Star TypeReference NameSegment -> Map NameSegment PatchDiff -> BranchDiff
 [addedTerms] :: BranchDiff -> Star Referent NameSegment
 [removedTerms] :: BranchDiff -> Star Referent NameSegment
-[addedTypes] :: BranchDiff -> Star Reference NameSegment
-[removedTypes] :: BranchDiff -> Star Reference NameSegment
+[addedTypes] :: BranchDiff -> Star TypeReference NameSegment
+[removedTypes] :: BranchDiff -> Star TypeReference NameSegment
 [changedPatches] :: BranchDiff -> Map NameSegment PatchDiff
 type UnwrappedBranch m = Causal m Raw (Branch0 m)
 
@@ -1932,31 +1932,31 @@ type UnwrappedBranch m = Causal m Raw (Branch0 m)
 --   
 --   The <tt>deep*</tt> fields are derived from the four above.
 data Branch0 m
-Branch0 :: Star Referent NameSegment -> Star Reference NameSegment -> Map NameSegment (Branch m) -> Map NameSegment (EditHash, m Patch) -> Relation Referent Name -> Relation Reference Name -> R4 Referent Name -> R4 Reference Name -> Set Path -> Map Name EditHash -> Branch0 m
+Branch0 :: Star Referent NameSegment -> Star TypeReference NameSegment -> Map NameSegment (Branch m) -> Map NameSegment (EditHash, m Patch) -> Relation Referent Name -> Relation TypeReference Name -> R4 Referent Name -> R4 TypeReference Name -> Set Path -> Map Name EditHash -> Branch0 m
 [_terms] :: Branch0 m -> Star Referent NameSegment
-[_types] :: Branch0 m -> Star Reference NameSegment
+[_types] :: Branch0 m -> Star TypeReference NameSegment
 
 -- | Note the <a>Branch</a> here, not <a>Branch0</a>. Every level in the
 --   tree has a history.
 [_children] :: Branch0 m -> Map NameSegment (Branch m)
 [_edits] :: Branch0 m -> Map NameSegment (EditHash, m Patch)
 [deepTerms] :: Branch0 m -> Relation Referent Name
-[deepTypes] :: Branch0 m -> Relation Reference Name
+[deepTypes] :: Branch0 m -> Relation TypeReference Name
 [deepTermMetadata] :: Branch0 m -> R4 Referent Name
-[deepTypeMetadata] :: Branch0 m -> R4 Reference Name
+[deepTypeMetadata] :: Branch0 m -> R4 TypeReference Name
 [deepPaths] :: Branch0 m -> Set Path
 [deepEdits] :: Branch0 m -> Map Name EditHash
 data Raw
-Raw :: Star Referent NameSegment -> Star Reference NameSegment -> Map NameSegment Hash -> Map NameSegment EditHash -> Raw
+Raw :: Star Referent NameSegment -> Star TypeReference NameSegment -> Map NameSegment Hash -> Map NameSegment EditHash -> Raw
 [_termsR] :: Raw -> Star Referent NameSegment
-[_typesR] :: Raw -> Star Reference NameSegment
+[_typesR] :: Raw -> Star TypeReference NameSegment
 [_childrenR] :: Raw -> Map NameSegment Hash
 [_editsR] :: Raw -> Map NameSegment EditHash
 type Star r n = Star r n
 type Hash = RawHash Raw
 type EditHash = Hash
 pattern Hash :: Hash -> RawHash a
-branch0 :: forall m. Star Referent NameSegment -> Star Reference NameSegment -> Map NameSegment (Branch m) -> Map NameSegment (EditHash, m Patch) -> Branch0 m
+branch0 :: forall m. Star Referent NameSegment -> Star TypeReference NameSegment -> Map NameSegment (Branch m) -> Map NameSegment (EditHash, m Patch) -> Branch0 m
 one :: Branch0 m -> Branch m
 cons :: Applicative m => Branch0 m -> Branch m -> Branch m
 uncons :: Applicative m => Branch m -> m (Maybe (Branch0 m, Branch m))
@@ -1971,7 +1971,7 @@ isOne :: Branch m -> Bool
 before :: Monad m => Branch m -> Branch m -> m Bool
 lca :: Monad m => Branch m -> Branch m -> m (Maybe (Branch m))
 diff0 :: Monad m => Branch0 m -> Branch0 m -> m BranchDiff
-history :: forall m_a3oDs m_a3oQQ. Iso (Branch m_a3oDs) (Branch m_a3oQQ) (UnwrappedBranch m_a3oDs) (UnwrappedBranch m_a3oQQ)
+history :: forall m_a3p9A m_a3pmY. Iso (Branch m_a3p9A) (Branch m_a3pmY) (UnwrappedBranch m_a3p9A) (UnwrappedBranch m_a3pmY)
 head :: Branch m -> Branch0 m
 headHash :: Branch m -> Hash
 children :: Lens' (Branch0 m) (Map NameSegment (Branch m))
@@ -1986,9 +1986,9 @@ stepManyAtM :: (Monad m, Monad n, Foldable f) => f (Path, Branch0 m -> n (Branch
 stepManyAt0 :: forall f m. (Monad m, Foldable f) => f (Path, Branch0 m -> Branch0 m) -> Branch0 m -> Branch0 m
 stepEverywhere :: Applicative m => (Branch0 m -> Branch0 m) -> Branch0 m -> Branch0 m
 addTermName :: Referent -> NameSegment -> Metadata -> Branch0 m -> Branch0 m
-addTypeName :: Reference -> NameSegment -> Metadata -> Branch0 m -> Branch0 m
+addTypeName :: TypeReference -> NameSegment -> Metadata -> Branch0 m -> Branch0 m
 deleteTermName :: Referent -> NameSegment -> Branch0 m -> Branch0 m
-deleteTypeName :: Reference -> NameSegment -> Branch0 m -> Branch0 m
+deleteTypeName :: TypeReference -> NameSegment -> Branch0 m -> Branch0 m
 setChildBranch :: NameSegment -> Branch m -> Branch0 m -> Branch0 m
 replacePatch :: Applicative m => NameSegment -> Patch -> Branch0 m -> Branch0 m
 deletePatch :: NameSegment -> Branch0 m -> Branch0 m
@@ -2005,10 +2005,10 @@ modifyAtM :: forall n m. Functor n => Applicative m => Path -> (Branch m -> n (B
 --   traversal is the name of that child branch according to the parent.
 children0 :: IndexedTraversal' NameSegment (Branch0 m) (Branch0 m)
 terms :: Lens' (Branch0 m) (Star Referent NameSegment)
-types :: Lens' (Branch0 m) (Star Reference NameSegment)
-edits :: forall m_a3oDo. Lens' (Branch0 m_a3oDo) (Map NameSegment (EditHash, m_a3oDo Patch))
+types :: Lens' (Branch0 m) (Star TypeReference NameSegment)
+edits :: forall m_a3p9w. Lens' (Branch0 m_a3p9w) (Map NameSegment (EditHash, m_a3p9w Patch))
 deepReferents :: Branch0 m -> Set Referent
-deepTypeReferences :: Branch0 m -> Set Reference
+deepTypeReferences :: Branch0 m -> Set TypeReference
 cachedRead :: forall m. MonadIO m => Cache m -> Deserialize m Raw Raw -> (EditHash -> m Patch) -> Hash -> m (Branch m)
 type Cache m = Cache (RawHash Raw) (UnwrappedBranch m)
 sync :: Monad m => (Hash -> m Bool) -> Serialize m Raw Raw -> (EditHash -> m Patch -> m ()) -> Branch m -> m ()
@@ -3001,7 +3001,7 @@ ErrorNote :: Cause v loc -> Seq (PathElement v loc) -> ErrorNote v loc
 [path] :: ErrorNote v loc -> Seq (PathElement v loc)
 data CompilerBug v loc
 UnknownDecl :: Unknown -> Reference -> Map Reference (DataDeclaration v loc) -> CompilerBug v loc
-UnknownConstructor :: Unknown -> Reference -> Int -> DataDeclaration v loc -> CompilerBug v loc
+UnknownConstructor :: Unknown -> ConstructorReference -> DataDeclaration v loc -> CompilerBug v loc
 UndeclaredTermVariable :: v -> Context v loc -> CompilerBug v loc
 RetractFailure :: Element v loc -> Context v loc -> CompilerBug v loc
 EmptyLetRec :: Term v loc -> CompilerBug v loc
@@ -3024,7 +3024,7 @@ IllFormedType :: Context v loc -> Cause v loc
 UnknownSymbol :: loc -> v -> Cause v loc
 UnknownTerm :: loc -> v -> [Suggestion v loc] -> Type v loc -> Cause v loc
 AbilityCheckFailure :: [Type v loc] -> [Type v loc] -> Context v loc -> Cause v loc
-EffectConstructorWrongArgCount :: ExpectedArgCount -> ActualArgCount -> Reference -> ConstructorId -> Cause v loc
+EffectConstructorWrongArgCount :: ExpectedArgCount -> ActualArgCount -> ConstructorReference -> Cause v loc
 MalformedEffectBind :: Type v loc -> Type v loc -> [Type v loc] -> Cause v loc
 PatternArityMismatch :: loc -> Type v loc -> Int -> Cause v loc
 DuplicateDefinitions :: NonEmpty (v, [loc]) -> Cause v loc
@@ -3180,7 +3180,7 @@ illFormedType :: ErrorExtractor v loc (Context v loc)
 unknownSymbol :: ErrorExtractor v loc (loc, v)
 unknownTerm :: Var v => ErrorExtractor v loc (loc, v, [Suggestion v loc], Type v loc)
 abilityCheckFailure :: ErrorExtractor v loc ([Type v loc], [Type v loc], Context v loc)
-effectConstructorWrongArgCount :: ErrorExtractor v loc (ExpectedArgCount, ActualArgCount, Reference, ConstructorId)
+effectConstructorWrongArgCount :: ErrorExtractor v loc (ExpectedArgCount, ActualArgCount, ConstructorReference)
 malformedEffectBind :: ErrorExtractor v loc (Type v loc, Type v loc, [Type v loc])
 solvedBlank :: InfoExtractor v loc (Recorded loc, v, Type v loc)
 errorNote :: ErrorExtractor v loc (ErrorNote v loc)
@@ -3364,9 +3364,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5GCz loc_a5GCA. Lens' (Env v_a5GCz loc_a5GCA) (TypeLookup v_a5GCz loc_a5GCA)
-termsByShortname :: forall v_a5GCz loc_a5GCA. Lens' (Env v_a5GCz loc_a5GCA) (Map Name [NamedReference v_a5GCz loc_a5GCA])
-ambientAbilities :: forall v_a5GCz loc_a5GCA. Lens' (Env v_a5GCz loc_a5GCA) [Type v_a5GCz loc_a5GCA]
+typeLookup :: forall v_a5Hhn loc_a5Hho. Lens' (Env v_a5Hhn loc_a5Hho) (TypeLookup v_a5Hhn loc_a5Hho)
+termsByShortname :: forall v_a5Hhn loc_a5Hho. Lens' (Env v_a5Hhn loc_a5Hho) (Map Name [NamedReference v_a5Hhn loc_a5Hho])
+ambientAbilities :: forall v_a5Hhn loc_a5Hho. Lens' (Env v_a5Hhn loc_a5Hho) [Type v_a5Hhn loc_a5Hho]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.
@@ -3595,7 +3595,7 @@ prettyVar :: Var v => v -> Pretty ColorText
 renderKind :: Kind -> Pretty (AnnotatedText a)
 showTermRef :: IsString s => Env -> Referent -> s
 showTypeRef :: IsString s => Env -> Reference -> s
-showConstructor :: IsString s => Env -> Reference -> Int -> s
+showConstructor :: IsString s => Env -> ConstructorReference -> s
 styleInOverallType :: (Var v, Annotated a, Eq a) => Env -> Type v a -> Type v a -> Color -> Pretty ColorText
 _posToEnglish :: IsString s => Pos -> s
 rangeForToken :: Token a -> Range
@@ -4205,7 +4205,6 @@ DefinitionResults :: Map Reference (DisplayObject (Type v Ann) (Term v Ann)) -> 
 [termResults] :: DefinitionResults v -> Map Reference (DisplayObject (Type v Ann) (Term v Ann))
 [typeResults] :: DefinitionResults v -> Map Reference (DisplayObject () (Decl v Ann))
 [noResults] :: DefinitionResults v -> [HashQualified Name]
-collateReferences :: Foldable f => Foldable g => f Reference -> g Referent -> (Set Reference, Set Reference)
 expandShortBranchHash :: Monad m => Codebase m v a -> ShortBranchHash -> Backend m Hash
 formatType' :: Var v => PrettyPrintEnv -> Width -> Type v a -> SyntaxText
 formatType :: Var v => PrettyPrintEnv -> Width -> Type v a -> SyntaxText
@@ -4657,7 +4656,7 @@ INFO :: POp
 ATOM :: POp
 type FOp = Word64
 close :: (Var v, Monoid a) => Set v -> Term v a -> Term v a
-saturate :: (Var v, Monoid a) => Map (Reference, Int) Int -> Term v a -> Term v a
+saturate :: (Var v, Monoid a) => Map ConstructorReference Int -> Term v a -> Term v a
 float :: (Var v, Monoid a) => Term v a -> (Term v a, [(v, Term v a)])
 lamLift :: (Var v, Monoid a) => Term v a -> (Term v a, [(v, Term v a)])
 inlineAlias :: Var v => Monoid a => Term v a -> Term v a
@@ -5214,6 +5213,8 @@ putText :: MonadPut m => Text -> m ()
 getText :: MonadGet m => m Text
 putReference :: MonadPut m => Reference -> m ()
 getReference :: MonadGet m => m Reference
+putConstructorReference :: MonadPut m => ConstructorReference -> m ()
+getConstructorReference :: MonadGet m => m ConstructorReference
 instance Unison.Runtime.Serialize.Tag Unison.Runtime.MCode.UPrim1
 instance Unison.Runtime.Serialize.Tag Unison.Runtime.MCode.UPrim2
 instance Unison.Runtime.Serialize.Tag Unison.Runtime.MCode.BPrim1

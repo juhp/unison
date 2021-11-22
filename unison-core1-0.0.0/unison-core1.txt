@@ -128,36 +128,6 @@ instance GHC.Classes.Ord Unison.Kind.Kind
 instance GHC.Classes.Eq Unison.Kind.Kind
 instance Unison.Hashable.Hashable Unison.Kind.Kind
 
-module Unison.Referent'
-
--- | Specifies a term.
---   
---   Either a term <tt>Reference</tt>, a data constructor, or an effect
---   constructor.
---   
---   Slightly odd naming. This is the "referent of term name in the
---   codebase", rather than the target of a Reference.
---   
---   When <tt>Ref'</tt> then <tt>r</tt> represents a term.
---   
---   When <tt>Con'</tt> then <tt>r</tt> is a type declaration.
-data Referent' r
-Ref' :: r -> Referent' r
-Con' :: r -> ConstructorId -> ConstructorType -> Referent' r
-isConstructor :: Referent' r -> Bool
-fold :: (r -> a) -> (r -> ConstructorId -> ConstructorType -> a) -> Referent' r -> a
-
--- | A lens onto the reference in a referent.
-reference_ :: Lens (Referent' r) (Referent' r') r r'
-toReference' :: Referent' r -> r
-toTermReference :: Referent' r -> Maybe r
-toTypeReference :: Referent' r -> Maybe r
-instance GHC.Base.Functor Unison.Referent'.Referent'
-instance GHC.Classes.Eq r => GHC.Classes.Eq (Unison.Referent'.Referent' r)
-instance GHC.Classes.Ord r => GHC.Classes.Ord (Unison.Referent'.Referent' r)
-instance GHC.Show.Show r => GHC.Show.Show (Unison.Referent'.Referent' r)
-instance Unison.Hashable.Hashable r => Unison.Hashable.Hashable (Unison.Referent'.Referent' r)
-
 module Unison.Settings
 debugNoteLoc :: Bool
 debugNoteSummary :: Bool
@@ -206,6 +176,14 @@ data Id
 Id :: Hash -> Pos -> Size -> Id
 type Pos = Word64
 type Size = Word64
+
+-- | A term reference.
+type TermReference = Reference
+type TermReferenceId = Id
+
+-- | A type declaration reference.
+type TypeReference = Reference
+type TypeReferenceId = Id
 derivedBase32Hex :: Text -> Pos -> Size -> Reference
 data Component
 members :: Component -> Set Reference
@@ -237,6 +215,55 @@ instance Unison.Hashable.Hashable Unison.Reference.Reference
 instance GHC.Classes.Eq Unison.Reference.Id
 instance GHC.Classes.Ord Unison.Reference.Id
 
+
+-- | The constructor reference type.
+module Unison.ConstructorReference
+
+-- | A reference to a constructor is represented by a reference to its type
+--   declaration, plus the ordinal constructor id.
+data GConstructorReference r
+ConstructorReference :: !r -> !ConstructorId -> GConstructorReference r
+type ConstructorReference = GConstructorReference TypeReference
+type ConstructorReferenceId = GConstructorReference TypeReferenceId
+
+-- | A lens onto the reference part of a constructor reference.
+reference_ :: Lens (GConstructorReference r) (GConstructorReference s) r s
+toShortHash :: ConstructorReference -> ShortHash
+instance GHC.Show.Show r => GHC.Show.Show (Unison.ConstructorReference.GConstructorReference r)
+instance GHC.Classes.Ord r => GHC.Classes.Ord (Unison.ConstructorReference.GConstructorReference r)
+instance GHC.Base.Functor Unison.ConstructorReference.GConstructorReference
+instance GHC.Classes.Eq r => GHC.Classes.Eq (Unison.ConstructorReference.GConstructorReference r)
+
+module Unison.Referent'
+
+-- | Specifies a term.
+--   
+--   Either a term <tt>Reference</tt>, a data constructor, or an effect
+--   constructor.
+--   
+--   Slightly odd naming. This is the "referent of term name in the
+--   codebase", rather than the target of a Reference.
+--   
+--   When <tt>Ref'</tt> then <tt>r</tt> represents a term.
+--   
+--   When <tt>Con'</tt> then <tt>r</tt> is a type declaration.
+data Referent' r
+Ref' :: r -> Referent' r
+Con' :: GConstructorReference r -> ConstructorType -> Referent' r
+isConstructor :: Referent' r -> Bool
+fold :: (r -> a) -> (r -> ConstructorId -> ConstructorType -> a) -> Referent' r -> a
+
+-- | A lens onto the reference in a referent.
+reference_ :: Lens (Referent' r) (Referent' r') r r'
+toReference' :: Referent' r -> r
+toTermReference :: Referent' r -> Maybe r
+toTypeReference :: Referent' r -> Maybe r
+instance GHC.Base.Functor Unison.Referent'.Referent'
+instance GHC.Classes.Eq r => GHC.Classes.Eq (Unison.Referent'.Referent' r)
+instance GHC.Classes.Ord r => GHC.Classes.Ord (Unison.Referent'.Referent' r)
+instance GHC.Show.Show r => GHC.Show.Show (Unison.Referent'.Referent' r)
+instance Unison.Hashable.Hashable r => Unison.Hashable.Hashable (Unison.Referent'.Referent' r)
+
 module Unison.Referent
 
 -- | Specifies a term.
@@ -247,14 +274,14 @@ module Unison.Referent
 --   Slightly odd naming. This is the "referent of term name in the
 --   codebase", rather than the target of a Reference.
 type Referent = Referent' Reference
-pattern Ref :: Reference -> Referent
-pattern Con :: Reference -> ConstructorId -> ConstructorType -> Referent
+pattern Ref :: TermReference -> Referent
+pattern Con :: ConstructorReference -> ConstructorType -> Referent
 type ConstructorId = Int
 
 -- | By definition, cannot be a builtin.
 type Id = Referent' Id
 pattern RefId :: Id -> Id
-pattern ConId :: Id -> ConstructorId -> ConstructorType -> Id
+pattern ConId :: ConstructorReferenceId -> ConstructorType -> Id
 fold :: (r -> a) -> (r -> Int -> ConstructorType -> a) -> Referent' r -> a
 toReference :: Referent -> Reference
 toReferenceId :: Referent -> Maybe Id
@@ -270,7 +297,6 @@ isPrefixOf :: ShortHash -> Referent -> Bool
 toShortHash :: Referent -> ShortHash
 toText :: Referent -> Text
 toString :: Referent -> String
-patternShortHash :: Reference -> Int -> ShortHash
 
 module Unison.LabeledDependency
 derivedTerm :: Id -> LabeledDependency
@@ -278,8 +304,8 @@ derivedType :: Id -> LabeledDependency
 termRef :: Reference -> LabeledDependency
 typeRef :: Reference -> LabeledDependency
 referent :: Referent -> LabeledDependency
-dataConstructor :: Reference -> ConstructorId -> LabeledDependency
-effectConstructor :: Reference -> ConstructorId -> LabeledDependency
+dataConstructor :: ConstructorReference -> LabeledDependency
+effectConstructor :: ConstructorReference -> LabeledDependency
 fold :: (Reference -> a) -> (Referent -> a) -> LabeledDependency -> a
 referents :: Foldable f => f Referent -> Set LabeledDependency
 
@@ -956,7 +982,7 @@ fromNamedReferent :: n -> Referent -> HashQualified n
 fromNamedReference :: n -> Reference -> HashQualified n
 fromReferent :: Referent -> HashQualified Name
 fromReference :: Reference -> HashQualified Name
-fromPattern :: Reference -> ConstructorId -> HashQualified Name
+fromPattern :: ConstructorReference -> HashQualified Name
 fromName :: n -> HashQualified n
 unsafeFromVar :: Var v => v -> HashQualified Name
 fromVar :: Var v => v -> Maybe (HashQualified Name)
@@ -1193,7 +1219,7 @@ longestTermName :: Int -> Referent -> NamesWithHistory -> HashQualified Name
 termName :: Int -> Referent -> NamesWithHistory -> Set (HashQualified Name)
 suffixedTypeName :: Int -> Reference -> NamesWithHistory -> [HashQualified Name]
 suffixedTermName :: Int -> Referent -> NamesWithHistory -> [HashQualified Name]
-lookupHQPattern :: HashQualified Name -> ConstructorType -> NamesWithHistory -> Set (Reference, Int)
+lookupHQPattern :: HashQualified Name -> ConstructorType -> NamesWithHistory -> Set ConstructorReference
 
 -- | Given a mapping from name to qualified name, update a <a>Names</a>, so
 --   for instance if the input has [(Some, Optional.Some)], and <a>Some</a>
@@ -1436,10 +1462,10 @@ Nat :: loc -> !Word64 -> Pattern loc
 Float :: loc -> !Double -> Pattern loc
 Text :: loc -> !Text -> Pattern loc
 Char :: loc -> !Char -> Pattern loc
-Constructor :: loc -> !Reference -> !ConstructorId -> [Pattern loc] -> Pattern loc
+Constructor :: loc -> !ConstructorReference -> [Pattern loc] -> Pattern loc
 As :: loc -> Pattern loc -> Pattern loc
 EffectPure :: loc -> Pattern loc -> Pattern loc
-EffectBind :: loc -> !Reference -> !ConstructorId -> [Pattern loc] -> Pattern loc -> Pattern loc
+EffectBind :: loc -> !ConstructorReference -> [Pattern loc] -> Pattern loc -> Pattern loc
 SequenceLiteral :: loc -> [Pattern loc] -> Pattern loc
 SequenceOp :: loc -> Pattern loc -> !SeqOp -> Pattern loc -> Pattern loc
 data SeqOp
@@ -1482,8 +1508,8 @@ Text :: Text -> F typeVar typeAnn patternAnn a
 Char :: Char -> F typeVar typeAnn patternAnn a
 Blank :: Blank typeAnn -> F typeVar typeAnn patternAnn a
 Ref :: Reference -> F typeVar typeAnn patternAnn a
-Constructor :: Reference -> ConstructorId -> F typeVar typeAnn patternAnn a
-Request :: Reference -> ConstructorId -> F typeVar typeAnn patternAnn a
+Constructor :: ConstructorReference -> F typeVar typeAnn patternAnn a
+Request :: ConstructorReference -> F typeVar typeAnn patternAnn a
 Handle :: a -> a -> F typeVar typeAnn patternAnn a
 App :: a -> a -> F typeVar typeAnn patternAnn a
 Ann :: a -> Type typeVar typeAnn -> F typeVar typeAnn patternAnn a
@@ -1560,9 +1586,9 @@ pattern TypeLink' :: Reference -> Term (F typeVar typeAnn patternAnn) v a
 pattern Builtin' :: Text -> Term (F typeVar typeAnn patternAnn) v a
 pattern App' :: Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a
 pattern Match' :: Term (F typeVar typeAnn patternAnn) v a -> [MatchCase patternAnn (Term (F typeVar typeAnn patternAnn) v a)] -> Term (F typeVar typeAnn patternAnn) v a
-pattern Constructor' :: Reference -> ConstructorId -> Term (F typeVar typeAnn patternAnn) v a
-pattern Request' :: Reference -> ConstructorId -> Term (F typeVar typeAnn patternAnn) v a
-pattern RequestOrCtor' :: Reference -> ConstructorId -> Term2 vt at ap v a
+pattern Constructor' :: ConstructorReference -> Term (F typeVar typeAnn patternAnn) v a
+pattern Request' :: ConstructorReference -> Term (F typeVar typeAnn patternAnn) v a
+pattern RequestOrCtor' :: ConstructorReference -> Term2 vt at ap v a
 pattern If' :: Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a
 pattern And' :: Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a
 pattern Or' :: Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a
@@ -1614,8 +1640,8 @@ watchMaybe :: (Var v, Semigroup a) => Maybe String -> Term v a -> Term v a
 blank :: Ord v => a -> Term2 vt at ap v a
 placeholder :: Ord v => a -> String -> Term2 vt a ap v a
 resolve :: Ord v => at -> ab -> String -> Term2 vt ab ap v at
-constructor :: Ord v => a -> Reference -> ConstructorId -> Term2 vt at ap v a
-request :: Ord v => a -> Reference -> ConstructorId -> Term2 vt at ap v a
+constructor :: Ord v => a -> ConstructorReference -> Term2 vt at ap v a
+request :: Ord v => a -> ConstructorReference -> Term2 vt at ap v a
 app_ :: Ord v => Term0' vt v -> Term0' vt v -> Term0' vt v
 app :: Ord v => a -> Term2 vt at ap v a -> Term2 vt at ap v a -> Term2 vt at ap v a
 match :: Ord v => a -> Term2 vt at a v a -> [MatchCase a (Term2 vt at a v a)] -> Term2 vt at a v a
@@ -1672,7 +1698,7 @@ unLams' :: Term2 vt at ap v a -> Maybe ([v], Term2 vt at ap v a)
 unLamsOpt' :: Term2 vt at ap v a -> Maybe ([v], Term2 vt at ap v a)
 unLamsUntilDelay' :: Var v => Term2 vt at ap v a -> Maybe ([v], Term2 vt at ap v a)
 unLamsPred' :: (Term2 vt at ap v a, v -> Bool) -> Maybe ([v], Term2 vt at ap v a)
-unReqOrCtor :: Term2 vt at ap v a -> Maybe (Reference, ConstructorId)
+unReqOrCtor :: Term2 vt at ap v a -> Maybe ConstructorReference
 dependencies :: (Ord v, Ord vt) => Term2 vt at ap v a -> Set Reference
 termDependencies :: (Ord v, Ord vt) => Term2 vt at ap v a -> Set Reference
 typeDependencies :: (Ord v, Ord vt) => Term2 vt at ap v a -> Set Reference

@@ -309,9 +309,16 @@ effectConstructor :: ConstructorReference -> LabeledDependency
 fold :: (Reference -> a) -> (Referent -> a) -> LabeledDependency -> a
 referents :: Foldable f => f Referent -> Set LabeledDependency
 
--- | Left TypeRef | Right TermRef
-toReference :: LabeledDependency -> Either Reference Reference
+-- | A Union Type which contains either Type References or Term Referents.
 data LabeledDependency
+TypeReference :: Reference -> LabeledDependency
+TermReferent :: Referent -> LabeledDependency
+
+-- | Match on a TermReferent which is a Constructor.
+pattern ConReference :: ConstructorReference -> ConstructorType -> LabeledDependency
+
+-- | Match on a TermReferent which is NOT a Constructor.
+pattern TermReference :: Reference -> LabeledDependency
 partition :: Foldable t => t LabeledDependency -> ([Reference], [Referent])
 instance GHC.Show.Show Unison.LabeledDependency.LabeledDependency
 instance GHC.Classes.Ord Unison.LabeledDependency.LabeledDependency
@@ -1053,7 +1060,9 @@ Names :: Relation Name Referent -> Relation Name Reference -> Names
 [types] :: Names -> Relation Name Reference
 addTerm :: Name -> Referent -> Names -> Names
 addType :: Name -> Reference -> Names -> Names
-allReferences :: Names -> Set Reference
+
+-- | Collect all references in the given Names, tagged with their type.
+labeledReferences :: Names -> Set LabeledDependency
 
 -- | filters out everything from the domain except what's conflicted
 conflicts :: Names -> Names

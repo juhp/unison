@@ -25,7 +25,7 @@ RawMerge :: e -> Set (RawHash h) -> Raw h e
 newtype RawHash a
 RawHash :: Hash -> RawHash a
 [unRawHash] :: RawHash a -> Hash
-head_ :: forall m_am2T h_am2U e_am2V. Lens' (Causal m_am2T h_am2U e_am2V) e_am2V
+head_ :: forall m_am2W h_am2X e_am2Y. Lens' (Causal m_am2W h_am2X e_am2Y) e_am2Y
 one :: Hashable e => e -> Causal m h e
 cons :: (Applicative m, Hashable e) => e -> Causal m h e -> Causal m h e
 cons' :: Hashable e => e -> RawHash h -> m (Causal m h e) -> Causal m h e
@@ -850,6 +850,9 @@ patterns :: PrettyPrintEnv -> ConstructorReference -> Maybe (HashQualified Name)
 patternName :: PrettyPrintEnv -> ConstructorReference -> HashQualified Name
 termName :: PrettyPrintEnv -> Referent -> HashQualified Name
 typeName :: PrettyPrintEnv -> Reference -> HashQualified Name
+
+-- | Get a name for a LabeledDependency from the PPE.
+labeledRefName :: PrettyPrintEnv -> LabeledDependency -> HashQualified Name
 todoHashLength :: Int
 instance GHC.Show.Show Unison.PrettyPrintEnv.PrettyPrintEnv
 instance GHC.Base.Monoid Unison.PrettyPrintEnv.PrettyPrintEnv
@@ -1971,7 +1974,7 @@ isOne :: Branch m -> Bool
 before :: Monad m => Branch m -> Branch m -> m Bool
 lca :: Monad m => Branch m -> Branch m -> m (Maybe (Branch m))
 diff0 :: Monad m => Branch0 m -> Branch0 m -> m BranchDiff
-history :: forall m_a3p9A m_a3pmY. Iso (Branch m_a3p9A) (Branch m_a3pmY) (UnwrappedBranch m_a3p9A) (UnwrappedBranch m_a3pmY)
+history :: forall m_a3pb2 m_a3poq. Iso (Branch m_a3pb2) (Branch m_a3poq) (UnwrappedBranch m_a3pb2) (UnwrappedBranch m_a3poq)
 head :: Branch m -> Branch0 m
 headHash :: Branch m -> Hash
 children :: Lens' (Branch0 m) (Map NameSegment (Branch m))
@@ -2006,7 +2009,7 @@ modifyAtM :: forall n m. Functor n => Applicative m => Path -> (Branch m -> n (B
 children0 :: IndexedTraversal' NameSegment (Branch0 m) (Branch0 m)
 terms :: Lens' (Branch0 m) (Star Referent NameSegment)
 types :: Lens' (Branch0 m) (Star TypeReference NameSegment)
-edits :: forall m_a3p9w. Lens' (Branch0 m_a3p9w) (Map NameSegment (EditHash, m_a3p9w Patch))
+edits :: forall m_a3paY. Lens' (Branch0 m_a3paY) (Map NameSegment (EditHash, m_a3paY Patch))
 deepReferents :: Branch0 m -> Set Referent
 deepTypeReferences :: Branch0 m -> Set TypeReference
 cachedRead :: forall m. MonadIO m => Cache m -> Deserialize m Raw Raw -> (EditHash -> m Patch) -> Hash -> m (Branch m)
@@ -3364,9 +3367,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5Hhn loc_a5Hho. Lens' (Env v_a5Hhn loc_a5Hho) (TypeLookup v_a5Hhn loc_a5Hho)
-termsByShortname :: forall v_a5Hhn loc_a5Hho. Lens' (Env v_a5Hhn loc_a5Hho) (Map Name [NamedReference v_a5Hhn loc_a5Hho])
-ambientAbilities :: forall v_a5Hhn loc_a5Hho. Lens' (Env v_a5Hhn loc_a5Hho) [Type v_a5Hhn loc_a5Hho]
+typeLookup :: forall v_a5HiP loc_a5HiQ. Lens' (Env v_a5HiP loc_a5HiQ) (TypeLookup v_a5HiP loc_a5HiQ)
+termsByShortname :: forall v_a5HiP loc_a5HiQ. Lens' (Env v_a5HiP loc_a5HiQ) (Map Name [NamedReference v_a5HiP loc_a5HiQ])
+ambientAbilities :: forall v_a5HiP loc_a5HiQ. Lens' (Env v_a5HiP loc_a5HiQ) [Type v_a5HiP loc_a5HiQ]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.

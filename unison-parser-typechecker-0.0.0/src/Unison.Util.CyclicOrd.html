@@ -13,68 +13,68 @@
 </span><span id="line-13"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Unison.Util.CycleTable.html"><span class="hs-identifier">Unison.Util.CycleTable</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">CT</span></span><span>
 </span><span id="line-14"></span><span>
 </span><span id="line-15"></span><span class="hs-comment">-- Same idea as `CyclicEq`, but for ordering.</span><span>
-</span><span id="line-16"></span><span class="hs-keyword">class</span><span> </span><span id="CyclicOrd"><span class="annot"><a href="Unison.Util.CyclicOrd.html#CyclicOrd"><span class="hs-identifier hs-var">CyclicOrd</span></a></span></span><span> </span><span id="local-6989586621680826215"><span class="annot"><a href="#local-6989586621680826215"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-16"></span><span class="hs-keyword">class</span><span> </span><span id="CyclicOrd"><span class="annot"><a href="Unison.Util.CyclicOrd.html#CyclicOrd"><span class="hs-identifier hs-var">CyclicOrd</span></a></span></span><span> </span><span id="local-6989586621680826328"><span class="annot"><a href="#local-6989586621680826328"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
 </span><span id="line-17"></span><span>  </span><span class="hs-comment">-- Map from `Ref` ID to position in the stream</span><span>
 </span><span id="line-18"></span><span>  </span><span class="hs-comment">-- If a ref is encountered again, we use its mapped ID</span><span>
-</span><span id="line-19"></span><span>  </span><span id="cyclicOrd"><span class="annot"><a href="Unison.Util.CyclicOrd.html#cyclicOrd"><span class="hs-identifier hs-type">cyclicOrd</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Util.CycleTable.html#CycleTable"><span class="hs-identifier hs-type">CycleTable</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.CycleTable.html#CycleTable"><span class="hs-identifier hs-type">CycleTable</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621680826215"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621680826215"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Ordering</span></span><span>
+</span><span id="line-19"></span><span>  </span><span id="cyclicOrd"><span class="annot"><a href="Unison.Util.CyclicOrd.html#cyclicOrd"><span class="hs-identifier hs-type">cyclicOrd</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Util.CycleTable.html#CycleTable"><span class="hs-identifier hs-type">CycleTable</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.CycleTable.html#CycleTable"><span class="hs-identifier hs-type">CycleTable</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621680826328"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621680826328"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Ordering</span></span><span>
 </span><span id="line-20"></span><span>
-</span><span id="line-21"></span><span id="local-6989586621680826190"><span id="local-6989586621680826191"><span class="annot"><a href="Unison.Util.CyclicOrd.html#bothOrd%27"><span class="hs-identifier hs-type">bothOrd'</span></a></span><span> </span><span class="hs-glyph">::</span><span>
-</span><span id="line-22"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Ord</span></span><span> </span><span class="annot"><a href="#local-6989586621680826191"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Util.CyclicOrd.html#CyclicOrd"><span class="hs-identifier hs-type">CyclicOrd</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680826190"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Unison.Util.CycleTable.html#CycleTable"><span class="hs-identifier hs-type">CT.CycleTable</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.CycleTable.html#CycleTable"><span class="hs-identifier hs-type">CT.CycleTable</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
-</span><span id="line-23"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621680826191"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621680826191"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621680826190"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621680826190"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Ordering</span></span></span></span><span>
+</span><span id="line-21"></span><span id="local-6989586621680826303"><span id="local-6989586621680826304"><span class="annot"><a href="Unison.Util.CyclicOrd.html#bothOrd%27"><span class="hs-identifier hs-type">bothOrd'</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-22"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Ord</span></span><span> </span><span class="annot"><a href="#local-6989586621680826304"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Util.CyclicOrd.html#CyclicOrd"><span class="hs-identifier hs-type">CyclicOrd</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680826303"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Unison.Util.CycleTable.html#CycleTable"><span class="hs-identifier hs-type">CT.CycleTable</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.CycleTable.html#CycleTable"><span class="hs-identifier hs-type">CT.CycleTable</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-23"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621680826304"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621680826304"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621680826303"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621680826303"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Ordering</span></span></span></span><span>
 </span><span id="line-24"></span><span id="bothOrd%27"><span class="annot"><span class="annottext">bothOrd' :: CycleTable Int Int
 -&gt; CycleTable Int Int -&gt; a -&gt; a -&gt; b -&gt; b -&gt; IO Ordering
-</span><a href="Unison.Util.CyclicOrd.html#bothOrd%27"><span class="hs-identifier hs-var hs-var">bothOrd'</span></a></span></span><span> </span><span id="local-6989586621680826188"><span class="annot"><span class="annottext">CycleTable Int Int
-</span><a href="#local-6989586621680826188"><span class="hs-identifier hs-var">h1</span></a></span></span><span> </span><span id="local-6989586621680826187"><span class="annot"><span class="annottext">CycleTable Int Int
-</span><a href="#local-6989586621680826187"><span class="hs-identifier hs-var">h2</span></a></span></span><span> </span><span id="local-6989586621680826186"><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621680826186"><span class="hs-identifier hs-var">a1</span></a></span></span><span> </span><span id="local-6989586621680826185"><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621680826185"><span class="hs-identifier hs-var">a2</span></a></span></span><span> </span><span id="local-6989586621680826184"><span class="annot"><span class="annottext">b
-</span><a href="#local-6989586621680826184"><span class="hs-identifier hs-var">b1</span></a></span></span><span> </span><span id="local-6989586621680826183"><span class="annot"><span class="annottext">b
-</span><a href="#local-6989586621680826183"><span class="hs-identifier hs-var">b2</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">a -&gt; a -&gt; Ordering
+</span><a href="Unison.Util.CyclicOrd.html#bothOrd%27"><span class="hs-identifier hs-var hs-var">bothOrd'</span></a></span></span><span> </span><span id="local-6989586621680826301"><span class="annot"><span class="annottext">CycleTable Int Int
+</span><a href="#local-6989586621680826301"><span class="hs-identifier hs-var">h1</span></a></span></span><span> </span><span id="local-6989586621680826300"><span class="annot"><span class="annottext">CycleTable Int Int
+</span><a href="#local-6989586621680826300"><span class="hs-identifier hs-var">h2</span></a></span></span><span> </span><span id="local-6989586621680826299"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621680826299"><span class="hs-identifier hs-var">a1</span></a></span></span><span> </span><span id="local-6989586621680826298"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621680826298"><span class="hs-identifier hs-var">a2</span></a></span></span><span> </span><span id="local-6989586621680826297"><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621680826297"><span class="hs-identifier hs-var">b1</span></a></span></span><span> </span><span id="local-6989586621680826296"><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621680826296"><span class="hs-identifier hs-var">b2</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">a -&gt; a -&gt; Ordering
 forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
 </span><span class="hs-identifier hs-var">compare</span></span><span> </span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621680826186"><span class="hs-identifier hs-var">a1</span></a></span><span> </span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621680826185"><span class="hs-identifier hs-var">a2</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><a href="#local-6989586621680826299"><span class="hs-identifier hs-var">a1</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621680826298"><span class="hs-identifier hs-var">a2</span></a></span><span> </span><span class="hs-keyword">of</span><span>
 </span><span id="line-25"></span><span>  </span><span class="annot"><span class="annottext">Ordering
 </span><span class="hs-identifier hs-var">EQ</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int -&gt; CycleTable Int Int -&gt; b -&gt; b -&gt; IO Ordering
 forall a.
 CyclicOrd a =&gt;
 CycleTable Int Int -&gt; CycleTable Int Int -&gt; a -&gt; a -&gt; IO Ordering
 </span><a href="Unison.Util.CyclicOrd.html#cyclicOrd"><span class="hs-identifier hs-var">cyclicOrd</span></a></span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int
-</span><a href="#local-6989586621680826188"><span class="hs-identifier hs-var">h1</span></a></span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int
-</span><a href="#local-6989586621680826187"><span class="hs-identifier hs-var">h2</span></a></span><span> </span><span class="annot"><span class="annottext">b
-</span><a href="#local-6989586621680826184"><span class="hs-identifier hs-var">b1</span></a></span><span> </span><span class="annot"><span class="annottext">b
-</span><a href="#local-6989586621680826183"><span class="hs-identifier hs-var">b2</span></a></span><span>
-</span><span id="line-26"></span><span>  </span><span id="local-6989586621680826181"><span class="annot"><span class="annottext">Ordering
-</span><a href="#local-6989586621680826181"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Ordering -&gt; IO Ordering
+</span><a href="#local-6989586621680826301"><span class="hs-identifier hs-var">h1</span></a></span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int
+</span><a href="#local-6989586621680826300"><span class="hs-identifier hs-var">h2</span></a></span><span> </span><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621680826297"><span class="hs-identifier hs-var">b1</span></a></span><span> </span><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621680826296"><span class="hs-identifier hs-var">b2</span></a></span><span>
+</span><span id="line-26"></span><span>  </span><span id="local-6989586621680826294"><span class="annot"><span class="annottext">Ordering
+</span><a href="#local-6989586621680826294"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Ordering -&gt; IO Ordering
 forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
 </span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">Ordering
-</span><a href="#local-6989586621680826181"><span class="hs-identifier hs-var">c</span></a></span><span>
+</span><a href="#local-6989586621680826294"><span class="hs-identifier hs-var">c</span></a></span><span>
 </span><span id="line-27"></span><span>
-</span><span id="line-28"></span><span id="local-6989586621680826203"><span id="local-6989586621680826204"><span class="annot"><a href="Unison.Util.CyclicOrd.html#bothOrd"><span class="hs-identifier hs-type">bothOrd</span></a></span><span> </span><span class="hs-glyph">::</span><span>
-</span><span id="line-29"></span><span>  </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.CyclicOrd.html#CyclicOrd"><span class="hs-identifier hs-type">CyclicOrd</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680826204"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Util.CyclicOrd.html#CyclicOrd"><span class="hs-identifier hs-type">CyclicOrd</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680826203"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Unison.Util.CycleTable.html#CycleTable"><span class="hs-identifier hs-type">CT.CycleTable</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.CycleTable.html#CycleTable"><span class="hs-identifier hs-type">CT.CycleTable</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
-</span><span id="line-30"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621680826204"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621680826204"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621680826203"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621680826203"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Ordering</span></span></span></span><span>
+</span><span id="line-28"></span><span id="local-6989586621680826316"><span id="local-6989586621680826317"><span class="annot"><a href="Unison.Util.CyclicOrd.html#bothOrd"><span class="hs-identifier hs-type">bothOrd</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-29"></span><span>  </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.CyclicOrd.html#CyclicOrd"><span class="hs-identifier hs-type">CyclicOrd</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680826317"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Util.CyclicOrd.html#CyclicOrd"><span class="hs-identifier hs-type">CyclicOrd</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680826316"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Unison.Util.CycleTable.html#CycleTable"><span class="hs-identifier hs-type">CT.CycleTable</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.CycleTable.html#CycleTable"><span class="hs-identifier hs-type">CT.CycleTable</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-30"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621680826317"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621680826317"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621680826316"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621680826316"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Ordering</span></span></span></span><span>
 </span><span id="line-31"></span><span id="bothOrd"><span class="annot"><span class="annottext">bothOrd :: CycleTable Int Int
 -&gt; CycleTable Int Int -&gt; a -&gt; a -&gt; b -&gt; b -&gt; IO Ordering
-</span><a href="Unison.Util.CyclicOrd.html#bothOrd"><span class="hs-identifier hs-var hs-var">bothOrd</span></a></span></span><span> </span><span id="local-6989586621680826179"><span class="annot"><span class="annottext">CycleTable Int Int
-</span><a href="#local-6989586621680826179"><span class="hs-identifier hs-var">h1</span></a></span></span><span> </span><span id="local-6989586621680826178"><span class="annot"><span class="annottext">CycleTable Int Int
-</span><a href="#local-6989586621680826178"><span class="hs-identifier hs-var">h2</span></a></span></span><span> </span><span id="local-6989586621680826177"><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621680826177"><span class="hs-identifier hs-var">a1</span></a></span></span><span> </span><span id="local-6989586621680826176"><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621680826176"><span class="hs-identifier hs-var">a2</span></a></span></span><span> </span><span id="local-6989586621680826175"><span class="annot"><span class="annottext">b
-</span><a href="#local-6989586621680826175"><span class="hs-identifier hs-var">b1</span></a></span></span><span> </span><span id="local-6989586621680826174"><span class="annot"><span class="annottext">b
-</span><a href="#local-6989586621680826174"><span class="hs-identifier hs-var">b2</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int -&gt; CycleTable Int Int -&gt; a -&gt; a -&gt; IO Ordering
+</span><a href="Unison.Util.CyclicOrd.html#bothOrd"><span class="hs-identifier hs-var hs-var">bothOrd</span></a></span></span><span> </span><span id="local-6989586621680826292"><span class="annot"><span class="annottext">CycleTable Int Int
+</span><a href="#local-6989586621680826292"><span class="hs-identifier hs-var">h1</span></a></span></span><span> </span><span id="local-6989586621680826291"><span class="annot"><span class="annottext">CycleTable Int Int
+</span><a href="#local-6989586621680826291"><span class="hs-identifier hs-var">h2</span></a></span></span><span> </span><span id="local-6989586621680826290"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621680826290"><span class="hs-identifier hs-var">a1</span></a></span></span><span> </span><span id="local-6989586621680826289"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621680826289"><span class="hs-identifier hs-var">a2</span></a></span></span><span> </span><span id="local-6989586621680826288"><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621680826288"><span class="hs-identifier hs-var">b1</span></a></span></span><span> </span><span id="local-6989586621680826287"><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621680826287"><span class="hs-identifier hs-var">b2</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int -&gt; CycleTable Int Int -&gt; a -&gt; a -&gt; IO Ordering
 forall a.
 CyclicOrd a =&gt;
 CycleTable Int Int -&gt; CycleTable Int Int -&gt; a -&gt; a -&gt; IO Ordering
 </span><a href="Unison.Util.CyclicOrd.html#cyclicOrd"><span class="hs-identifier hs-var">cyclicOrd</span></a></span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int
-</span><a href="#local-6989586621680826179"><span class="hs-identifier hs-var">h1</span></a></span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int
-</span><a href="#local-6989586621680826178"><span class="hs-identifier hs-var">h2</span></a></span><span> </span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621680826177"><span class="hs-identifier hs-var">a1</span></a></span><span> </span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621680826176"><span class="hs-identifier hs-var">a2</span></a></span><span> </span><span class="annot"><span class="annottext">IO Ordering -&gt; (Ordering -&gt; IO Ordering) -&gt; IO Ordering
+</span><a href="#local-6989586621680826292"><span class="hs-identifier hs-var">h1</span></a></span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int
+</span><a href="#local-6989586621680826291"><span class="hs-identifier hs-var">h2</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621680826290"><span class="hs-identifier hs-var">a1</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621680826289"><span class="hs-identifier hs-var">a2</span></a></span><span> </span><span class="annot"><span class="annottext">IO Ordering -&gt; (Ordering -&gt; IO Ordering) -&gt; IO Ordering
 forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
-</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621680826173"><span class="annot"><span class="annottext">Ordering
-</span><a href="#local-6989586621680826173"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621680826286"><span class="annot"><span class="annottext">Ordering
+</span><a href="#local-6989586621680826286"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
 </span><span id="line-32"></span><span>  </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Ordering
-</span><a href="#local-6989586621680826173"><span class="hs-identifier hs-var">b</span></a></span><span> </span><span class="annot"><span class="annottext">Ordering -&gt; Ordering -&gt; Bool
+</span><a href="#local-6989586621680826286"><span class="hs-identifier hs-var">b</span></a></span><span> </span><span class="annot"><span class="annottext">Ordering -&gt; Ordering -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Ordering
 </span><span class="hs-identifier hs-var">EQ</span></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int -&gt; CycleTable Int Int -&gt; b -&gt; b -&gt; IO Ordering
@@ -82,37 +82,37 @@ forall a.
 CyclicOrd a =&gt;
 CycleTable Int Int -&gt; CycleTable Int Int -&gt; a -&gt; a -&gt; IO Ordering
 </span><a href="Unison.Util.CyclicOrd.html#cyclicOrd"><span class="hs-identifier hs-var">cyclicOrd</span></a></span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int
-</span><a href="#local-6989586621680826179"><span class="hs-identifier hs-var">h1</span></a></span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int
-</span><a href="#local-6989586621680826178"><span class="hs-identifier hs-var">h2</span></a></span><span> </span><span class="annot"><span class="annottext">b
-</span><a href="#local-6989586621680826175"><span class="hs-identifier hs-var">b1</span></a></span><span> </span><span class="annot"><span class="annottext">b
-</span><a href="#local-6989586621680826174"><span class="hs-identifier hs-var">b2</span></a></span><span>
+</span><a href="#local-6989586621680826292"><span class="hs-identifier hs-var">h1</span></a></span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int
+</span><a href="#local-6989586621680826291"><span class="hs-identifier hs-var">h2</span></a></span><span> </span><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621680826288"><span class="hs-identifier hs-var">b1</span></a></span><span> </span><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621680826287"><span class="hs-identifier hs-var">b2</span></a></span><span>
 </span><span id="line-33"></span><span>  </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Ordering -&gt; IO Ordering
 forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
 </span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">Ordering
-</span><a href="#local-6989586621680826173"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><a href="#local-6989586621680826286"><span class="hs-identifier hs-var">b</span></a></span><span>
 </span><span id="line-34"></span><span>
-</span><span id="line-35"></span><span id="local-6989586621680826172"><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Unison.Util.CyclicOrd.html#CyclicOrd"><span class="hs-identifier hs-type">CyclicOrd</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680826172"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Unison.Util.CyclicOrd.html#CyclicOrd"><span class="hs-identifier hs-type">CyclicOrd</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621680826172"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-36"></span><span>  </span><span id="local-6989586621680826169"><span class="annot"><span class="annottext">cyclicOrd :: CycleTable Int Int
+</span><span id="line-35"></span><span id="local-6989586621680826285"><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Unison.Util.CyclicOrd.html#CyclicOrd"><span class="hs-identifier hs-type">CyclicOrd</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680826285"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Unison.Util.CyclicOrd.html#CyclicOrd"><span class="hs-identifier hs-type">CyclicOrd</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621680826285"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-36"></span><span>  </span><span id="local-6989586621680826282"><span class="annot"><span class="annottext">cyclicOrd :: CycleTable Int Int
 -&gt; CycleTable Int Int -&gt; [a] -&gt; [a] -&gt; IO Ordering
-</span><a href="#local-6989586621680826169"><span class="hs-identifier hs-var hs-var hs-var hs-var">cyclicOrd</span></a></span></span><span> </span><span id="local-6989586621680826168"><span class="annot"><span class="annottext">CycleTable Int Int
-</span><a href="#local-6989586621680826168"><span class="hs-identifier hs-var">h1</span></a></span></span><span> </span><span id="local-6989586621680826167"><span class="annot"><span class="annottext">CycleTable Int Int
-</span><a href="#local-6989586621680826167"><span class="hs-identifier hs-var">h2</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621680826166"><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621680826166"><span class="hs-identifier hs-var">x</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621680826165"><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621680826165"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680826164"><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621680826164"><span class="hs-identifier hs-var">y</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621680826163"><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621680826163"><span class="hs-identifier hs-var">ys</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int
+</span><a href="#local-6989586621680826282"><span class="hs-identifier hs-var hs-var hs-var hs-var">cyclicOrd</span></a></span></span><span> </span><span id="local-6989586621680826281"><span class="annot"><span class="annottext">CycleTable Int Int
+</span><a href="#local-6989586621680826281"><span class="hs-identifier hs-var">h1</span></a></span></span><span> </span><span id="local-6989586621680826280"><span class="annot"><span class="annottext">CycleTable Int Int
+</span><a href="#local-6989586621680826280"><span class="hs-identifier hs-var">h2</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621680826279"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621680826279"><span class="hs-identifier hs-var">x</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621680826278"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621680826278"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680826277"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621680826277"><span class="hs-identifier hs-var">y</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621680826276"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621680826276"><span class="hs-identifier hs-var">ys</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int
 -&gt; CycleTable Int Int -&gt; a -&gt; a -&gt; [a] -&gt; [a] -&gt; IO Ordering
 forall a b.
 (CyclicOrd a, CyclicOrd b) =&gt;
 CycleTable Int Int
 -&gt; CycleTable Int Int -&gt; a -&gt; a -&gt; b -&gt; b -&gt; IO Ordering
 </span><a href="Unison.Util.CyclicOrd.html#bothOrd"><span class="hs-identifier hs-var">bothOrd</span></a></span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int
-</span><a href="#local-6989586621680826168"><span class="hs-identifier hs-var">h1</span></a></span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int
-</span><a href="#local-6989586621680826167"><span class="hs-identifier hs-var">h2</span></a></span><span> </span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621680826166"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621680826164"><span class="hs-identifier hs-var">y</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621680826165"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621680826163"><span class="hs-identifier hs-var">ys</span></a></span><span>
+</span><a href="#local-6989586621680826281"><span class="hs-identifier hs-var">h1</span></a></span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int
+</span><a href="#local-6989586621680826280"><span class="hs-identifier hs-var">h2</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621680826279"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621680826277"><span class="hs-identifier hs-var">y</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621680826278"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621680826276"><span class="hs-identifier hs-var">ys</span></a></span><span>
 </span><span id="line-37"></span><span>  </span><span class="annot"><a href="Unison.Util.CyclicOrd.html#cyclicOrd"><span class="hs-identifier hs-var">cyclicOrd</span></a></span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int
 </span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Ordering -&gt; IO Ordering
@@ -134,36 +134,36 @@ forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
 </span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">Ordering
 </span><span class="hs-identifier hs-var">GT</span></span></span><span>
 </span><span id="line-40"></span><span>
-</span><span id="line-41"></span><span id="local-6989586621680826162"><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Unison.Util.CyclicOrd.html#CyclicOrd"><span class="hs-identifier hs-type">CyclicOrd</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680826162"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Unison.Util.CyclicOrd.html#CyclicOrd"><span class="hs-identifier hs-type">CyclicOrd</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">S.Seq</span></span><span> </span><span class="annot"><a href="#local-6989586621680826162"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-42"></span><span>  </span><span id="local-6989586621680826160"><span class="annot"><span class="annottext">cyclicOrd :: CycleTable Int Int
+</span><span id="line-41"></span><span id="local-6989586621680826275"><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Unison.Util.CyclicOrd.html#CyclicOrd"><span class="hs-identifier hs-type">CyclicOrd</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680826275"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Unison.Util.CyclicOrd.html#CyclicOrd"><span class="hs-identifier hs-type">CyclicOrd</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">S.Seq</span></span><span> </span><span class="annot"><a href="#local-6989586621680826275"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-42"></span><span>  </span><span id="local-6989586621680826273"><span class="annot"><span class="annottext">cyclicOrd :: CycleTable Int Int
 -&gt; CycleTable Int Int -&gt; Seq a -&gt; Seq a -&gt; IO Ordering
-</span><a href="#local-6989586621680826160"><span class="hs-identifier hs-var hs-var hs-var hs-var">cyclicOrd</span></a></span></span><span> </span><span id="local-6989586621680826159"><span class="annot"><span class="annottext">CycleTable Int Int
-</span><a href="#local-6989586621680826159"><span class="hs-identifier hs-var">h1</span></a></span></span><span> </span><span id="local-6989586621680826158"><span class="annot"><span class="annottext">CycleTable Int Int
-</span><a href="#local-6989586621680826158"><span class="hs-identifier hs-var">h2</span></a></span></span><span> </span><span id="local-6989586621680826157"><span class="annot"><span class="annottext">Seq a
-</span><a href="#local-6989586621680826157"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span id="local-6989586621680826156"><span class="annot"><span class="annottext">Seq a
-</span><a href="#local-6989586621680826156"><span class="hs-identifier hs-var">ys</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int
+</span><a href="#local-6989586621680826273"><span class="hs-identifier hs-var hs-var hs-var hs-var">cyclicOrd</span></a></span></span><span> </span><span id="local-6989586621680826272"><span class="annot"><span class="annottext">CycleTable Int Int
+</span><a href="#local-6989586621680826272"><span class="hs-identifier hs-var">h1</span></a></span></span><span> </span><span id="local-6989586621680826271"><span class="annot"><span class="annottext">CycleTable Int Int
+</span><a href="#local-6989586621680826271"><span class="hs-identifier hs-var">h2</span></a></span></span><span> </span><span id="local-6989586621680826270"><span class="annot"><span class="annottext">Seq a
+</span><a href="#local-6989586621680826270"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span id="local-6989586621680826269"><span class="annot"><span class="annottext">Seq a
+</span><a href="#local-6989586621680826269"><span class="hs-identifier hs-var">ys</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int
 -&gt; CycleTable Int Int -&gt; [a] -&gt; [a] -&gt; IO Ordering
 forall a.
 CyclicOrd a =&gt;
 CycleTable Int Int -&gt; CycleTable Int Int -&gt; a -&gt; a -&gt; IO Ordering
 </span><a href="Unison.Util.CyclicOrd.html#cyclicOrd"><span class="hs-identifier hs-var">cyclicOrd</span></a></span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int
-</span><a href="#local-6989586621680826159"><span class="hs-identifier hs-var">h1</span></a></span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int
-</span><a href="#local-6989586621680826158"><span class="hs-identifier hs-var">h2</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Seq a -&gt; [a]
+</span><a href="#local-6989586621680826272"><span class="hs-identifier hs-var">h1</span></a></span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int
+</span><a href="#local-6989586621680826271"><span class="hs-identifier hs-var">h2</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Seq a -&gt; [a]
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; [a]
 </span><span class="hs-identifier hs-var">toList</span></span><span> </span><span class="annot"><span class="annottext">Seq a
-</span><a href="#local-6989586621680826157"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Seq a -&gt; [a]
+</span><a href="#local-6989586621680826270"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Seq a -&gt; [a]
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; [a]
 </span><span class="hs-identifier hs-var">toList</span></span><span> </span><span class="annot"><span class="annottext">Seq a
-</span><a href="#local-6989586621680826156"><span class="hs-identifier hs-var">ys</span></a></span><span class="hs-special">)</span></span><span>
+</span><a href="#local-6989586621680826269"><span class="hs-identifier hs-var">ys</span></a></span><span class="hs-special">)</span></span><span>
 </span><span id="line-43"></span><span>
-</span><span id="line-44"></span><span id="local-6989586621680826154"><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Unison.Util.CyclicOrd.html#CyclicOrd"><span class="hs-identifier hs-type">CyclicOrd</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680826154"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Unison.Util.CyclicOrd.html#CyclicOrd"><span class="hs-identifier hs-type">CyclicOrd</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Vector</span></span><span> </span><span class="annot"><a href="#local-6989586621680826154"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-45"></span><span>  </span><span id="local-6989586621680826152"><span class="annot"><span class="annottext">cyclicOrd :: CycleTable Int Int
+</span><span id="line-44"></span><span id="local-6989586621680826267"><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Unison.Util.CyclicOrd.html#CyclicOrd"><span class="hs-identifier hs-type">CyclicOrd</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680826267"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Unison.Util.CyclicOrd.html#CyclicOrd"><span class="hs-identifier hs-type">CyclicOrd</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Vector</span></span><span> </span><span class="annot"><a href="#local-6989586621680826267"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-45"></span><span>  </span><span id="local-6989586621680826265"><span class="annot"><span class="annottext">cyclicOrd :: CycleTable Int Int
 -&gt; CycleTable Int Int -&gt; Vector a -&gt; Vector a -&gt; IO Ordering
-</span><a href="#local-6989586621680826152"><span class="hs-identifier hs-var hs-var hs-var hs-var">cyclicOrd</span></a></span></span><span> </span><span id="local-6989586621680826151"><span class="annot"><span class="annottext">CycleTable Int Int
-</span><a href="#local-6989586621680826151"><span class="hs-identifier hs-var">h1</span></a></span></span><span> </span><span id="local-6989586621680826150"><span class="annot"><span class="annottext">CycleTable Int Int
-</span><a href="#local-6989586621680826150"><span class="hs-identifier hs-var">h2</span></a></span></span><span> </span><span id="local-6989586621680826149"><span class="annot"><span class="annottext">Vector a
-</span><a href="#local-6989586621680826149"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span id="local-6989586621680826148"><span class="annot"><span class="annottext">Vector a
-</span><a href="#local-6989586621680826148"><span class="hs-identifier hs-var">ys</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680826265"><span class="hs-identifier hs-var hs-var hs-var hs-var">cyclicOrd</span></a></span></span><span> </span><span id="local-6989586621680826264"><span class="annot"><span class="annottext">CycleTable Int Int
+</span><a href="#local-6989586621680826264"><span class="hs-identifier hs-var">h1</span></a></span></span><span> </span><span id="local-6989586621680826263"><span class="annot"><span class="annottext">CycleTable Int Int
+</span><a href="#local-6989586621680826263"><span class="hs-identifier hs-var">h2</span></a></span></span><span> </span><span id="local-6989586621680826262"><span class="annot"><span class="annottext">Vector a
+</span><a href="#local-6989586621680826262"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span id="local-6989586621680826261"><span class="annot"><span class="annottext">Vector a
+</span><a href="#local-6989586621680826261"><span class="hs-identifier hs-var">ys</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
 -&gt; CycleTable Int Int
 -&gt; CycleTable Int Int
 -&gt; Vector a
@@ -177,81 +177,81 @@ Int
 -&gt; Vector a
 -&gt; Vector a
 -&gt; IO Ordering
-</span><a href="#local-6989586621680826147"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680826260"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int
-</span><a href="#local-6989586621680826151"><span class="hs-identifier hs-var">h1</span></a></span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int
-</span><a href="#local-6989586621680826150"><span class="hs-identifier hs-var">h2</span></a></span><span> </span><span class="annot"><span class="annottext">Vector a
-</span><a href="#local-6989586621680826149"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">Vector a
-</span><a href="#local-6989586621680826148"><span class="hs-identifier hs-var">ys</span></a></span><span>
+</span><a href="#local-6989586621680826264"><span class="hs-identifier hs-var">h1</span></a></span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int
+</span><a href="#local-6989586621680826263"><span class="hs-identifier hs-var">h2</span></a></span><span> </span><span class="annot"><span class="annottext">Vector a
+</span><a href="#local-6989586621680826262"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">Vector a
+</span><a href="#local-6989586621680826261"><span class="hs-identifier hs-var">ys</span></a></span><span>
 </span><span id="line-46"></span><span>    </span><span class="hs-keyword">where</span><span>
-</span><span id="line-47"></span><span>    </span><span id="local-6989586621680826147"><span class="annot"><span class="annottext">go :: Int
+</span><span id="line-47"></span><span>    </span><span id="local-6989586621680826260"><span class="annot"><span class="annottext">go :: Int
 -&gt; CycleTable Int Int
 -&gt; CycleTable Int Int
 -&gt; Vector a
 -&gt; Vector a
 -&gt; IO Ordering
-</span><a href="#local-6989586621680826147"><span class="hs-identifier hs-var hs-var">go</span></a></span></span><span> </span><span class="hs-glyph">!</span><span id="local-6989586621680826146"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680826146"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span class="hs-glyph">!</span><span id="local-6989586621680826145"><span class="annot"><span class="annottext">CycleTable Int Int
-</span><a href="#local-6989586621680826145"><span class="hs-identifier hs-var">h1</span></a></span></span><span> </span><span class="hs-glyph">!</span><span id="local-6989586621680826144"><span class="annot"><span class="annottext">CycleTable Int Int
-</span><a href="#local-6989586621680826144"><span class="hs-identifier hs-var">h2</span></a></span></span><span> </span><span class="hs-glyph">!</span><span id="local-6989586621680826143"><span class="annot"><span class="annottext">Vector a
-</span><a href="#local-6989586621680826143"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">!</span><span id="local-6989586621680826142"><span class="annot"><span class="annottext">Vector a
-</span><a href="#local-6989586621680826142"><span class="hs-identifier hs-var">ys</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><a href="#local-6989586621680826260"><span class="hs-identifier hs-var hs-var">go</span></a></span></span><span> </span><span class="hs-glyph">!</span><span id="local-6989586621680826259"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680826259"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span class="hs-glyph">!</span><span id="local-6989586621680826258"><span class="annot"><span class="annottext">CycleTable Int Int
+</span><a href="#local-6989586621680826258"><span class="hs-identifier hs-var">h1</span></a></span></span><span> </span><span class="hs-glyph">!</span><span id="local-6989586621680826257"><span class="annot"><span class="annottext">CycleTable Int Int
+</span><a href="#local-6989586621680826257"><span class="hs-identifier hs-var">h2</span></a></span></span><span> </span><span class="hs-glyph">!</span><span id="local-6989586621680826256"><span class="annot"><span class="annottext">Vector a
+</span><a href="#local-6989586621680826256"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">!</span><span id="local-6989586621680826255"><span class="annot"><span class="annottext">Vector a
+</span><a href="#local-6989586621680826255"><span class="hs-identifier hs-var">ys</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-48"></span><span>      </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680826146"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+</span><a href="#local-6989586621680826259"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
 forall a. Ord a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">&gt;=</span></span><span> </span><span class="annot"><span class="annottext">Vector a -&gt; Int
 forall a. Vector a -&gt; Int
 </span><span class="hs-identifier hs-var">V.length</span></span><span> </span><span class="annot"><span class="annottext">Vector a
-</span><a href="#local-6989586621680826143"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><a href="#local-6989586621680826256"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
 </span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680826146"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+</span><a href="#local-6989586621680826259"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
 forall a. Ord a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">&gt;=</span></span><span> </span><span class="annot"><span class="annottext">Vector a -&gt; Int
 forall a. Vector a -&gt; Int
 </span><span class="hs-identifier hs-var">V.length</span></span><span> </span><span class="annot"><span class="annottext">Vector a
-</span><a href="#local-6989586621680826142"><span class="hs-identifier hs-var">ys</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Ordering -&gt; IO Ordering
+</span><a href="#local-6989586621680826255"><span class="hs-identifier hs-var">ys</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Ordering -&gt; IO Ordering
 forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
 </span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">Ordering
 </span><span class="hs-identifier hs-var">EQ</span></span><span>
 </span><span id="line-49"></span><span>      </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680826146"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+</span><a href="#local-6989586621680826259"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
 forall a. Ord a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">&gt;=</span></span><span> </span><span class="annot"><span class="annottext">Vector a -&gt; Int
 forall a. Vector a -&gt; Int
 </span><span class="hs-identifier hs-var">V.length</span></span><span> </span><span class="annot"><span class="annottext">Vector a
-</span><a href="#local-6989586621680826143"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Ordering -&gt; IO Ordering
+</span><a href="#local-6989586621680826256"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Ordering -&gt; IO Ordering
 forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
 </span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">Ordering
 </span><span class="hs-identifier hs-var">LT</span></span><span>
 </span><span id="line-50"></span><span>      </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680826146"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+</span><a href="#local-6989586621680826259"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
 forall a. Ord a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">&gt;=</span></span><span> </span><span class="annot"><span class="annottext">Vector a -&gt; Int
 forall a. Vector a -&gt; Int
 </span><span class="hs-identifier hs-var">V.length</span></span><span> </span><span class="annot"><span class="annottext">Vector a
-</span><a href="#local-6989586621680826142"><span class="hs-identifier hs-var">ys</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Ordering -&gt; IO Ordering
+</span><a href="#local-6989586621680826255"><span class="hs-identifier hs-var">ys</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Ordering -&gt; IO Ordering
 forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
 </span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">Ordering
 </span><span class="hs-identifier hs-var">GT</span></span><span>
 </span><span id="line-51"></span><span>      </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-52"></span><span>        </span><span id="local-6989586621680826139"><span class="annot"><span class="annottext">Ordering
-</span><a href="#local-6989586621680826139"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int -&gt; CycleTable Int Int -&gt; a -&gt; a -&gt; IO Ordering
+</span><span id="line-52"></span><span>        </span><span id="local-6989586621680826252"><span class="annot"><span class="annottext">Ordering
+</span><a href="#local-6989586621680826252"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int -&gt; CycleTable Int Int -&gt; a -&gt; a -&gt; IO Ordering
 forall a.
 CyclicOrd a =&gt;
 CycleTable Int Int -&gt; CycleTable Int Int -&gt; a -&gt; a -&gt; IO Ordering
 </span><a href="Unison.Util.CyclicOrd.html#cyclicOrd"><span class="hs-identifier hs-var">cyclicOrd</span></a></span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int
-</span><a href="#local-6989586621680826145"><span class="hs-identifier hs-var">h1</span></a></span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int
-</span><a href="#local-6989586621680826144"><span class="hs-identifier hs-var">h2</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Vector a
-</span><a href="#local-6989586621680826143"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">Vector a -&gt; Int -&gt; a
+</span><a href="#local-6989586621680826258"><span class="hs-identifier hs-var">h1</span></a></span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int
+</span><a href="#local-6989586621680826257"><span class="hs-identifier hs-var">h2</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Vector a
+</span><a href="#local-6989586621680826256"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">Vector a -&gt; Int -&gt; a
 forall a. Vector a -&gt; Int -&gt; a
 </span><span class="hs-operator hs-var">V.!</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680826146"><span class="hs-identifier hs-var">i</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Vector a
-</span><a href="#local-6989586621680826142"><span class="hs-identifier hs-var">ys</span></a></span><span> </span><span class="annot"><span class="annottext">Vector a -&gt; Int -&gt; a
+</span><a href="#local-6989586621680826259"><span class="hs-identifier hs-var">i</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Vector a
+</span><a href="#local-6989586621680826255"><span class="hs-identifier hs-var">ys</span></a></span><span> </span><span class="annot"><span class="annottext">Vector a -&gt; Int -&gt; a
 forall a. Vector a -&gt; Int -&gt; a
 </span><span class="hs-operator hs-var">V.!</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680826146"><span class="hs-identifier hs-var">i</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621680826259"><span class="hs-identifier hs-var">i</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-53"></span><span>        </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Ordering
-</span><a href="#local-6989586621680826139"><span class="hs-identifier hs-var">b</span></a></span><span> </span><span class="annot"><span class="annottext">Ordering -&gt; Ordering -&gt; Bool
+</span><a href="#local-6989586621680826252"><span class="hs-identifier hs-var">b</span></a></span><span> </span><span class="annot"><span class="annottext">Ordering -&gt; Ordering -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Ordering
 </span><span class="hs-identifier hs-var">EQ</span></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Int
@@ -260,17 +260,17 @@ forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 -&gt; Vector a
 -&gt; Vector a
 -&gt; IO Ordering
-</span><a href="#local-6989586621680826147"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680826146"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+</span><a href="#local-6989586621680826260"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680826259"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int
-</span><a href="#local-6989586621680826145"><span class="hs-identifier hs-var">h1</span></a></span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int
-</span><a href="#local-6989586621680826144"><span class="hs-identifier hs-var">h2</span></a></span><span> </span><span class="annot"><span class="annottext">Vector a
-</span><a href="#local-6989586621680826143"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">Vector a
-</span><a href="#local-6989586621680826142"><span class="hs-identifier hs-var">ys</span></a></span><span>
+</span><a href="#local-6989586621680826258"><span class="hs-identifier hs-var">h1</span></a></span><span> </span><span class="annot"><span class="annottext">CycleTable Int Int
+</span><a href="#local-6989586621680826257"><span class="hs-identifier hs-var">h2</span></a></span><span> </span><span class="annot"><span class="annottext">Vector a
+</span><a href="#local-6989586621680826256"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">Vector a
+</span><a href="#local-6989586621680826255"><span class="hs-identifier hs-var">ys</span></a></span><span>
 </span><span id="line-54"></span><span>        </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Ordering -&gt; IO Ordering
 forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
 </span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">Ordering
-</span><a href="#local-6989586621680826139"><span class="hs-identifier hs-var">b</span></a></span></span><span>
+</span><a href="#local-6989586621680826252"><span class="hs-identifier hs-var">b</span></a></span></span><span>
 </span><span id="line-55"></span></pre></body></html>

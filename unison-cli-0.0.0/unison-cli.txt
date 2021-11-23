@@ -38,7 +38,7 @@ CopyPatchI :: Split' -> Split' -> Input
 DeleteI :: HQSplit' -> Input
 DeleteTermI :: HQSplit' -> Input
 DeleteTypeI :: HQSplit' -> Input
-DeleteBranchI :: Maybe Split' -> Input
+DeleteBranchI :: Insistence -> Maybe Split' -> Input
 DeletePatchI :: Split' -> Input
 ResolveTermNameI :: HQSplit' -> Input
 ResolveTypeNameI :: HQSplit' -> Input
@@ -101,6 +101,13 @@ type PatchPath = Split'
 type BranchId = Either ShortBranchHash Path'
 parseBranchId :: String -> Either String BranchId
 type HashOrHQSplit' = Either ShortHash HQSplit'
+
+-- | Should we force the operation or not?
+data Insistence
+Force :: Insistence
+Try :: Insistence
+instance GHC.Classes.Eq Unison.Codebase.Editor.Input.Insistence
+instance GHC.Show.Show Unison.Codebase.Editor.Input.Insistence
 instance GHC.Show.Show Unison.Codebase.Editor.Input.OutputLocation
 instance GHC.Classes.Eq Unison.Codebase.Editor.Input.OutputLocation
 instance GHC.Show.Show Unison.Codebase.Editor.Input.Input
@@ -283,7 +290,6 @@ TermNotFound' :: ShortHash -> Output v
 TypeTermMismatch :: HashQualified Name -> HashQualified Name -> Output v
 SearchTermsNotFound :: [HashQualified Name] -> Output v
 DeleteBranchConfirmation :: [(Path', (Names, [SearchResult' v Ann]))] -> Output v
-CantDelete :: PrettyPrintEnv -> [SearchResult' v Ann] -> [SearchResult' v Ann] -> Output v
 DeleteEverythingConfirmation :: Output v
 DeletedEverything :: Output v
 ListNames :: Int -> [(Reference, Set (HashQualified Name))] -> [(Referent, Set (HashQualified Name))] -> Output v
@@ -362,6 +368,16 @@ ShowDiffAfterMergePreview :: Path' -> Absolute -> PrettyPrintEnv -> BranchDiffOu
 ShowDiffAfterPull :: Path' -> Absolute -> PrettyPrintEnv -> BranchDiffOutput v Ann -> NumberedOutput v
 ShowDiffAfterCreatePR :: ReadRemoteNamespace -> ReadRemoteNamespace -> PrettyPrintEnv -> BranchDiffOutput v Ann -> NumberedOutput v
 ShowDiffAfterCreateAuthor :: NameSegment -> Path' -> Absolute -> PrettyPrintEnv -> BranchDiffOutput v Ann -> NumberedOutput v
+
+-- | CantDeleteDefinitions ppe couldntDelete becauseTheseStillReferenceThem
+CantDeleteDefinitions :: PrettyPrintEnvDecl -> Map LabeledDependency (NESet LabeledDependency) -> NumberedOutput v
+
+-- | CantDeleteNamespace ppe couldntDelete becauseTheseStillReferenceThem
+CantDeleteNamespace :: PrettyPrintEnvDecl -> Map LabeledDependency (NESet LabeledDependency) -> NumberedOutput v
+
+-- | DeletedDespiteDependents ppe deletedThings
+--   thingsWhichNowHaveUnnamedReferences
+DeletedDespiteDependents :: PrettyPrintEnvDecl -> Map LabeledDependency (NESet LabeledDependency) -> NumberedOutput v
 type NumberedArgs = [String]
 type ListDetailed = Bool
 data HistoryTail
@@ -533,13 +549,13 @@ LoopState :: Branch m -> Branch m -> NonEmpty Absolute -> Maybe (FilePath, SkipN
 type Action' m v = Action m (Either Event Input) v
 type SkipNextUpdate = Bool
 type InputDescription = Text
-root :: forall m_a1t7E v_a1t7F. Lens' (LoopState m_a1t7E v_a1t7F) (Branch m_a1t7E)
-numberedArgs :: forall m_a1t7E v_a1t7F. Lens' (LoopState m_a1t7E v_a1t7F) NumberedArgs
-latestTypecheckedFile :: forall m_a1t7E v_a1t7F v_a1teg. Lens (LoopState m_a1t7E v_a1t7F) (LoopState m_a1t7E v_a1teg) (Maybe (TypecheckedUnisonFile v_a1t7F Ann)) (Maybe (TypecheckedUnisonFile v_a1teg Ann))
-latestFile :: forall m_a1t7E v_a1t7F. Lens' (LoopState m_a1t7E v_a1t7F) (Maybe (FilePath, SkipNextUpdate))
-lastSavedRoot :: forall m_a1t7E v_a1t7F. Lens' (LoopState m_a1t7E v_a1t7F) (Branch m_a1t7E)
-lastInput :: forall m_a1t7E v_a1t7F. Lens' (LoopState m_a1t7E v_a1t7F) (Maybe Input)
-currentPathStack :: forall m_a1t7E v_a1t7F. Lens' (LoopState m_a1t7E v_a1t7F) (NonEmpty Absolute)
+root :: forall m_a1ti1 v_a1ti2. Lens' (LoopState m_a1ti1 v_a1ti2) (Branch m_a1ti1)
+numberedArgs :: forall m_a1ti1 v_a1ti2. Lens' (LoopState m_a1ti1 v_a1ti2) NumberedArgs
+latestTypecheckedFile :: forall m_a1ti1 v_a1ti2 v_a1toD. Lens (LoopState m_a1ti1 v_a1ti2) (LoopState m_a1ti1 v_a1toD) (Maybe (TypecheckedUnisonFile v_a1ti2 Ann)) (Maybe (TypecheckedUnisonFile v_a1toD Ann))
+latestFile :: forall m_a1ti1 v_a1ti2. Lens' (LoopState m_a1ti1 v_a1ti2) (Maybe (FilePath, SkipNextUpdate))
+lastSavedRoot :: forall m_a1ti1 v_a1ti2. Lens' (LoopState m_a1ti1 v_a1ti2) (Branch m_a1ti1)
+lastInput :: forall m_a1ti1 v_a1ti2. Lens' (LoopState m_a1ti1 v_a1ti2) (Maybe Input)
+currentPathStack :: forall m_a1ti1 v_a1ti2. Lens' (LoopState m_a1ti1 v_a1ti2) (NonEmpty Absolute)
 currentPath :: Getter (LoopState m v) Absolute
 loopState0 :: Branch m -> Absolute -> LoopState m v
 eval :: Command m i v a -> Action m i v a
@@ -703,7 +719,9 @@ aliasMany :: InputPattern
 up :: InputPattern
 cd :: InputPattern
 back :: InputPattern
-deleteBranch :: InputPattern
+deleteNamespace :: InputPattern
+deleteNamespaceForce :: InputPattern
+deleteNamespaceParser :: Pretty ColorText -> Insistence -> [String] -> Either (Pretty ColorText) Input
 deletePatch :: InputPattern
 movePatch :: String -> String -> Either (Pretty ColorText) Input
 copyPatch' :: String -> String -> Either (Pretty ColorText) Input
@@ -823,9 +841,18 @@ watchPrinter :: Var v => Text -> PrettyPrintEnv -> Ann -> WatchKind -> Term v ()
 filestatusTip :: Pretty
 prettyDiff :: Diff -> Pretty
 prettyTermName :: PrettyPrintEnv -> Referent -> Pretty
+prettyTypeName :: PrettyPrintEnv -> Reference -> Pretty
 prettyReadRepo :: ReadRepo -> Pretty
 prettyWriteRepo :: WriteRepo -> Pretty
 isTestOk :: Term v Ann -> Bool
+
+-- | Get the list of numbered args corresponding to an endangerment map,
+--   which is used by a few outputs. See <a>endangeredDependentsTable</a>.
+numberedArgsForEndangerments :: PrettyPrintEnvDecl -> Map LabeledDependency (NESet LabeledDependency) -> NumberedArgs
+
+-- | Format and render all dependents which are endangered by references
+--   going extinct.
+endangeredDependentsTable :: PrettyPrintEnvDecl -> Map LabeledDependency (NESet LabeledDependency) -> Pretty ColorText
 
 module Unison.CommandLine.DisplayValues
 type Pretty = Pretty ColorText

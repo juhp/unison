@@ -1,40 +1,41 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
-</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE PatternSynonyms #-}</span><span>
-</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE RecordWildCards #-}</span><span>
-</span><span id="line-4"></span><span>
-</span><span id="line-5"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Unison.Codebase.Patch</span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-6"></span><span>
-</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Unison.Prelude</span></span><span> </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">empty</span></span><span class="hs-special">)</span><span>
-</span><span id="line-8"></span><span>
-</span><span id="line-9"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Prelude</span></span><span>                  </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">head</span></span><span class="hs-special">,</span><span class="annot"><span class="hs-identifier">read</span></span><span class="hs-special">,</span><span class="annot"><span class="hs-identifier">subtract</span></span><span class="hs-special">)</span><span>
-</span><span id="line-10"></span><span>
-</span><span id="line-11"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.Lens</span></span><span>            </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">children</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">cons</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">transform</span></span><span> </span><span class="hs-special">)</span><span>
-</span><span id="line-12"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Set</span></span><span>                      </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Set</span></span><span>
-</span><span id="line-13"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Unison.Codebase.TermEdit.html"><span class="hs-identifier">Unison.Codebase.TermEdit</span></a></span><span>       </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Unison.Codebase.TermEdit.html#TermEdit"><span class="hs-identifier">TermEdit</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Codebase.TermEdit.html#Typing"><span class="hs-identifier">Typing</span></a></span><span class="hs-special">(</span><span class="annot"><a href="Unison.Codebase.TermEdit.html#Same"><span class="hs-identifier">Same</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">)</span><span>
-</span><span id="line-14"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Unison.Codebase.TermEdit.html"><span class="hs-identifier">Unison.Codebase.TermEdit</span></a></span><span>      </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">TermEdit</span></span><span>
-</span><span id="line-15"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Unison.Codebase.TypeEdit.html"><span class="hs-identifier">Unison.Codebase.TypeEdit</span></a></span><span>       </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Unison.Codebase.TypeEdit.html#TypeEdit"><span class="hs-identifier">TypeEdit</span></a></span><span> </span><span class="hs-special">)</span><span>
-</span><span id="line-16"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Unison.Codebase.TypeEdit.html"><span class="hs-identifier">Unison.Codebase.TypeEdit</span></a></span><span>      </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">TypeEdit</span></span><span>
-</span><span id="line-17"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Unison.Hashable</span></span><span>                </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">Hashable</span></span><span> </span><span class="hs-special">)</span><span>
-</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Unison.Hashable</span></span><span>               </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">H</span></span><span>
-</span><span id="line-19"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Unison.Reference</span></span><span>               </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">Reference</span></span><span> </span><span class="hs-special">)</span><span>
-</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Unison.Util.Relation</span></span><span>          </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">R</span></span><span>
-</span><span id="line-21"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Unison.Util.Relation</span></span><span>           </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">Relation</span></span><span> </span><span class="hs-special">)</span><span>
-</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Unison.LabeledDependency</span></span><span>      </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">LD</span></span><span>
-</span><span id="line-23"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Unison.LabeledDependency</span></span><span>       </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">LabeledDependency</span></span><span> </span><span class="hs-special">)</span><span>
-</span><span id="line-24"></span><span>
-</span><span id="line-25"></span><span class="hs-keyword">data</span><span> </span><span id="Patch"><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-var">Patch</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Patch"><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-var">Patch</span></a></span></span><span>
-</span><span id="line-26"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="_termEdits"><span class="annot"><span class="annottext">Patch -&gt; Relation Reference TermEdit
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">{- ORMOLU_DISABLE -}</span><span> </span><span class="hs-comment">-- Remove this when the file is ready to be auto-formatted</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE PatternSynonyms #-}</span><span>
+</span><span id="line-4"></span><span class="hs-pragma">{-# LANGUAGE RecordWildCards #-}</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Unison.Codebase.Patch</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-7"></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Unison.Prelude</span></span><span> </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">empty</span></span><span class="hs-special">)</span><span>
+</span><span id="line-9"></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Prelude</span></span><span>                  </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">head</span></span><span class="hs-special">,</span><span class="annot"><span class="hs-identifier">read</span></span><span class="hs-special">,</span><span class="annot"><span class="hs-identifier">subtract</span></span><span class="hs-special">)</span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.Lens</span></span><span>            </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">children</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">cons</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">transform</span></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Set</span></span><span>                      </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Set</span></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Unison.Codebase.TermEdit.html"><span class="hs-identifier">Unison.Codebase.TermEdit</span></a></span><span>       </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Unison.Codebase.TermEdit.html#TermEdit"><span class="hs-identifier">TermEdit</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Codebase.TermEdit.html#Typing"><span class="hs-identifier">Typing</span></a></span><span class="hs-special">(</span><span class="annot"><a href="Unison.Codebase.TermEdit.html#Same"><span class="hs-identifier">Same</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Unison.Codebase.TermEdit.html"><span class="hs-identifier">Unison.Codebase.TermEdit</span></a></span><span>      </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">TermEdit</span></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Unison.Codebase.TypeEdit.html"><span class="hs-identifier">Unison.Codebase.TypeEdit</span></a></span><span>       </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Unison.Codebase.TypeEdit.html#TypeEdit"><span class="hs-identifier">TypeEdit</span></a></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Unison.Codebase.TypeEdit.html"><span class="hs-identifier">Unison.Codebase.TypeEdit</span></a></span><span>      </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">TypeEdit</span></span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Unison.Hashable</span></span><span>                </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">Hashable</span></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Unison.Hashable</span></span><span>               </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">H</span></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Unison.Reference</span></span><span>               </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">Reference</span></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Unison.Util.Relation</span></span><span>          </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">R</span></span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Unison.Util.Relation</span></span><span>           </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">Relation</span></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Unison.LabeledDependency</span></span><span>      </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">LD</span></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Unison.LabeledDependency</span></span><span>       </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">LabeledDependency</span></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-25"></span><span>
+</span><span id="line-26"></span><span class="hs-keyword">data</span><span> </span><span id="Patch"><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-var">Patch</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Patch"><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-var">Patch</span></a></span></span><span>
+</span><span id="line-27"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="_termEdits"><span class="annot"><span class="annottext">Patch -&gt; Relation Reference TermEdit
 </span><a href="Unison.Codebase.Patch.html#_termEdits"><span class="hs-identifier hs-var hs-var">_termEdits</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Relation</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Reference</span></span><span> </span><span class="annot"><a href="Unison.Codebase.TermEdit.html#TermEdit"><span class="hs-identifier hs-type">TermEdit</span></a></span><span>
-</span><span id="line-27"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="_typeEdits"><span class="annot"><span class="annottext">Patch -&gt; Relation Reference TypeEdit
+</span><span id="line-28"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="_typeEdits"><span class="annot"><span class="annottext">Patch -&gt; Relation Reference TypeEdit
 </span><a href="Unison.Codebase.Patch.html#_typeEdits"><span class="hs-identifier hs-var hs-var">_typeEdits</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Relation</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Reference</span></span><span> </span><span class="annot"><a href="Unison.Codebase.TypeEdit.html#TypeEdit"><span class="hs-identifier hs-type">TypeEdit</span></a></span><span>
-</span><span id="line-28"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680819117"><span id="local-6989586621680819119"><span class="annot"><span class="annottext">Patch -&gt; Patch -&gt; Bool
+</span><span id="line-29"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680819119"><span id="local-6989586621680819121"><span class="annot"><span class="annottext">Patch -&gt; Patch -&gt; Bool
 (Patch -&gt; Patch -&gt; Bool) -&gt; (Patch -&gt; Patch -&gt; Bool) -&gt; Eq Patch
 forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
 /= :: Patch -&gt; Patch -&gt; Bool
 $c/= :: Patch -&gt; Patch -&gt; Bool
 == :: Patch -&gt; Patch -&gt; Bool
 $c== :: Patch -&gt; Patch -&gt; Bool
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680819101"><span id="local-6989586621680819103"><span id="local-6989586621680819105"><span id="local-6989586621680819107"><span id="local-6989586621680819109"><span id="local-6989586621680819111"><span id="local-6989586621680819113"><span class="annot"><span class="annottext">Eq Patch
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680819103"><span id="local-6989586621680819105"><span id="local-6989586621680819107"><span id="local-6989586621680819109"><span id="local-6989586621680819111"><span id="local-6989586621680819113"><span id="local-6989586621680819115"><span class="annot"><span class="annottext">Eq Patch
 Eq Patch
 -&gt; (Patch -&gt; Patch -&gt; Ordering)
 -&gt; (Patch -&gt; Patch -&gt; Bool)
@@ -72,7 +73,7 @@ $c&lt; :: Patch -&gt; Patch -&gt; Bool
 compare :: Patch -&gt; Patch -&gt; Ordering
 $ccompare :: Patch -&gt; Patch -&gt; Ordering
 $cp1Ord :: Eq Patch
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680819094"><span id="local-6989586621680819096"><span id="local-6989586621680819098"><span class="annot"><span class="annottext">Int -&gt; Patch -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680819096"><span id="local-6989586621680819098"><span id="local-6989586621680819100"><span class="annot"><span class="annottext">Int -&gt; Patch -&gt; ShowS
 [Patch] -&gt; ShowS
 Patch -&gt; String
 (Int -&gt; Patch -&gt; ShowS)
@@ -86,17 +87,17 @@ $cshow :: Patch -&gt; String
 showsPrec :: Int -&gt; Patch -&gt; ShowS
 $cshowsPrec :: Int -&gt; Patch -&gt; ShowS
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
-</span><span id="line-29"></span><span>
-</span><span id="line-30"></span><span class="hs-keyword">data</span><span> </span><span id="PatchDiff"><span class="annot"><a href="Unison.Codebase.Patch.html#PatchDiff"><span class="hs-identifier hs-var">PatchDiff</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="PatchDiff"><span class="annot"><a href="Unison.Codebase.Patch.html#PatchDiff"><span class="hs-identifier hs-var">PatchDiff</span></a></span></span><span>
-</span><span id="line-31"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="_addedTermEdits"><span class="annot"><span class="annottext">PatchDiff -&gt; Relation Reference TermEdit
+</span><span id="line-30"></span><span>
+</span><span id="line-31"></span><span class="hs-keyword">data</span><span> </span><span id="PatchDiff"><span class="annot"><a href="Unison.Codebase.Patch.html#PatchDiff"><span class="hs-identifier hs-var">PatchDiff</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="PatchDiff"><span class="annot"><a href="Unison.Codebase.Patch.html#PatchDiff"><span class="hs-identifier hs-var">PatchDiff</span></a></span></span><span>
+</span><span id="line-32"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="_addedTermEdits"><span class="annot"><span class="annottext">PatchDiff -&gt; Relation Reference TermEdit
 </span><a href="Unison.Codebase.Patch.html#_addedTermEdits"><span class="hs-identifier hs-var hs-var">_addedTermEdits</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Relation</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Reference</span></span><span> </span><span class="annot"><a href="Unison.Codebase.TermEdit.html#TermEdit"><span class="hs-identifier hs-type">TermEdit</span></a></span><span>
-</span><span id="line-32"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="_addedTypeEdits"><span class="annot"><span class="annottext">PatchDiff -&gt; Relation Reference TypeEdit
+</span><span id="line-33"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="_addedTypeEdits"><span class="annot"><span class="annottext">PatchDiff -&gt; Relation Reference TypeEdit
 </span><a href="Unison.Codebase.Patch.html#_addedTypeEdits"><span class="hs-identifier hs-var hs-var">_addedTypeEdits</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Relation</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Reference</span></span><span> </span><span class="annot"><a href="Unison.Codebase.TypeEdit.html#TypeEdit"><span class="hs-identifier hs-type">TypeEdit</span></a></span><span>
-</span><span id="line-33"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="_removedTermEdits"><span class="annot"><span class="annottext">PatchDiff -&gt; Relation Reference TermEdit
+</span><span id="line-34"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="_removedTermEdits"><span class="annot"><span class="annottext">PatchDiff -&gt; Relation Reference TermEdit
 </span><a href="Unison.Codebase.Patch.html#_removedTermEdits"><span class="hs-identifier hs-var hs-var">_removedTermEdits</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Relation</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Reference</span></span><span> </span><span class="annot"><a href="Unison.Codebase.TermEdit.html#TermEdit"><span class="hs-identifier hs-type">TermEdit</span></a></span><span>
-</span><span id="line-34"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="_removedTypeEdits"><span class="annot"><span class="annottext">PatchDiff -&gt; Relation Reference TypeEdit
+</span><span id="line-35"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="_removedTypeEdits"><span class="annot"><span class="annottext">PatchDiff -&gt; Relation Reference TypeEdit
 </span><a href="Unison.Codebase.Patch.html#_removedTypeEdits"><span class="hs-identifier hs-var hs-var">_removedTypeEdits</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Relation</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Reference</span></span><span> </span><span class="annot"><a href="Unison.Codebase.TypeEdit.html#TypeEdit"><span class="hs-identifier hs-type">TypeEdit</span></a></span><span>
-</span><span id="line-35"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680819084"><span id="local-6989586621680819086"><span class="annot"><span class="annottext">PatchDiff -&gt; PatchDiff -&gt; Bool
+</span><span id="line-36"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680819086"><span id="local-6989586621680819088"><span class="annot"><span class="annottext">PatchDiff -&gt; PatchDiff -&gt; Bool
 (PatchDiff -&gt; PatchDiff -&gt; Bool)
 -&gt; (PatchDiff -&gt; PatchDiff -&gt; Bool) -&gt; Eq PatchDiff
 forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
@@ -104,7 +105,7 @@ forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
 $c/= :: PatchDiff -&gt; PatchDiff -&gt; Bool
 == :: PatchDiff -&gt; PatchDiff -&gt; Bool
 $c== :: PatchDiff -&gt; PatchDiff -&gt; Bool
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680819069"><span id="local-6989586621680819071"><span id="local-6989586621680819073"><span id="local-6989586621680819075"><span id="local-6989586621680819077"><span id="local-6989586621680819079"><span id="local-6989586621680819081"><span class="annot"><span class="annottext">Eq PatchDiff
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680819071"><span id="local-6989586621680819073"><span id="local-6989586621680819075"><span id="local-6989586621680819077"><span id="local-6989586621680819079"><span id="local-6989586621680819081"><span id="local-6989586621680819083"><span class="annot"><span class="annottext">Eq PatchDiff
 Eq PatchDiff
 -&gt; (PatchDiff -&gt; PatchDiff -&gt; Ordering)
 -&gt; (PatchDiff -&gt; PatchDiff -&gt; Bool)
@@ -142,7 +143,7 @@ $c&lt; :: PatchDiff -&gt; PatchDiff -&gt; Bool
 compare :: PatchDiff -&gt; PatchDiff -&gt; Ordering
 $ccompare :: PatchDiff -&gt; PatchDiff -&gt; Ordering
 $cp1Ord :: Eq PatchDiff
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680819063"><span id="local-6989586621680819065"><span id="local-6989586621680819067"><span class="annot"><span class="annottext">Int -&gt; PatchDiff -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680819065"><span id="local-6989586621680819067"><span id="local-6989586621680819069"><span class="annot"><span class="annottext">Int -&gt; PatchDiff -&gt; ShowS
 [PatchDiff] -&gt; ShowS
 PatchDiff -&gt; String
 (Int -&gt; PatchDiff -&gt; ShowS)
@@ -158,21 +159,21 @@ $cshow :: PatchDiff -&gt; String
 showsPrec :: Int -&gt; PatchDiff -&gt; ShowS
 $cshowsPrec :: Int -&gt; PatchDiff -&gt; ShowS
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
-</span><span id="line-36"></span><span>
-</span><span id="line-37"></span><span id="typeEdits"><span id="termEdits"><span class="hs-identifier">makeLenses</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">Patch</span></span></span><span>
-</span><span id="line-38"></span><span id="removedTypeEdits"><span id="removedTermEdits"><span id="addedTypeEdits"><span id="addedTermEdits"><span class="hs-identifier">makeLenses</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">PatchDiff</span></span></span></span></span><span>
-</span><span id="line-39"></span><span>
-</span><span id="line-40"></span><span class="annot"><a href="Unison.Codebase.Patch.html#diff"><span class="hs-identifier hs-type">diff</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#PatchDiff"><span class="hs-identifier hs-type">PatchDiff</span></a></span><span>
-</span><span id="line-41"></span><span id="diff"><span class="annot"><span class="annottext">diff :: Patch -&gt; Patch -&gt; PatchDiff
-</span><a href="Unison.Codebase.Patch.html#diff"><span class="hs-identifier hs-var hs-var">diff</span></a></span></span><span> </span><span id="local-6989586621680819055"><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680819055"><span class="hs-identifier hs-var">new</span></a></span></span><span> </span><span id="local-6989586621680819054"><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680819054"><span class="hs-identifier hs-var">old</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PatchDiff :: Relation Reference TermEdit
+</span><span id="line-37"></span><span>
+</span><span id="line-38"></span><span id="typeEdits"><span id="termEdits"><span class="hs-identifier">makeLenses</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">Patch</span></span></span><span>
+</span><span id="line-39"></span><span id="removedTypeEdits"><span id="removedTermEdits"><span id="addedTypeEdits"><span id="addedTermEdits"><span class="hs-identifier">makeLenses</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">PatchDiff</span></span></span></span></span><span>
+</span><span id="line-40"></span><span>
+</span><span id="line-41"></span><span class="annot"><a href="Unison.Codebase.Patch.html#diff"><span class="hs-identifier hs-type">diff</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#PatchDiff"><span class="hs-identifier hs-type">PatchDiff</span></a></span><span>
+</span><span id="line-42"></span><span id="diff"><span class="annot"><span class="annottext">diff :: Patch -&gt; Patch -&gt; PatchDiff
+</span><a href="Unison.Codebase.Patch.html#diff"><span class="hs-identifier hs-var hs-var">diff</span></a></span></span><span> </span><span id="local-6989586621680819057"><span class="annot"><span class="annottext">Patch
+</span><a href="#local-6989586621680819057"><span class="hs-identifier hs-var">new</span></a></span></span><span> </span><span id="local-6989586621680819056"><span class="annot"><span class="annottext">Patch
+</span><a href="#local-6989586621680819056"><span class="hs-identifier hs-var">old</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PatchDiff :: Relation Reference TermEdit
 -&gt; Relation Reference TypeEdit
 -&gt; Relation Reference TermEdit
 -&gt; Relation Reference TypeEdit
 -&gt; PatchDiff
 </span><a href="Unison.Codebase.Patch.html#PatchDiff"><span class="hs-identifier hs-type">PatchDiff</span></a></span><span>
-</span><span id="line-42"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">_addedTermEdits :: Relation Reference TermEdit
+</span><span id="line-43"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">_addedTermEdits :: Relation Reference TermEdit
 </span><a href="Unison.Codebase.Patch.html#_addedTermEdits"><span class="hs-identifier hs-var">_addedTermEdits</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Relation Reference TermEdit
 -&gt; Relation Reference TermEdit -&gt; Relation Reference TermEdit
 forall a b.
@@ -186,7 +187,7 @@ forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
   (Relation Reference TermEdit) Patch (Relation Reference TermEdit)
 Lens' Patch (Relation Reference TermEdit)
 </span><a href="Unison.Codebase.Patch.html#termEdits"><span class="hs-identifier hs-var">termEdits</span></a></span><span> </span><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680819055"><span class="hs-identifier hs-var">new</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Getting
+</span><a href="#local-6989586621680819057"><span class="hs-identifier hs-var">new</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Getting
   (Relation Reference TermEdit) Patch (Relation Reference TermEdit)
 -&gt; Patch -&gt; Relation Reference TermEdit
 forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
@@ -194,8 +195,8 @@ forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
   (Relation Reference TermEdit) Patch (Relation Reference TermEdit)
 Lens' Patch (Relation Reference TermEdit)
 </span><a href="Unison.Codebase.Patch.html#termEdits"><span class="hs-identifier hs-var">termEdits</span></a></span><span> </span><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680819054"><span class="hs-identifier hs-var">old</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-43"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_addedTypeEdits :: Relation Reference TypeEdit
+</span><a href="#local-6989586621680819056"><span class="hs-identifier hs-var">old</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-44"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_addedTypeEdits :: Relation Reference TypeEdit
 </span><a href="Unison.Codebase.Patch.html#_addedTypeEdits"><span class="hs-identifier hs-var">_addedTypeEdits</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Relation Reference TypeEdit
 -&gt; Relation Reference TypeEdit -&gt; Relation Reference TypeEdit
 forall a b.
@@ -209,7 +210,7 @@ forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
   (Relation Reference TypeEdit) Patch (Relation Reference TypeEdit)
 Lens' Patch (Relation Reference TypeEdit)
 </span><a href="Unison.Codebase.Patch.html#typeEdits"><span class="hs-identifier hs-var">typeEdits</span></a></span><span> </span><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680819055"><span class="hs-identifier hs-var">new</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Getting
+</span><a href="#local-6989586621680819057"><span class="hs-identifier hs-var">new</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Getting
   (Relation Reference TypeEdit) Patch (Relation Reference TypeEdit)
 -&gt; Patch -&gt; Relation Reference TypeEdit
 forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
@@ -217,8 +218,8 @@ forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
   (Relation Reference TypeEdit) Patch (Relation Reference TypeEdit)
 Lens' Patch (Relation Reference TypeEdit)
 </span><a href="Unison.Codebase.Patch.html#typeEdits"><span class="hs-identifier hs-var">typeEdits</span></a></span><span> </span><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680819054"><span class="hs-identifier hs-var">old</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-44"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_removedTypeEdits :: Relation Reference TypeEdit
+</span><a href="#local-6989586621680819056"><span class="hs-identifier hs-var">old</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-45"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_removedTypeEdits :: Relation Reference TypeEdit
 </span><a href="Unison.Codebase.Patch.html#_removedTypeEdits"><span class="hs-identifier hs-var">_removedTypeEdits</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Relation Reference TypeEdit
 -&gt; Relation Reference TypeEdit -&gt; Relation Reference TypeEdit
 forall a b.
@@ -232,7 +233,7 @@ forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
   (Relation Reference TypeEdit) Patch (Relation Reference TypeEdit)
 Lens' Patch (Relation Reference TypeEdit)
 </span><a href="Unison.Codebase.Patch.html#typeEdits"><span class="hs-identifier hs-var">typeEdits</span></a></span><span> </span><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680819054"><span class="hs-identifier hs-var">old</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Getting
+</span><a href="#local-6989586621680819056"><span class="hs-identifier hs-var">old</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Getting
   (Relation Reference TypeEdit) Patch (Relation Reference TypeEdit)
 -&gt; Patch -&gt; Relation Reference TypeEdit
 forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
@@ -240,8 +241,8 @@ forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
   (Relation Reference TypeEdit) Patch (Relation Reference TypeEdit)
 Lens' Patch (Relation Reference TypeEdit)
 </span><a href="Unison.Codebase.Patch.html#typeEdits"><span class="hs-identifier hs-var">typeEdits</span></a></span><span> </span><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680819055"><span class="hs-identifier hs-var">new</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-45"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_removedTermEdits :: Relation Reference TermEdit
+</span><a href="#local-6989586621680819057"><span class="hs-identifier hs-var">new</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-46"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_removedTermEdits :: Relation Reference TermEdit
 </span><a href="Unison.Codebase.Patch.html#_removedTermEdits"><span class="hs-identifier hs-var">_removedTermEdits</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Relation Reference TermEdit
 -&gt; Relation Reference TermEdit -&gt; Relation Reference TermEdit
 forall a b.
@@ -255,7 +256,7 @@ forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
   (Relation Reference TermEdit) Patch (Relation Reference TermEdit)
 Lens' Patch (Relation Reference TermEdit)
 </span><a href="Unison.Codebase.Patch.html#termEdits"><span class="hs-identifier hs-var">termEdits</span></a></span><span> </span><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680819054"><span class="hs-identifier hs-var">old</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Getting
+</span><a href="#local-6989586621680819056"><span class="hs-identifier hs-var">old</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Getting
   (Relation Reference TermEdit) Patch (Relation Reference TermEdit)
 -&gt; Patch -&gt; Relation Reference TermEdit
 forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
@@ -263,33 +264,33 @@ forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
   (Relation Reference TermEdit) Patch (Relation Reference TermEdit)
 Lens' Patch (Relation Reference TermEdit)
 </span><a href="Unison.Codebase.Patch.html#termEdits"><span class="hs-identifier hs-var">termEdits</span></a></span><span> </span><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680819055"><span class="hs-identifier hs-var">new</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-46"></span><span>  </span><span class="hs-special">}</span><span>
-</span><span id="line-47"></span><span>
-</span><span id="line-48"></span><span class="annot"><a href="Unison.Codebase.Patch.html#labeledDependencies"><span class="hs-identifier hs-type">labeledDependencies</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Set</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">LabeledDependency</span></span><span>
-</span><span id="line-49"></span><span id="labeledDependencies"><span class="annot"><span class="annottext">labeledDependencies :: Patch -&gt; Set LabeledDependency
-</span><a href="Unison.Codebase.Patch.html#labeledDependencies"><span class="hs-identifier hs-var hs-var">labeledDependencies</span></a></span></span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span> </span><span class="hs-special">{</span><span id="local-6989586621680819049"><span id="local-6989586621680819050"><span class="annot"><span class="annottext">Relation Reference TermEdit
+</span><a href="#local-6989586621680819057"><span class="hs-identifier hs-var">new</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-47"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-48"></span><span>
+</span><span id="line-49"></span><span class="annot"><a href="Unison.Codebase.Patch.html#labeledDependencies"><span class="hs-identifier hs-type">labeledDependencies</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Set</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">LabeledDependency</span></span><span>
+</span><span id="line-50"></span><span id="labeledDependencies"><span class="annot"><span class="annottext">labeledDependencies :: Patch -&gt; Set LabeledDependency
+</span><a href="Unison.Codebase.Patch.html#labeledDependencies"><span class="hs-identifier hs-var hs-var">labeledDependencies</span></a></span></span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span> </span><span class="hs-special">{</span><span id="local-6989586621680819051"><span id="local-6989586621680819052"><span class="annot"><span class="annottext">Relation Reference TermEdit
 Relation Reference TypeEdit
 _typeEdits :: Relation Reference TypeEdit
 _termEdits :: Relation Reference TermEdit
 _typeEdits :: Patch -&gt; Relation Reference TypeEdit
 _termEdits :: Patch -&gt; Relation Reference TermEdit
-</span><a href="#local-6989586621680819049"><span class="hs-glyph hs-var hs-var hs-var hs-var">..</span></a></span></span></span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-50"></span><span>  </span><span class="annot"><span class="annottext">(Reference -&gt; LabeledDependency)
+</span><a href="#local-6989586621680819051"><span class="hs-glyph hs-var hs-var hs-var hs-var">..</span></a></span></span></span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-51"></span><span>  </span><span class="annot"><span class="annottext">(Reference -&gt; LabeledDependency)
 -&gt; Set Reference -&gt; Set LabeledDependency
 forall b a. Ord b =&gt; (a -&gt; b) -&gt; Set a -&gt; Set b
 </span><span class="hs-identifier hs-var">Set.map</span></span><span> </span><span class="annot"><span class="annottext">Reference -&gt; LabeledDependency
 </span><span class="hs-identifier hs-var">LD.termRef</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Relation Reference TermEdit -&gt; Set Reference
 forall a b. Relation a b -&gt; Set a
 </span><span class="hs-identifier hs-var">R.dom</span></span><span> </span><span class="annot"><span class="annottext">Relation Reference TermEdit
-</span><a href="#local-6989586621680819050"><span class="hs-identifier hs-var">_termEdits</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-51"></span><span>    </span><span class="annot"><span class="annottext">Set LabeledDependency
+</span><a href="#local-6989586621680819052"><span class="hs-identifier hs-var">_termEdits</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-52"></span><span>    </span><span class="annot"><span class="annottext">Set LabeledDependency
 -&gt; Set LabeledDependency -&gt; Set LabeledDependency
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">[LabeledDependency] -&gt; Set LabeledDependency
 forall a. Ord a =&gt; [a] -&gt; Set a
 </span><span class="hs-identifier hs-var">Set.fromList</span></span><span>
-</span><span id="line-52"></span><span>         </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Reference -&gt; LabeledDependency)
+</span><span id="line-53"></span><span>         </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Reference -&gt; LabeledDependency)
 -&gt; [Reference] -&gt; [LabeledDependency]
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="annot"><span class="annottext">Reference -&gt; LabeledDependency
@@ -304,8 +305,8 @@ forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; [a]
 </span><span class="hs-identifier hs-var">toList</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Relation Reference TermEdit -&gt; Set TermEdit
 forall a b. Relation a b -&gt; Set b
 </span><span class="hs-identifier hs-var">R.ran</span></span><span> </span><span class="annot"><span class="annottext">Relation Reference TermEdit
-</span><a href="#local-6989586621680819050"><span class="hs-identifier hs-var">_termEdits</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
-</span><span id="line-53"></span><span>    </span><span class="annot"><span class="annottext">Set LabeledDependency
+</span><a href="#local-6989586621680819052"><span class="hs-identifier hs-var">_termEdits</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-54"></span><span>    </span><span class="annot"><span class="annottext">Set LabeledDependency
 -&gt; Set LabeledDependency -&gt; Set LabeledDependency
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">(Reference -&gt; LabeledDependency)
@@ -315,14 +316,14 @@ forall b a. Ord b =&gt; (a -&gt; b) -&gt; Set a -&gt; Set b
 </span><span class="hs-identifier hs-var">LD.typeRef</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Relation Reference TypeEdit -&gt; Set Reference
 forall a b. Relation a b -&gt; Set a
 </span><span class="hs-identifier hs-var">R.dom</span></span><span> </span><span class="annot"><span class="annottext">Relation Reference TypeEdit
-</span><a href="#local-6989586621680819049"><span class="hs-identifier hs-var">_typeEdits</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-54"></span><span>    </span><span class="annot"><span class="annottext">Set LabeledDependency
+</span><a href="#local-6989586621680819051"><span class="hs-identifier hs-var">_typeEdits</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-55"></span><span>    </span><span class="annot"><span class="annottext">Set LabeledDependency
 -&gt; Set LabeledDependency -&gt; Set LabeledDependency
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">[LabeledDependency] -&gt; Set LabeledDependency
 forall a. Ord a =&gt; [a] -&gt; Set a
 </span><span class="hs-identifier hs-var">Set.fromList</span></span><span>
-</span><span id="line-55"></span><span>         </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Reference -&gt; LabeledDependency)
+</span><span id="line-56"></span><span>         </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Reference -&gt; LabeledDependency)
 -&gt; [Reference] -&gt; [LabeledDependency]
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="annot"><span class="annottext">Reference -&gt; LabeledDependency
@@ -337,132 +338,132 @@ forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; [a]
 </span><span class="hs-identifier hs-var">toList</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Relation Reference TypeEdit -&gt; Set TypeEdit
 forall a b. Relation a b -&gt; Set b
 </span><span class="hs-identifier hs-var">R.ran</span></span><span> </span><span class="annot"><span class="annottext">Relation Reference TypeEdit
-</span><a href="#local-6989586621680819049"><span class="hs-identifier hs-var">_typeEdits</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
-</span><span id="line-56"></span><span>
-</span><span id="line-57"></span><span class="annot"><a href="Unison.Codebase.Patch.html#empty"><span class="hs-identifier hs-type">empty</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span>
-</span><span id="line-58"></span><span id="empty"><span class="annot"><span class="annottext">empty :: Patch
+</span><a href="#local-6989586621680819051"><span class="hs-identifier hs-var">_typeEdits</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-57"></span><span>
+</span><span id="line-58"></span><span class="annot"><a href="Unison.Codebase.Patch.html#empty"><span class="hs-identifier hs-type">empty</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span>
+</span><span id="line-59"></span><span id="empty"><span class="annot"><span class="annottext">empty :: Patch
 </span><a href="Unison.Codebase.Patch.html#empty"><span class="hs-identifier hs-var hs-var">empty</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Relation Reference TermEdit -&gt; Relation Reference TypeEdit -&gt; Patch
 </span><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-var">Patch</span></a></span><span> </span><span class="annot"><span class="annottext">Relation Reference TermEdit
 forall a. Monoid a =&gt; a
 </span><span class="hs-identifier hs-var">mempty</span></span><span> </span><span class="annot"><span class="annottext">Relation Reference TypeEdit
 forall a. Monoid a =&gt; a
 </span><span class="hs-identifier hs-var">mempty</span></span><span>
-</span><span id="line-59"></span><span>
-</span><span id="line-60"></span><span class="annot"><a href="Unison.Codebase.Patch.html#isEmpty"><span class="hs-identifier hs-type">isEmpty</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
-</span><span id="line-61"></span><span id="isEmpty"><span class="annot"><span class="annottext">isEmpty :: Patch -&gt; Bool
-</span><a href="Unison.Codebase.Patch.html#isEmpty"><span class="hs-identifier hs-var hs-var">isEmpty</span></a></span></span><span> </span><span id="local-6989586621680819036"><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680819036"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680819036"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">Patch -&gt; Patch -&gt; Bool
+</span><span id="line-60"></span><span>
+</span><span id="line-61"></span><span class="annot"><a href="Unison.Codebase.Patch.html#isEmpty"><span class="hs-identifier hs-type">isEmpty</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-62"></span><span id="isEmpty"><span class="annot"><span class="annottext">isEmpty :: Patch -&gt; Bool
+</span><a href="Unison.Codebase.Patch.html#isEmpty"><span class="hs-identifier hs-var hs-var">isEmpty</span></a></span></span><span> </span><span id="local-6989586621680819038"><span class="annot"><span class="annottext">Patch
+</span><a href="#local-6989586621680819038"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Patch
+</span><a href="#local-6989586621680819038"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">Patch -&gt; Patch -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Patch
 </span><a href="Unison.Codebase.Patch.html#empty"><span class="hs-identifier hs-var">empty</span></a></span><span>
-</span><span id="line-62"></span><span>
-</span><span id="line-63"></span><span class="annot"><a href="Unison.Codebase.Patch.html#allReferences"><span class="hs-identifier hs-type">allReferences</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Set</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Reference</span></span><span>
-</span><span id="line-64"></span><span id="allReferences"><span class="annot"><span class="annottext">allReferences :: Patch -&gt; Set Reference
-</span><a href="Unison.Codebase.Patch.html#allReferences"><span class="hs-identifier hs-var hs-var">allReferences</span></a></span></span><span> </span><span id="local-6989586621680819034"><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680819034"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Patch -&gt; Set Reference
-</span><a href="#local-6989586621680819033"><span class="hs-identifier hs-var">typeReferences</span></a></span><span> </span><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680819034"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">Set Reference -&gt; Set Reference -&gt; Set Reference
+</span><span id="line-63"></span><span>
+</span><span id="line-64"></span><span class="annot"><a href="Unison.Codebase.Patch.html#allReferences"><span class="hs-identifier hs-type">allReferences</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Set</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Reference</span></span><span>
+</span><span id="line-65"></span><span id="allReferences"><span class="annot"><span class="annottext">allReferences :: Patch -&gt; Set Reference
+</span><a href="Unison.Codebase.Patch.html#allReferences"><span class="hs-identifier hs-var hs-var">allReferences</span></a></span></span><span> </span><span id="local-6989586621680819036"><span class="annot"><span class="annottext">Patch
+</span><a href="#local-6989586621680819036"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Patch -&gt; Set Reference
+</span><a href="#local-6989586621680819035"><span class="hs-identifier hs-var">typeReferences</span></a></span><span> </span><span class="annot"><span class="annottext">Patch
+</span><a href="#local-6989586621680819036"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">Set Reference -&gt; Set Reference -&gt; Set Reference
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Patch -&gt; Set Reference
-</span><a href="#local-6989586621680819032"><span class="hs-identifier hs-var">termReferences</span></a></span><span> </span><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680819034"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-65"></span><span>  </span><span id="local-6989586621680819033"><span class="annot"><span class="annottext">typeReferences :: Patch -&gt; Set Reference
-</span><a href="#local-6989586621680819033"><span class="hs-identifier hs-var hs-var">typeReferences</span></a></span></span><span> </span><span id="local-6989586621680819031"><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680819031"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Reference] -&gt; Set Reference
+</span><a href="#local-6989586621680819034"><span class="hs-identifier hs-var">termReferences</span></a></span><span> </span><span class="annot"><span class="annottext">Patch
+</span><a href="#local-6989586621680819036"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-66"></span><span>  </span><span id="local-6989586621680819035"><span class="annot"><span class="annottext">typeReferences :: Patch -&gt; Set Reference
+</span><a href="#local-6989586621680819035"><span class="hs-identifier hs-var hs-var">typeReferences</span></a></span></span><span> </span><span id="local-6989586621680819033"><span class="annot"><span class="annottext">Patch
+</span><a href="#local-6989586621680819033"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Reference] -&gt; Set Reference
 forall a. Ord a =&gt; [a] -&gt; Set a
 </span><span class="hs-identifier hs-var">Set.fromList</span></span><span>
-</span><span id="line-66"></span><span>    </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680819030"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680819029"><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680819029"><span class="hs-identifier hs-var">old</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Codebase.TypeEdit.html#Replace"><span class="hs-identifier hs-type">TypeEdit.Replace</span></a></span><span> </span><span id="local-6989586621680819027"><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680819027"><span class="hs-identifier hs-var">new</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Relation Reference TypeEdit -&gt; [(Reference, TypeEdit)]
+</span><span id="line-67"></span><span>    </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680819032"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680819031"><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680819031"><span class="hs-identifier hs-var">old</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Codebase.TypeEdit.html#Replace"><span class="hs-identifier hs-type">TypeEdit.Replace</span></a></span><span> </span><span id="local-6989586621680819029"><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680819029"><span class="hs-identifier hs-var">new</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Relation Reference TypeEdit -&gt; [(Reference, TypeEdit)]
 forall a b. Relation a b -&gt; [(a, b)]
 </span><span class="hs-identifier hs-var">R.toList</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Patch -&gt; Relation Reference TypeEdit
 </span><a href="Unison.Codebase.Patch.html#_typeEdits"><span class="hs-identifier hs-var hs-var">_typeEdits</span></a></span><span> </span><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680819031"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-67"></span><span>        </span><span class="hs-special">,</span><span> </span><span id="local-6989586621680819030"><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680819030"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680819029"><span class="hs-identifier hs-var">old</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680819027"><span class="hs-identifier hs-var">new</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-special">]</span><span>
-</span><span id="line-68"></span><span>  </span><span id="local-6989586621680819032"><span class="annot"><span class="annottext">termReferences :: Patch -&gt; Set Reference
-</span><a href="#local-6989586621680819032"><span class="hs-identifier hs-var hs-var">termReferences</span></a></span></span><span> </span><span id="local-6989586621680819025"><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680819025"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Reference] -&gt; Set Reference
+</span><a href="#local-6989586621680819033"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-68"></span><span>        </span><span class="hs-special">,</span><span> </span><span id="local-6989586621680819032"><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680819032"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680819031"><span class="hs-identifier hs-var">old</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680819029"><span class="hs-identifier hs-var">new</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-69"></span><span>  </span><span id="local-6989586621680819034"><span class="annot"><span class="annottext">termReferences :: Patch -&gt; Set Reference
+</span><a href="#local-6989586621680819034"><span class="hs-identifier hs-var hs-var">termReferences</span></a></span></span><span> </span><span id="local-6989586621680819027"><span class="annot"><span class="annottext">Patch
+</span><a href="#local-6989586621680819027"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Reference] -&gt; Set Reference
 forall a. Ord a =&gt; [a] -&gt; Set a
 </span><span class="hs-identifier hs-var">Set.fromList</span></span><span>
-</span><span id="line-69"></span><span>    </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680819024"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680819023"><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680819023"><span class="hs-identifier hs-var">old</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Codebase.TermEdit.html#Replace"><span class="hs-identifier hs-type">TermEdit.Replace</span></a></span><span> </span><span id="local-6989586621680819021"><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680819021"><span class="hs-identifier hs-var">new</span></a></span></span><span> </span><span class="annot"><span class="annottext">Typing
+</span><span id="line-70"></span><span>    </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680819026"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680819025"><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680819025"><span class="hs-identifier hs-var">old</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Codebase.TermEdit.html#Replace"><span class="hs-identifier hs-type">TermEdit.Replace</span></a></span><span> </span><span id="local-6989586621680819023"><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680819023"><span class="hs-identifier hs-var">new</span></a></span></span><span> </span><span class="annot"><span class="annottext">Typing
 </span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Relation Reference TermEdit -&gt; [(Reference, TermEdit)]
 forall a b. Relation a b -&gt; [(a, b)]
 </span><span class="hs-identifier hs-var">R.toList</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Patch -&gt; Relation Reference TermEdit
 </span><a href="Unison.Codebase.Patch.html#_termEdits"><span class="hs-identifier hs-var hs-var">_termEdits</span></a></span><span> </span><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680819025"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-70"></span><span>        </span><span class="hs-special">,</span><span> </span><span id="local-6989586621680819024"><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680819024"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680819023"><span class="hs-identifier hs-var">old</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680819021"><span class="hs-identifier hs-var">new</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-special">]</span><span>
-</span><span id="line-71"></span><span>
-</span><span id="line-72"></span><span class="hs-comment">-- | Returns the set of references which are the target of an arrow in the patch</span><span>
-</span><span id="line-73"></span><span class="annot"><a href="Unison.Codebase.Patch.html#allReferenceTargets"><span class="hs-identifier hs-type">allReferenceTargets</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Set</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Reference</span></span><span>
-</span><span id="line-74"></span><span id="allReferenceTargets"><span class="annot"><span class="annottext">allReferenceTargets :: Patch -&gt; Set Reference
-</span><a href="Unison.Codebase.Patch.html#allReferenceTargets"><span class="hs-identifier hs-var hs-var">allReferenceTargets</span></a></span></span><span> </span><span id="local-6989586621680819019"><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680819019"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Patch -&gt; Set Reference
-</span><a href="#local-6989586621680819018"><span class="hs-identifier hs-var">typeReferences</span></a></span><span> </span><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680819019"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">Set Reference -&gt; Set Reference -&gt; Set Reference
+</span><a href="#local-6989586621680819027"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-71"></span><span>        </span><span class="hs-special">,</span><span> </span><span id="local-6989586621680819026"><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680819026"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680819025"><span class="hs-identifier hs-var">old</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680819023"><span class="hs-identifier hs-var">new</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-72"></span><span>
+</span><span id="line-73"></span><span class="hs-comment">-- | Returns the set of references which are the target of an arrow in the patch</span><span>
+</span><span id="line-74"></span><span class="annot"><a href="Unison.Codebase.Patch.html#allReferenceTargets"><span class="hs-identifier hs-type">allReferenceTargets</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Set</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Reference</span></span><span>
+</span><span id="line-75"></span><span id="allReferenceTargets"><span class="annot"><span class="annottext">allReferenceTargets :: Patch -&gt; Set Reference
+</span><a href="Unison.Codebase.Patch.html#allReferenceTargets"><span class="hs-identifier hs-var hs-var">allReferenceTargets</span></a></span></span><span> </span><span id="local-6989586621680819021"><span class="annot"><span class="annottext">Patch
+</span><a href="#local-6989586621680819021"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Patch -&gt; Set Reference
+</span><a href="#local-6989586621680819020"><span class="hs-identifier hs-var">typeReferences</span></a></span><span> </span><span class="annot"><span class="annottext">Patch
+</span><a href="#local-6989586621680819021"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">Set Reference -&gt; Set Reference -&gt; Set Reference
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Patch -&gt; Set Reference
-</span><a href="#local-6989586621680819017"><span class="hs-identifier hs-var">termReferences</span></a></span><span> </span><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680819019"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-75"></span><span>  </span><span id="local-6989586621680819018"><span class="annot"><span class="annottext">typeReferences :: Patch -&gt; Set Reference
-</span><a href="#local-6989586621680819018"><span class="hs-identifier hs-var hs-var">typeReferences</span></a></span></span><span> </span><span id="local-6989586621680819016"><span class="annot"><span class="annottext">Patch
+</span><a href="#local-6989586621680819019"><span class="hs-identifier hs-var">termReferences</span></a></span><span> </span><span class="annot"><span class="annottext">Patch
+</span><a href="#local-6989586621680819021"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-76"></span><span>  </span><span id="local-6989586621680819020"><span class="annot"><span class="annottext">typeReferences :: Patch -&gt; Set Reference
+</span><a href="#local-6989586621680819020"><span class="hs-identifier hs-var hs-var">typeReferences</span></a></span></span><span> </span><span id="local-6989586621680819018"><span class="annot"><span class="annottext">Patch
+</span><a href="#local-6989586621680819018"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Reference] -&gt; Set Reference
+forall a. Ord a =&gt; [a] -&gt; Set a
+</span><span class="hs-identifier hs-var">Set.fromList</span></span><span>
+</span><span id="line-77"></span><span>    </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680819017"><span class="hs-identifier hs-var">new</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Reference
+</span><span class="hs-identifier">_</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Codebase.TypeEdit.html#Replace"><span class="hs-identifier hs-type">TypeEdit.Replace</span></a></span><span> </span><span id="local-6989586621680819017"><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680819017"><span class="hs-identifier hs-var">new</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Relation Reference TypeEdit -&gt; [(Reference, TypeEdit)]
+forall a b. Relation a b -&gt; [(a, b)]
+</span><span class="hs-identifier hs-var">R.toList</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Patch -&gt; Relation Reference TypeEdit
+</span><a href="Unison.Codebase.Patch.html#_typeEdits"><span class="hs-identifier hs-var hs-var">_typeEdits</span></a></span><span> </span><span class="annot"><span class="annottext">Patch
+</span><a href="#local-6989586621680819018"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-78"></span><span>  </span><span id="local-6989586621680819019"><span class="annot"><span class="annottext">termReferences :: Patch -&gt; Set Reference
+</span><a href="#local-6989586621680819019"><span class="hs-identifier hs-var hs-var">termReferences</span></a></span></span><span> </span><span id="local-6989586621680819016"><span class="annot"><span class="annottext">Patch
 </span><a href="#local-6989586621680819016"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Reference] -&gt; Set Reference
 forall a. Ord a =&gt; [a] -&gt; Set a
 </span><span class="hs-identifier hs-var">Set.fromList</span></span><span>
-</span><span id="line-76"></span><span>    </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Reference
+</span><span id="line-79"></span><span>    </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Reference
 </span><a href="#local-6989586621680819015"><span class="hs-identifier hs-var">new</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Reference
-</span><span class="hs-identifier">_</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Codebase.TypeEdit.html#Replace"><span class="hs-identifier hs-type">TypeEdit.Replace</span></a></span><span> </span><span id="local-6989586621680819015"><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680819015"><span class="hs-identifier hs-var">new</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Relation Reference TypeEdit -&gt; [(Reference, TypeEdit)]
-forall a b. Relation a b -&gt; [(a, b)]
-</span><span class="hs-identifier hs-var">R.toList</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Patch -&gt; Relation Reference TypeEdit
-</span><a href="Unison.Codebase.Patch.html#_typeEdits"><span class="hs-identifier hs-var hs-var">_typeEdits</span></a></span><span> </span><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680819016"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">]</span><span>
-</span><span id="line-77"></span><span>  </span><span id="local-6989586621680819017"><span class="annot"><span class="annottext">termReferences :: Patch -&gt; Set Reference
-</span><a href="#local-6989586621680819017"><span class="hs-identifier hs-var hs-var">termReferences</span></a></span></span><span> </span><span id="local-6989586621680819014"><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680819014"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Reference] -&gt; Set Reference
-forall a. Ord a =&gt; [a] -&gt; Set a
-</span><span class="hs-identifier hs-var">Set.fromList</span></span><span>
-</span><span id="line-78"></span><span>    </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680819013"><span class="hs-identifier hs-var">new</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Reference
-</span><span class="hs-identifier">_</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Codebase.TermEdit.html#Replace"><span class="hs-identifier hs-type">TermEdit.Replace</span></a></span><span> </span><span id="local-6989586621680819013"><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680819013"><span class="hs-identifier hs-var">new</span></a></span></span><span> </span><span class="annot"><span class="annottext">Typing
+</span><span class="hs-identifier">_</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Codebase.TermEdit.html#Replace"><span class="hs-identifier hs-type">TermEdit.Replace</span></a></span><span> </span><span id="local-6989586621680819015"><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680819015"><span class="hs-identifier hs-var">new</span></a></span></span><span> </span><span class="annot"><span class="annottext">Typing
 </span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Relation Reference TermEdit -&gt; [(Reference, TermEdit)]
 forall a b. Relation a b -&gt; [(a, b)]
 </span><span class="hs-identifier hs-var">R.toList</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Patch -&gt; Relation Reference TermEdit
 </span><a href="Unison.Codebase.Patch.html#_termEdits"><span class="hs-identifier hs-var hs-var">_termEdits</span></a></span><span> </span><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680819014"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">]</span><span>
-</span><span id="line-79"></span><span>
-</span><span id="line-80"></span><span class="annot"><a href="Unison.Codebase.Patch.html#updateTerm"><span class="hs-identifier hs-type">updateTerm</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Reference</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Reference</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Codebase.TermEdit.html#Typing"><span class="hs-identifier hs-type">Typing</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-81"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Reference</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Codebase.TermEdit.html#TermEdit"><span class="hs-identifier hs-type">TermEdit</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span>
-</span><span id="line-82"></span><span id="updateTerm"><span class="annot"><span class="annottext">updateTerm :: (Reference -&gt; Reference -&gt; Typing)
+</span><a href="#local-6989586621680819016"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-80"></span><span>
+</span><span id="line-81"></span><span class="annot"><a href="Unison.Codebase.Patch.html#updateTerm"><span class="hs-identifier hs-type">updateTerm</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Reference</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Reference</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Codebase.TermEdit.html#Typing"><span class="hs-identifier hs-type">Typing</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-82"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Reference</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Codebase.TermEdit.html#TermEdit"><span class="hs-identifier hs-type">TermEdit</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span>
+</span><span id="line-83"></span><span id="updateTerm"><span class="annot"><span class="annottext">updateTerm :: (Reference -&gt; Reference -&gt; Typing)
 -&gt; Reference -&gt; TermEdit -&gt; Patch -&gt; Patch
-</span><a href="Unison.Codebase.Patch.html#updateTerm"><span class="hs-identifier hs-var hs-var">updateTerm</span></a></span></span><span> </span><span id="local-6989586621680819011"><span class="annot"><span class="annottext">Reference -&gt; Reference -&gt; Typing
-</span><a href="#local-6989586621680819011"><span class="hs-identifier hs-var">typing</span></a></span></span><span> </span><span id="local-6989586621680819010"><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680819010"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span id="local-6989586621680819009"><span class="annot"><span class="annottext">TermEdit
-</span><a href="#local-6989586621680819009"><span class="hs-identifier hs-var">edit</span></a></span></span><span> </span><span id="local-6989586621680819008"><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680819008"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-83"></span><span>  </span><span class="hs-comment">-- get D ~= lookupRan r</span><span>
-</span><span id="line-84"></span><span>  </span><span class="hs-comment">-- for each d &#8712; D, remove (d, r) and add (d, r')</span><span>
-</span><span id="line-85"></span><span>  </span><span class="hs-comment">-- add (r, r') and remove (r', r')</span><span>
-</span><span id="line-86"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621680819007"><span class="annot"><span class="annottext">deleteCycle :: Relation Reference TermEdit -&gt; Relation Reference TermEdit
-</span><a href="#local-6989586621680819007"><span class="hs-identifier hs-var hs-var">deleteCycle</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">TermEdit
-</span><a href="#local-6989586621680819009"><span class="hs-identifier hs-var">edit</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-87"></span><span>        </span><span class="annot"><span class="annottext">TermEdit
+</span><a href="Unison.Codebase.Patch.html#updateTerm"><span class="hs-identifier hs-var hs-var">updateTerm</span></a></span></span><span> </span><span id="local-6989586621680819013"><span class="annot"><span class="annottext">Reference -&gt; Reference -&gt; Typing
+</span><a href="#local-6989586621680819013"><span class="hs-identifier hs-var">typing</span></a></span></span><span> </span><span id="local-6989586621680819012"><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680819012"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span id="local-6989586621680819011"><span class="annot"><span class="annottext">TermEdit
+</span><a href="#local-6989586621680819011"><span class="hs-identifier hs-var">edit</span></a></span></span><span> </span><span id="local-6989586621680819010"><span class="annot"><span class="annottext">Patch
+</span><a href="#local-6989586621680819010"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-84"></span><span>  </span><span class="hs-comment">-- get D ~= lookupRan r</span><span>
+</span><span id="line-85"></span><span>  </span><span class="hs-comment">-- for each d &#8712; D, remove (d, r) and add (d, r')</span><span>
+</span><span id="line-86"></span><span>  </span><span class="hs-comment">-- add (r, r') and remove (r', r')</span><span>
+</span><span id="line-87"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621680819009"><span class="annot"><span class="annottext">deleteCycle :: Relation Reference TermEdit -&gt; Relation Reference TermEdit
+</span><a href="#local-6989586621680819009"><span class="hs-identifier hs-var hs-var">deleteCycle</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">TermEdit
+</span><a href="#local-6989586621680819011"><span class="hs-identifier hs-var">edit</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-88"></span><span>        </span><span class="annot"><span class="annottext">TermEdit
 </span><a href="Unison.Codebase.TermEdit.html#Deprecate"><span class="hs-identifier hs-var">TermEdit.Deprecate</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Relation Reference TermEdit -&gt; Relation Reference TermEdit
 forall a. a -&gt; a
 </span><span class="hs-identifier hs-var">id</span></span><span>
-</span><span id="line-88"></span><span>        </span><span class="annot"><a href="Unison.Codebase.TermEdit.html#Replace"><span class="hs-identifier hs-type">TermEdit.Replace</span></a></span><span> </span><span id="local-6989586621680819004"><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680819004"><span class="hs-identifier hs-var">r'</span></a></span></span><span> </span><span class="annot"><span class="annottext">Typing
+</span><span id="line-89"></span><span>        </span><span class="annot"><a href="Unison.Codebase.TermEdit.html#Replace"><span class="hs-identifier hs-type">TermEdit.Replace</span></a></span><span> </span><span id="local-6989586621680819006"><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680819006"><span class="hs-identifier hs-var">r'</span></a></span></span><span> </span><span class="annot"><span class="annottext">Typing
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Reference
 -&gt; TermEdit
 -&gt; Relation Reference TermEdit
@@ -471,14 +472,14 @@ forall a b.
 (Ord a, Ord b) =&gt;
 a -&gt; b -&gt; Relation a b -&gt; Relation a b
 </span><span class="hs-identifier hs-var">R.delete</span></span><span> </span><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680819004"><span class="hs-identifier hs-var">r'</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Reference -&gt; Typing -&gt; TermEdit
+</span><a href="#local-6989586621680819006"><span class="hs-identifier hs-var">r'</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Reference -&gt; Typing -&gt; TermEdit
 </span><a href="Unison.Codebase.TermEdit.html#Replace"><span class="hs-identifier hs-var">TermEdit.Replace</span></a></span><span> </span><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680819004"><span class="hs-identifier hs-var">r'</span></a></span><span> </span><span class="annot"><span class="annottext">Typing
+</span><a href="#local-6989586621680819006"><span class="hs-identifier hs-var">r'</span></a></span><span> </span><span class="annot"><span class="annottext">Typing
 </span><a href="Unison.Codebase.TermEdit.html#Same"><span class="hs-identifier hs-var">Same</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-89"></span><span>      </span><span class="annot"><a href="#local-6989586621680819002"><span class="hs-identifier hs-type">edits'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Relation</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Reference</span></span><span> </span><span class="annot"><a href="Unison.Codebase.TermEdit.html#TermEdit"><span class="hs-identifier hs-type">TermEdit</span></a></span><span>
-</span><span id="line-90"></span><span>      </span><span id="local-6989586621680819002"><span class="annot"><span class="annottext">edits' :: Relation Reference TermEdit
-</span><a href="#local-6989586621680819002"><span class="hs-identifier hs-var hs-var">edits'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Relation Reference TermEdit -&gt; Relation Reference TermEdit
-</span><a href="#local-6989586621680819007"><span class="hs-identifier hs-var">deleteCycle</span></a></span><span> </span><span class="annot"><span class="annottext">(Relation Reference TermEdit -&gt; Relation Reference TermEdit)
+</span><span id="line-90"></span><span>      </span><span class="annot"><a href="#local-6989586621680819004"><span class="hs-identifier hs-type">edits'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Relation</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Reference</span></span><span> </span><span class="annot"><a href="Unison.Codebase.TermEdit.html#TermEdit"><span class="hs-identifier hs-type">TermEdit</span></a></span><span>
+</span><span id="line-91"></span><span>      </span><span id="local-6989586621680819004"><span class="annot"><span class="annottext">edits' :: Relation Reference TermEdit
+</span><a href="#local-6989586621680819004"><span class="hs-identifier hs-var hs-var">edits'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Relation Reference TermEdit -&gt; Relation Reference TermEdit
+</span><a href="#local-6989586621680819009"><span class="hs-identifier hs-var">deleteCycle</span></a></span><span> </span><span class="annot"><span class="annottext">(Relation Reference TermEdit -&gt; Relation Reference TermEdit)
 -&gt; (Relation Reference TermEdit -&gt; Relation Reference TermEdit)
 -&gt; Relation Reference TermEdit
 -&gt; Relation Reference TermEdit
@@ -491,8 +492,8 @@ forall a b.
 (Ord a, Ord b) =&gt;
 a -&gt; b -&gt; Relation a b -&gt; Relation a b
 </span><span class="hs-identifier hs-var">R.insert</span></span><span> </span><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680819010"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="annot"><span class="annottext">TermEdit
-</span><a href="#local-6989586621680819009"><span class="hs-identifier hs-var">edit</span></a></span><span> </span><span class="annot"><span class="annottext">(Relation Reference TermEdit -&gt; Relation Reference TermEdit)
+</span><a href="#local-6989586621680819012"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="annot"><span class="annottext">TermEdit
+</span><a href="#local-6989586621680819011"><span class="hs-identifier hs-var">edit</span></a></span><span> </span><span class="annot"><span class="annottext">(Relation Reference TermEdit -&gt; Relation Reference TermEdit)
 -&gt; (Relation Reference TermEdit -&gt; Relation Reference TermEdit)
 -&gt; Relation Reference TermEdit
 -&gt; Relation Reference TermEdit
@@ -503,58 +504,58 @@ forall a b c d.
 (Ord a, Ord b, Ord c, Ord d) =&gt;
 ((a, b) -&gt; (c, d)) -&gt; Relation a b -&gt; Relation c d
 </span><span class="hs-identifier hs-var">R.map</span></span><span> </span><span class="annot"><span class="annottext">(Reference, TermEdit) -&gt; (Reference, TermEdit)
-</span><a href="#local-6989586621680818998"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">(Relation Reference TermEdit -&gt; Relation Reference TermEdit)
+</span><a href="#local-6989586621680819000"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">(Relation Reference TermEdit -&gt; Relation Reference TermEdit)
 -&gt; Relation Reference TermEdit -&gt; Relation Reference TermEdit
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Patch -&gt; Relation Reference TermEdit
 </span><a href="Unison.Codebase.Patch.html#_termEdits"><span class="hs-identifier hs-var hs-var">_termEdits</span></a></span><span> </span><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680819008"><span class="hs-identifier hs-var">p</span></a></span><span>
-</span><span id="line-91"></span><span>      </span><span id="local-6989586621680818998"><span class="annot"><span class="annottext">f :: (Reference, TermEdit) -&gt; (Reference, TermEdit)
-</span><a href="#local-6989586621680818998"><span class="hs-identifier hs-var hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621680818997"><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680818997"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Codebase.TermEdit.html#Replace"><span class="hs-identifier hs-type">TermEdit.Replace</span></a></span><span> </span><span id="local-6989586621680818996"><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680818996"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="annot"><span class="annottext">Typing
+</span><a href="#local-6989586621680819010"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-92"></span><span>      </span><span id="local-6989586621680819000"><span class="annot"><span class="annottext">f :: (Reference, TermEdit) -&gt; (Reference, TermEdit)
+</span><a href="#local-6989586621680819000"><span class="hs-identifier hs-var hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621680818999"><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680818999"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Codebase.TermEdit.html#Replace"><span class="hs-identifier hs-type">TermEdit.Replace</span></a></span><span> </span><span id="local-6989586621680818998"><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680818998"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="annot"><span class="annottext">Typing
 </span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680818996"><span class="hs-identifier hs-var">y</span></a></span><span> </span><span class="annot"><span class="annottext">Reference -&gt; Reference -&gt; Bool
+</span><a href="#local-6989586621680818998"><span class="hs-identifier hs-var">y</span></a></span><span> </span><span class="annot"><span class="annottext">Reference -&gt; Reference -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680819010"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">TermEdit
-</span><a href="#local-6989586621680819009"><span class="hs-identifier hs-var">edit</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-92"></span><span>        </span><span class="annot"><a href="Unison.Codebase.TermEdit.html#Replace"><span class="hs-identifier hs-type">TermEdit.Replace</span></a></span><span> </span><span id="local-6989586621680818995"><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680818995"><span class="hs-identifier hs-var">r'</span></a></span></span><span> </span><span class="annot"><span class="annottext">Typing
+</span><a href="#local-6989586621680819012"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">TermEdit
+</span><a href="#local-6989586621680819011"><span class="hs-identifier hs-var">edit</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-93"></span><span>        </span><span class="annot"><a href="Unison.Codebase.TermEdit.html#Replace"><span class="hs-identifier hs-type">TermEdit.Replace</span></a></span><span> </span><span id="local-6989586621680818997"><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680818997"><span class="hs-identifier hs-var">r'</span></a></span></span><span> </span><span class="annot"><span class="annottext">Typing
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680818997"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Reference -&gt; Typing -&gt; TermEdit
+</span><a href="#local-6989586621680818999"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Reference -&gt; Typing -&gt; TermEdit
 </span><a href="Unison.Codebase.TermEdit.html#Replace"><span class="hs-identifier hs-var">TermEdit.Replace</span></a></span><span> </span><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680818995"><span class="hs-identifier hs-var">r'</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Reference -&gt; Reference -&gt; Typing
-</span><a href="#local-6989586621680819011"><span class="hs-identifier hs-var">typing</span></a></span><span> </span><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680818997"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680818995"><span class="hs-identifier hs-var">r'</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
-</span><span id="line-93"></span><span>        </span><span class="annot"><span class="annottext">TermEdit
+</span><a href="#local-6989586621680818997"><span class="hs-identifier hs-var">r'</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Reference -&gt; Reference -&gt; Typing
+</span><a href="#local-6989586621680819013"><span class="hs-identifier hs-var">typing</span></a></span><span> </span><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680818999"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680818997"><span class="hs-identifier hs-var">r'</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-94"></span><span>        </span><span class="annot"><span class="annottext">TermEdit
 </span><a href="Unison.Codebase.TermEdit.html#Deprecate"><span class="hs-identifier hs-var">TermEdit.Deprecate</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680818997"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">TermEdit
+</span><a href="#local-6989586621680818999"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">TermEdit
 </span><a href="Unison.Codebase.TermEdit.html#Deprecate"><span class="hs-identifier hs-var">TermEdit.Deprecate</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-94"></span><span>      </span><span class="annot"><a href="#local-6989586621680818998"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span id="local-6989586621680818994"><span class="annot"><span class="annottext">(Reference, TermEdit)
-</span><a href="#local-6989586621680818994"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Reference, TermEdit)
-</span><a href="#local-6989586621680818994"><span class="hs-identifier hs-var">p</span></a></span><span>
-</span><span id="line-95"></span><span>  </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680819008"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">_termEdits :: Relation Reference TermEdit
+</span><span id="line-95"></span><span>      </span><span class="annot"><a href="#local-6989586621680819000"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span id="local-6989586621680818996"><span class="annot"><span class="annottext">(Reference, TermEdit)
+</span><a href="#local-6989586621680818996"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Reference, TermEdit)
+</span><a href="#local-6989586621680818996"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-96"></span><span>  </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">Patch
+</span><a href="#local-6989586621680819010"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">_termEdits :: Relation Reference TermEdit
 </span><a href="Unison.Codebase.Patch.html#_termEdits"><span class="hs-identifier hs-var">_termEdits</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Relation Reference TermEdit
-</span><a href="#local-6989586621680819002"><span class="hs-identifier hs-var">edits'</span></a></span><span> </span><span class="hs-special">}</span><span>
-</span><span id="line-96"></span><span>
-</span><span id="line-97"></span><span class="annot"><a href="Unison.Codebase.Patch.html#updateType"><span class="hs-identifier hs-type">updateType</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Reference</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Codebase.TypeEdit.html#TypeEdit"><span class="hs-identifier hs-type">TypeEdit</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span>
-</span><span id="line-98"></span><span id="updateType"><span class="annot"><span class="annottext">updateType :: Reference -&gt; TypeEdit -&gt; Patch -&gt; Patch
-</span><a href="Unison.Codebase.Patch.html#updateType"><span class="hs-identifier hs-var hs-var">updateType</span></a></span></span><span> </span><span id="local-6989586621680818992"><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680818992"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span id="local-6989586621680818991"><span class="annot"><span class="annottext">TypeEdit
-</span><a href="#local-6989586621680818991"><span class="hs-identifier hs-var">edit</span></a></span></span><span> </span><span id="local-6989586621680818990"><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680818990"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-99"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621680818989"><span class="annot"><span class="annottext">deleteCycle :: Relation Reference TypeEdit -&gt; Relation Reference TypeEdit
-</span><a href="#local-6989586621680818989"><span class="hs-identifier hs-var hs-var">deleteCycle</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">TypeEdit
-</span><a href="#local-6989586621680818991"><span class="hs-identifier hs-var">edit</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-100"></span><span>        </span><span class="annot"><span class="annottext">TypeEdit
+</span><a href="#local-6989586621680819004"><span class="hs-identifier hs-var">edits'</span></a></span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-97"></span><span>
+</span><span id="line-98"></span><span class="annot"><a href="Unison.Codebase.Patch.html#updateType"><span class="hs-identifier hs-type">updateType</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Reference</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Codebase.TypeEdit.html#TypeEdit"><span class="hs-identifier hs-type">TypeEdit</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span>
+</span><span id="line-99"></span><span id="updateType"><span class="annot"><span class="annottext">updateType :: Reference -&gt; TypeEdit -&gt; Patch -&gt; Patch
+</span><a href="Unison.Codebase.Patch.html#updateType"><span class="hs-identifier hs-var hs-var">updateType</span></a></span></span><span> </span><span id="local-6989586621680818994"><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680818994"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span id="local-6989586621680818993"><span class="annot"><span class="annottext">TypeEdit
+</span><a href="#local-6989586621680818993"><span class="hs-identifier hs-var">edit</span></a></span></span><span> </span><span id="local-6989586621680818992"><span class="annot"><span class="annottext">Patch
+</span><a href="#local-6989586621680818992"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-100"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621680818991"><span class="annot"><span class="annottext">deleteCycle :: Relation Reference TypeEdit -&gt; Relation Reference TypeEdit
+</span><a href="#local-6989586621680818991"><span class="hs-identifier hs-var hs-var">deleteCycle</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">TypeEdit
+</span><a href="#local-6989586621680818993"><span class="hs-identifier hs-var">edit</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-101"></span><span>        </span><span class="annot"><span class="annottext">TypeEdit
 </span><a href="Unison.Codebase.TypeEdit.html#Deprecate"><span class="hs-identifier hs-var">TypeEdit.Deprecate</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Relation Reference TypeEdit -&gt; Relation Reference TypeEdit
 forall a. a -&gt; a
 </span><span class="hs-identifier hs-var">id</span></span><span>
-</span><span id="line-101"></span><span>        </span><span class="annot"><a href="Unison.Codebase.TypeEdit.html#Replace"><span class="hs-identifier hs-type">TypeEdit.Replace</span></a></span><span> </span><span id="local-6989586621680818987"><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680818987"><span class="hs-identifier hs-var">r'</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Reference
+</span><span id="line-102"></span><span>        </span><span class="annot"><a href="Unison.Codebase.TypeEdit.html#Replace"><span class="hs-identifier hs-type">TypeEdit.Replace</span></a></span><span> </span><span id="local-6989586621680818989"><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680818989"><span class="hs-identifier hs-var">r'</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Reference
 -&gt; TypeEdit
 -&gt; Relation Reference TypeEdit
 -&gt; Relation Reference TypeEdit
@@ -562,13 +563,13 @@ forall a b.
 (Ord a, Ord b) =&gt;
 a -&gt; b -&gt; Relation a b -&gt; Relation a b
 </span><span class="hs-identifier hs-var">R.delete</span></span><span> </span><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680818987"><span class="hs-identifier hs-var">r'</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Reference -&gt; TypeEdit
+</span><a href="#local-6989586621680818989"><span class="hs-identifier hs-var">r'</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Reference -&gt; TypeEdit
 </span><a href="Unison.Codebase.TypeEdit.html#Replace"><span class="hs-identifier hs-var">TypeEdit.Replace</span></a></span><span> </span><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680818987"><span class="hs-identifier hs-var">r'</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-102"></span><span>      </span><span class="annot"><a href="#local-6989586621680818986"><span class="hs-identifier hs-type">edits'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Relation</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Reference</span></span><span> </span><span class="annot"><a href="Unison.Codebase.TypeEdit.html#TypeEdit"><span class="hs-identifier hs-type">TypeEdit</span></a></span><span>
-</span><span id="line-103"></span><span>      </span><span id="local-6989586621680818986"><span class="annot"><span class="annottext">edits' :: Relation Reference TypeEdit
-</span><a href="#local-6989586621680818986"><span class="hs-identifier hs-var hs-var">edits'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Relation Reference TypeEdit -&gt; Relation Reference TypeEdit
-</span><a href="#local-6989586621680818989"><span class="hs-identifier hs-var">deleteCycle</span></a></span><span> </span><span class="annot"><span class="annottext">(Relation Reference TypeEdit -&gt; Relation Reference TypeEdit)
+</span><a href="#local-6989586621680818989"><span class="hs-identifier hs-var">r'</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-103"></span><span>      </span><span class="annot"><a href="#local-6989586621680818988"><span class="hs-identifier hs-type">edits'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Relation</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Reference</span></span><span> </span><span class="annot"><a href="Unison.Codebase.TypeEdit.html#TypeEdit"><span class="hs-identifier hs-type">TypeEdit</span></a></span><span>
+</span><span id="line-104"></span><span>      </span><span id="local-6989586621680818988"><span class="annot"><span class="annottext">edits' :: Relation Reference TypeEdit
+</span><a href="#local-6989586621680818988"><span class="hs-identifier hs-var hs-var">edits'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Relation Reference TypeEdit -&gt; Relation Reference TypeEdit
+</span><a href="#local-6989586621680818991"><span class="hs-identifier hs-var">deleteCycle</span></a></span><span> </span><span class="annot"><span class="annottext">(Relation Reference TypeEdit -&gt; Relation Reference TypeEdit)
 -&gt; (Relation Reference TypeEdit -&gt; Relation Reference TypeEdit)
 -&gt; Relation Reference TypeEdit
 -&gt; Relation Reference TypeEdit
@@ -581,8 +582,8 @@ forall a b.
 (Ord a, Ord b) =&gt;
 a -&gt; b -&gt; Relation a b -&gt; Relation a b
 </span><span class="hs-identifier hs-var">R.insert</span></span><span> </span><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680818992"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="annot"><span class="annottext">TypeEdit
-</span><a href="#local-6989586621680818991"><span class="hs-identifier hs-var">edit</span></a></span><span> </span><span class="annot"><span class="annottext">(Relation Reference TypeEdit -&gt; Relation Reference TypeEdit)
+</span><a href="#local-6989586621680818994"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="annot"><span class="annottext">TypeEdit
+</span><a href="#local-6989586621680818993"><span class="hs-identifier hs-var">edit</span></a></span><span> </span><span class="annot"><span class="annottext">(Relation Reference TypeEdit -&gt; Relation Reference TypeEdit)
 -&gt; (Relation Reference TypeEdit -&gt; Relation Reference TypeEdit)
 -&gt; Relation Reference TypeEdit
 -&gt; Relation Reference TypeEdit
@@ -594,95 +595,95 @@ forall a b c d.
 ((a, b) -&gt; (c, d)) -&gt; Relation a b -&gt; Relation c d
 </span><span class="hs-identifier hs-var">R.map</span></span><span> </span><span class="annot"><span class="annottext">(Reference, TypeEdit) -&gt; (Reference, TypeEdit)
 forall a. (a, TypeEdit) -&gt; (a, TypeEdit)
-</span><a href="#local-6989586621680818985"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">(Relation Reference TypeEdit -&gt; Relation Reference TypeEdit)
+</span><a href="#local-6989586621680818987"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">(Relation Reference TypeEdit -&gt; Relation Reference TypeEdit)
 -&gt; Relation Reference TypeEdit -&gt; Relation Reference TypeEdit
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Patch -&gt; Relation Reference TypeEdit
 </span><a href="Unison.Codebase.Patch.html#_typeEdits"><span class="hs-identifier hs-var hs-var">_typeEdits</span></a></span><span> </span><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680818990"><span class="hs-identifier hs-var">p</span></a></span><span>
-</span><span id="line-104"></span><span>      </span><span id="local-6989586621680818985"><span class="annot"><span class="annottext">f :: (a, TypeEdit) -&gt; (a, TypeEdit)
-</span><a href="#local-6989586621680818985"><span class="hs-identifier hs-var hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621680818984"><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621680818984"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Codebase.TypeEdit.html#Replace"><span class="hs-identifier hs-type">TypeEdit.Replace</span></a></span><span> </span><span id="local-6989586621680818983"><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680818983"><span class="hs-identifier hs-var">y</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680818983"><span class="hs-identifier hs-var">y</span></a></span><span> </span><span class="annot"><span class="annottext">Reference -&gt; Reference -&gt; Bool
+</span><a href="#local-6989586621680818992"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-105"></span><span>      </span><span id="local-6989586621680818987"><span class="annot"><span class="annottext">f :: (a, TypeEdit) -&gt; (a, TypeEdit)
+</span><a href="#local-6989586621680818987"><span class="hs-identifier hs-var hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621680818986"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621680818986"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Codebase.TypeEdit.html#Replace"><span class="hs-identifier hs-type">TypeEdit.Replace</span></a></span><span> </span><span id="local-6989586621680818985"><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680818985"><span class="hs-identifier hs-var">y</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680818985"><span class="hs-identifier hs-var">y</span></a></span><span> </span><span class="annot"><span class="annottext">Reference -&gt; Reference -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680818992"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">TypeEdit
-</span><a href="#local-6989586621680818991"><span class="hs-identifier hs-var">edit</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-105"></span><span>        </span><span class="annot"><a href="Unison.Codebase.TypeEdit.html#Replace"><span class="hs-identifier hs-type">TypeEdit.Replace</span></a></span><span> </span><span id="local-6989586621680818982"><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680818982"><span class="hs-identifier hs-var">r'</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621680818984"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Reference -&gt; TypeEdit
+</span><a href="#local-6989586621680818994"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">TypeEdit
+</span><a href="#local-6989586621680818993"><span class="hs-identifier hs-var">edit</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-106"></span><span>        </span><span class="annot"><a href="Unison.Codebase.TypeEdit.html#Replace"><span class="hs-identifier hs-type">TypeEdit.Replace</span></a></span><span> </span><span id="local-6989586621680818984"><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680818984"><span class="hs-identifier hs-var">r'</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621680818986"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Reference -&gt; TypeEdit
 </span><a href="Unison.Codebase.TypeEdit.html#Replace"><span class="hs-identifier hs-var">TypeEdit.Replace</span></a></span><span> </span><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680818982"><span class="hs-identifier hs-var">r'</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-106"></span><span>        </span><span class="annot"><span class="annottext">TypeEdit
+</span><a href="#local-6989586621680818984"><span class="hs-identifier hs-var">r'</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-107"></span><span>        </span><span class="annot"><span class="annottext">TypeEdit
 </span><a href="Unison.Codebase.TypeEdit.html#Deprecate"><span class="hs-identifier hs-var">TypeEdit.Deprecate</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621680818984"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">TypeEdit
+</span><a href="#local-6989586621680818986"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">TypeEdit
 </span><a href="Unison.Codebase.TypeEdit.html#Deprecate"><span class="hs-identifier hs-var">TypeEdit.Deprecate</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-107"></span><span>      </span><span class="annot"><a href="#local-6989586621680818985"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span id="local-6989586621680818981"><span class="annot"><span class="annottext">(a, TypeEdit)
-</span><a href="#local-6989586621680818981"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(a, TypeEdit)
-</span><a href="#local-6989586621680818981"><span class="hs-identifier hs-var">p</span></a></span><span>
-</span><span id="line-108"></span><span>  </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680818990"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">_typeEdits :: Relation Reference TypeEdit
+</span><span id="line-108"></span><span>      </span><span class="annot"><a href="#local-6989586621680818987"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span id="local-6989586621680818983"><span class="annot"><span class="annottext">(a, TypeEdit)
+</span><a href="#local-6989586621680818983"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(a, TypeEdit)
+</span><a href="#local-6989586621680818983"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-109"></span><span>  </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">Patch
+</span><a href="#local-6989586621680818992"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">_typeEdits :: Relation Reference TypeEdit
 </span><a href="Unison.Codebase.Patch.html#_typeEdits"><span class="hs-identifier hs-var">_typeEdits</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Relation Reference TypeEdit
-</span><a href="#local-6989586621680818986"><span class="hs-identifier hs-var">edits'</span></a></span><span> </span><span class="hs-special">}</span><span>
-</span><span id="line-109"></span><span>
-</span><span id="line-110"></span><span class="annot"><a href="Unison.Codebase.Patch.html#conflicts"><span class="hs-identifier hs-type">conflicts</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span>
-</span><span id="line-111"></span><span id="conflicts"><span class="annot"><span class="annottext">conflicts :: Patch -&gt; Patch
-</span><a href="Unison.Codebase.Patch.html#conflicts"><span class="hs-identifier hs-var hs-var">conflicts</span></a></span></span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span class="hs-special">{</span><span id="local-6989586621680818978"><span id="local-6989586621680818979"><span class="annot"><span class="annottext">Relation Reference TermEdit
+</span><a href="#local-6989586621680818988"><span class="hs-identifier hs-var">edits'</span></a></span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-110"></span><span>
+</span><span id="line-111"></span><span class="annot"><a href="Unison.Codebase.Patch.html#conflicts"><span class="hs-identifier hs-type">conflicts</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span>
+</span><span id="line-112"></span><span id="conflicts"><span class="annot"><span class="annottext">conflicts :: Patch -&gt; Patch
+</span><a href="Unison.Codebase.Patch.html#conflicts"><span class="hs-identifier hs-var hs-var">conflicts</span></a></span></span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span class="hs-special">{</span><span id="local-6989586621680818980"><span id="local-6989586621680818981"><span class="annot"><span class="annottext">Relation Reference TermEdit
 Relation Reference TypeEdit
 _typeEdits :: Relation Reference TypeEdit
 _termEdits :: Relation Reference TermEdit
 _typeEdits :: Patch -&gt; Relation Reference TypeEdit
 _termEdits :: Patch -&gt; Relation Reference TermEdit
-</span><a href="#local-6989586621680818978"><span class="hs-glyph hs-var hs-var hs-var hs-var">..</span></a></span></span></span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-112"></span><span>  </span><span class="annot"><span class="annottext">Relation Reference TermEdit -&gt; Relation Reference TypeEdit -&gt; Patch
+</span><a href="#local-6989586621680818980"><span class="hs-glyph hs-var hs-var hs-var hs-var">..</span></a></span></span></span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-113"></span><span>  </span><span class="annot"><span class="annottext">Relation Reference TermEdit -&gt; Relation Reference TypeEdit -&gt; Patch
 </span><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-var">Patch</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Relation Reference TermEdit -&gt; Relation Reference TermEdit
 forall a b. (Ord a, Ord b) =&gt; Relation a b -&gt; Relation a b
 </span><span class="hs-identifier hs-var">R.filterManyDom</span></span><span> </span><span class="annot"><span class="annottext">Relation Reference TermEdit
-</span><a href="#local-6989586621680818979"><span class="hs-identifier hs-var">_termEdits</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Relation Reference TypeEdit -&gt; Relation Reference TypeEdit
+</span><a href="#local-6989586621680818981"><span class="hs-identifier hs-var">_termEdits</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Relation Reference TypeEdit -&gt; Relation Reference TypeEdit
 forall a b. (Ord a, Ord b) =&gt; Relation a b -&gt; Relation a b
 </span><span class="hs-identifier hs-var">R.filterManyDom</span></span><span> </span><span class="annot"><span class="annottext">Relation Reference TypeEdit
-</span><a href="#local-6989586621680818978"><span class="hs-identifier hs-var">_typeEdits</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-113"></span><span>
-</span><span id="line-114"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680818972"><span id="local-6989586621680818974"><span class="annot"><span class="hs-identifier hs-type">Semigroup</span></span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-115"></span><span>  </span><span id="local-6989586621680818970"><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680818970"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621680818969"><span class="annot"><span class="annottext">&lt;&gt; :: Patch -&gt; Patch -&gt; Patch
-</span><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;&gt;</span></span></span><span> </span><span id="local-6989586621680818968"><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680818968"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Relation Reference TermEdit -&gt; Relation Reference TypeEdit -&gt; Patch
+</span><a href="#local-6989586621680818980"><span class="hs-identifier hs-var">_typeEdits</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-114"></span><span>
+</span><span id="line-115"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680818974"><span id="local-6989586621680818976"><span class="annot"><span class="hs-identifier hs-type">Semigroup</span></span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-116"></span><span>  </span><span id="local-6989586621680818972"><span class="annot"><span class="annottext">Patch
+</span><a href="#local-6989586621680818972"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621680818971"><span class="annot"><span class="annottext">&lt;&gt; :: Patch -&gt; Patch -&gt; Patch
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;&gt;</span></span></span><span> </span><span id="local-6989586621680818970"><span class="annot"><span class="annottext">Patch
+</span><a href="#local-6989586621680818970"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Relation Reference TermEdit -&gt; Relation Reference TypeEdit -&gt; Patch
 </span><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-var">Patch</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Patch -&gt; Relation Reference TermEdit
 </span><a href="Unison.Codebase.Patch.html#_termEdits"><span class="hs-identifier hs-var hs-var">_termEdits</span></a></span><span> </span><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680818970"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Relation Reference TermEdit
+</span><a href="#local-6989586621680818972"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Relation Reference TermEdit
 -&gt; Relation Reference TermEdit -&gt; Relation Reference TermEdit
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Patch -&gt; Relation Reference TermEdit
 </span><a href="Unison.Codebase.Patch.html#_termEdits"><span class="hs-identifier hs-var hs-var">_termEdits</span></a></span><span> </span><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680818968"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-116"></span><span>                 </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Patch -&gt; Relation Reference TypeEdit
+</span><a href="#local-6989586621680818970"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-117"></span><span>                 </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Patch -&gt; Relation Reference TypeEdit
 </span><a href="Unison.Codebase.Patch.html#_typeEdits"><span class="hs-identifier hs-var hs-var">_typeEdits</span></a></span><span> </span><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680818970"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Relation Reference TypeEdit
+</span><a href="#local-6989586621680818972"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Relation Reference TypeEdit
 -&gt; Relation Reference TypeEdit -&gt; Relation Reference TypeEdit
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Patch -&gt; Relation Reference TypeEdit
 </span><a href="Unison.Codebase.Patch.html#_typeEdits"><span class="hs-identifier hs-var hs-var">_typeEdits</span></a></span><span> </span><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680818968"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-117"></span><span>
-</span><span id="line-118"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680818963"><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-119"></span><span>  </span><span id="local-6989586621680818961"><span class="annot"><span class="annottext">mappend :: Patch -&gt; Patch -&gt; Patch
+</span><a href="#local-6989586621680818970"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-118"></span><span>
+</span><span id="line-119"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680818965"><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-120"></span><span>  </span><span id="local-6989586621680818963"><span class="annot"><span class="annottext">mappend :: Patch -&gt; Patch -&gt; Patch
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var">mappend</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Patch -&gt; Patch -&gt; Patch
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">(&lt;&gt;)</span></span><span>
-</span><span id="line-120"></span><span>  </span><span id="local-6989586621680818960"><span class="annot"><span class="annottext">mempty :: Patch
+</span><span id="line-121"></span><span>  </span><span id="local-6989586621680818962"><span class="annot"><span class="annottext">mempty :: Patch
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var">mempty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Relation Reference TermEdit -&gt; Relation Reference TypeEdit -&gt; Patch
 </span><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-var">Patch</span></a></span><span> </span><span class="annot"><span class="annottext">Relation Reference TermEdit
 forall a. Monoid a =&gt; a
 </span><span class="hs-identifier hs-var">mempty</span></span><span> </span><span class="annot"><span class="annottext">Relation Reference TypeEdit
 forall a. Monoid a =&gt; a
 </span><span class="hs-identifier hs-var">mempty</span></span><span>
-</span><span id="line-121"></span><span>
-</span><span id="line-122"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Hashable</span></span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-123"></span><span>  </span><span id="local-6989586621680818957"><span class="annot"><span class="annottext">tokens :: Patch -&gt; [Token h]
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var">tokens</span></span></span><span> </span><span id="local-6989586621680818955"><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680818955"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">h -&gt; Token h
+</span><span id="line-122"></span><span>
+</span><span id="line-123"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Hashable</span></span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#Patch"><span class="hs-identifier hs-type">Patch</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-124"></span><span>  </span><span id="local-6989586621680818959"><span class="annot"><span class="annottext">tokens :: Patch -&gt; [Token h]
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">tokens</span></span></span><span> </span><span id="local-6989586621680818957"><span class="annot"><span class="annottext">Patch
+</span><a href="#local-6989586621680818957"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">h -&gt; Token h
 forall h. h -&gt; Token h
 </span><span class="hs-identifier hs-var">H.Hashed</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Token h] -&gt; h
 forall h. Accumulate h =&gt; [Token h] -&gt; h
@@ -690,8 +691,8 @@ forall h. Accumulate h =&gt; [Token h] -&gt; h
 forall t h. (Hashable t, Accumulate h) =&gt; t -&gt; [Token h]
 </span><span class="hs-identifier hs-var">H.tokens</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Patch -&gt; Relation Reference TermEdit
 </span><a href="Unison.Codebase.Patch.html#_termEdits"><span class="hs-identifier hs-var hs-var">_termEdits</span></a></span><span> </span><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680818955"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
-</span><span id="line-124"></span><span>               </span><span class="annot"><span class="annottext">h -&gt; Token h
+</span><a href="#local-6989586621680818957"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-125"></span><span>               </span><span class="annot"><span class="annottext">h -&gt; Token h
 forall h. h -&gt; Token h
 </span><span class="hs-identifier hs-var">H.Hashed</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Token h] -&gt; h
 forall h. Accumulate h =&gt; [Token h] -&gt; h
@@ -699,62 +700,62 @@ forall h. Accumulate h =&gt; [Token h] -&gt; h
 forall t h. (Hashable t, Accumulate h) =&gt; t -&gt; [Token h]
 </span><span class="hs-identifier hs-var">H.tokens</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Patch -&gt; Relation Reference TypeEdit
 </span><a href="Unison.Codebase.Patch.html#_typeEdits"><span class="hs-identifier hs-var hs-var">_typeEdits</span></a></span><span> </span><span class="annot"><span class="annottext">Patch
-</span><a href="#local-6989586621680818955"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-special">]</span><span>
-</span><span id="line-125"></span><span>
-</span><span id="line-126"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680818948"><span id="local-6989586621680818950"><span class="annot"><span class="hs-identifier hs-type">Semigroup</span></span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#PatchDiff"><span class="hs-identifier hs-type">PatchDiff</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-127"></span><span>  </span><span id="local-6989586621680818947"><span class="annot"><span class="annottext">PatchDiff
-</span><a href="#local-6989586621680818947"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621680818946"><span class="annot"><span class="annottext">&lt;&gt; :: PatchDiff -&gt; PatchDiff -&gt; PatchDiff
-</span><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;&gt;</span></span></span><span> </span><span id="local-6989586621680818945"><span class="annot"><span class="annottext">PatchDiff
-</span><a href="#local-6989586621680818945"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PatchDiff :: Relation Reference TermEdit
+</span><a href="#local-6989586621680818957"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-126"></span><span>
+</span><span id="line-127"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680818950"><span id="local-6989586621680818952"><span class="annot"><span class="hs-identifier hs-type">Semigroup</span></span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#PatchDiff"><span class="hs-identifier hs-type">PatchDiff</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-128"></span><span>  </span><span id="local-6989586621680818949"><span class="annot"><span class="annottext">PatchDiff
+</span><a href="#local-6989586621680818949"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621680818948"><span class="annot"><span class="annottext">&lt;&gt; :: PatchDiff -&gt; PatchDiff -&gt; PatchDiff
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;&gt;</span></span></span><span> </span><span id="local-6989586621680818947"><span class="annot"><span class="annottext">PatchDiff
+</span><a href="#local-6989586621680818947"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PatchDiff :: Relation Reference TermEdit
 -&gt; Relation Reference TypeEdit
 -&gt; Relation Reference TermEdit
 -&gt; Relation Reference TypeEdit
 -&gt; PatchDiff
 </span><a href="Unison.Codebase.Patch.html#PatchDiff"><span class="hs-identifier hs-type">PatchDiff</span></a></span><span>
-</span><span id="line-128"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">_addedTermEdits :: Relation Reference TermEdit
+</span><span id="line-129"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">_addedTermEdits :: Relation Reference TermEdit
 </span><a href="Unison.Codebase.Patch.html#_addedTermEdits"><span class="hs-identifier hs-var">_addedTermEdits</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PatchDiff -&gt; Relation Reference TermEdit
 </span><a href="Unison.Codebase.Patch.html#_addedTermEdits"><span class="hs-identifier hs-var hs-var">_addedTermEdits</span></a></span><span> </span><span class="annot"><span class="annottext">PatchDiff
-</span><a href="#local-6989586621680818947"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Relation Reference TermEdit
+</span><a href="#local-6989586621680818949"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Relation Reference TermEdit
 -&gt; Relation Reference TermEdit -&gt; Relation Reference TermEdit
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">PatchDiff -&gt; Relation Reference TermEdit
 </span><a href="Unison.Codebase.Patch.html#_addedTermEdits"><span class="hs-identifier hs-var hs-var">_addedTermEdits</span></a></span><span> </span><span class="annot"><span class="annottext">PatchDiff
-</span><a href="#local-6989586621680818945"><span class="hs-identifier hs-var">b</span></a></span><span>
-</span><span id="line-129"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_addedTypeEdits :: Relation Reference TypeEdit
+</span><a href="#local-6989586621680818947"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-130"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_addedTypeEdits :: Relation Reference TypeEdit
 </span><a href="Unison.Codebase.Patch.html#_addedTypeEdits"><span class="hs-identifier hs-var">_addedTypeEdits</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PatchDiff -&gt; Relation Reference TypeEdit
 </span><a href="Unison.Codebase.Patch.html#_addedTypeEdits"><span class="hs-identifier hs-var hs-var">_addedTypeEdits</span></a></span><span> </span><span class="annot"><span class="annottext">PatchDiff
-</span><a href="#local-6989586621680818947"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Relation Reference TypeEdit
+</span><a href="#local-6989586621680818949"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Relation Reference TypeEdit
 -&gt; Relation Reference TypeEdit -&gt; Relation Reference TypeEdit
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">PatchDiff -&gt; Relation Reference TypeEdit
 </span><a href="Unison.Codebase.Patch.html#_addedTypeEdits"><span class="hs-identifier hs-var hs-var">_addedTypeEdits</span></a></span><span> </span><span class="annot"><span class="annottext">PatchDiff
-</span><a href="#local-6989586621680818945"><span class="hs-identifier hs-var">b</span></a></span><span>
-</span><span id="line-130"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_removedTermEdits :: Relation Reference TermEdit
+</span><a href="#local-6989586621680818947"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-131"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_removedTermEdits :: Relation Reference TermEdit
 </span><a href="Unison.Codebase.Patch.html#_removedTermEdits"><span class="hs-identifier hs-var">_removedTermEdits</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PatchDiff -&gt; Relation Reference TermEdit
 </span><a href="Unison.Codebase.Patch.html#_removedTermEdits"><span class="hs-identifier hs-var hs-var">_removedTermEdits</span></a></span><span> </span><span class="annot"><span class="annottext">PatchDiff
-</span><a href="#local-6989586621680818947"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Relation Reference TermEdit
+</span><a href="#local-6989586621680818949"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Relation Reference TermEdit
 -&gt; Relation Reference TermEdit -&gt; Relation Reference TermEdit
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">PatchDiff -&gt; Relation Reference TermEdit
 </span><a href="Unison.Codebase.Patch.html#_removedTermEdits"><span class="hs-identifier hs-var hs-var">_removedTermEdits</span></a></span><span> </span><span class="annot"><span class="annottext">PatchDiff
-</span><a href="#local-6989586621680818945"><span class="hs-identifier hs-var">b</span></a></span><span>
-</span><span id="line-131"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_removedTypeEdits :: Relation Reference TypeEdit
+</span><a href="#local-6989586621680818947"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-132"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">_removedTypeEdits :: Relation Reference TypeEdit
 </span><a href="Unison.Codebase.Patch.html#_removedTypeEdits"><span class="hs-identifier hs-var">_removedTypeEdits</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PatchDiff -&gt; Relation Reference TypeEdit
 </span><a href="Unison.Codebase.Patch.html#_removedTypeEdits"><span class="hs-identifier hs-var hs-var">_removedTypeEdits</span></a></span><span> </span><span class="annot"><span class="annottext">PatchDiff
-</span><a href="#local-6989586621680818947"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Relation Reference TypeEdit
+</span><a href="#local-6989586621680818949"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Relation Reference TypeEdit
 -&gt; Relation Reference TypeEdit -&gt; Relation Reference TypeEdit
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">PatchDiff -&gt; Relation Reference TypeEdit
 </span><a href="Unison.Codebase.Patch.html#_removedTypeEdits"><span class="hs-identifier hs-var hs-var">_removedTypeEdits</span></a></span><span> </span><span class="annot"><span class="annottext">PatchDiff
-</span><a href="#local-6989586621680818945"><span class="hs-identifier hs-var">b</span></a></span><span>
-</span><span id="line-132"></span><span>    </span><span class="hs-special">}</span><span>
-</span><span id="line-133"></span><span>
-</span><span id="line-134"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680818940"><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#PatchDiff"><span class="hs-identifier hs-type">PatchDiff</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-135"></span><span>  </span><span id="local-6989586621680818939"><span class="annot"><span class="annottext">mappend :: PatchDiff -&gt; PatchDiff -&gt; PatchDiff
+</span><a href="#local-6989586621680818947"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-133"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-134"></span><span>
+</span><span id="line-135"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680818942"><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="Unison.Codebase.Patch.html#PatchDiff"><span class="hs-identifier hs-type">PatchDiff</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-136"></span><span>  </span><span id="local-6989586621680818941"><span class="annot"><span class="annottext">mappend :: PatchDiff -&gt; PatchDiff -&gt; PatchDiff
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var">mappend</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PatchDiff -&gt; PatchDiff -&gt; PatchDiff
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">(&lt;&gt;)</span></span><span>
-</span><span id="line-136"></span><span>  </span><span id="local-6989586621680818938"><span class="annot"><span class="annottext">mempty :: PatchDiff
+</span><span id="line-137"></span><span>  </span><span id="local-6989586621680818940"><span class="annot"><span class="annottext">mempty :: PatchDiff
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var">mempty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Relation Reference TermEdit
 -&gt; Relation Reference TypeEdit
 -&gt; Relation Reference TermEdit
@@ -769,4 +770,4 @@ forall a. Monoid a =&gt; a
 </span><span class="hs-identifier hs-var">mempty</span></span><span> </span><span class="annot"><span class="annottext">Relation Reference TypeEdit
 forall a. Monoid a =&gt; a
 </span><span class="hs-identifier hs-var">mempty</span></span><span>
-</span><span id="line-137"></span></pre></body></html>
+</span><span id="line-138"></span></pre></body></html>

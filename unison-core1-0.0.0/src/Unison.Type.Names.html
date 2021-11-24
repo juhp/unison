@@ -1,43 +1,44 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DeriveGeneric #-}</span><span>
-</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DeriveTraversable #-}</span><span>
-</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE OverloadedStrings #-}</span><span>
-</span><span id="line-4"></span><span class="hs-pragma">{-# LANGUAGE PatternSynonyms #-}</span><span>
-</span><span id="line-5"></span><span class="hs-pragma">{-# LANGUAGE Rank2Types #-}</span><span>
-</span><span id="line-6"></span><span class="hs-pragma">{-# LANGUAGE ViewPatterns #-}</span><span>
-</span><span id="line-7"></span><span>
-</span><span id="line-8"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Unison.Type.Names</span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-9"></span><span>
-</span><span id="line-10"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Unison.Prelude</span></span><span>
-</span><span id="line-11"></span><span>
-</span><span id="line-12"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Unison.Type.html"><span class="hs-identifier">Unison.Type</span></a></span><span>
-</span><span id="line-13"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Set</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Set</span></span><span>
-</span><span id="line-14"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Unison.ABT.html"><span class="hs-identifier">Unison.ABT</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">ABT</span></span><span>
-</span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Unison.Var.html"><span class="hs-identifier">Unison.Var</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Var.html#Var"><span class="hs-identifier">Var</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-16"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Unison.Names.html"><span class="hs-identifier">Unison.Names</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Names</span></span><span>
-</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Unison.NamesWithHistory.html"><span class="hs-identifier">Unison.NamesWithHistory</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Names</span></span><span>
-</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Unison.Names.ResolutionResult.html"><span class="hs-identifier">Unison.Names.ResolutionResult</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Names</span></span><span>
-</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Unison.Name.html"><span class="hs-identifier">Unison.Name</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Name</span></span><span>
-</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Unison.Util.List.html"><span class="hs-identifier">Unison.Util.List</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">List</span></span><span>
-</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Set.NonEmpty</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">NES</span></span><span>
-</span><span id="line-22"></span><span>
-</span><span id="line-23"></span><span id="local-6989586621679198680"><span id="local-6989586621679198681"><span class="annot"><a href="Unison.Type.Names.html#bindNames"><span class="hs-identifier hs-type">bindNames</span></a></span><span>
-</span><span id="line-24"></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Var.html#Var"><span class="hs-identifier hs-type">Var</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679198681"><span class="hs-identifier hs-type">v</span></a></span><span>
-</span><span id="line-25"></span><span>  </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Set</span></span><span> </span><span class="annot"><a href="#local-6989586621679198681"><span class="hs-identifier hs-type">v</span></a></span><span>
-</span><span id="line-26"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Names.html#Names"><span class="hs-identifier hs-type">Names.Names</span></a></span><span>
-</span><span id="line-27"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Type.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679198681"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679198680"><span class="hs-identifier hs-type">a</span></a></span><span>
-</span><span id="line-28"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Names.ResolutionResult.html#ResolutionResult"><span class="hs-identifier hs-type">Names.ResolutionResult</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679198681"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679198680"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Type.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679198681"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679198680"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span>
-</span><span id="line-29"></span><span id="bindNames"><span class="annot"><span class="annottext">bindNames :: Set v -&gt; Names -&gt; Type v a -&gt; ResolutionResult v a (Type v a)
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">{- ORMOLU_DISABLE -}</span><span> </span><span class="hs-comment">-- Remove this when the file is ready to be auto-formatted</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DeriveGeneric #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE DeriveTraversable #-}</span><span>
+</span><span id="line-4"></span><span class="hs-pragma">{-# LANGUAGE OverloadedStrings #-}</span><span>
+</span><span id="line-5"></span><span class="hs-pragma">{-# LANGUAGE PatternSynonyms #-}</span><span>
+</span><span id="line-6"></span><span class="hs-pragma">{-# LANGUAGE Rank2Types #-}</span><span>
+</span><span id="line-7"></span><span class="hs-pragma">{-# LANGUAGE ViewPatterns #-}</span><span>
+</span><span id="line-8"></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Unison.Type.Names</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Unison.Prelude</span></span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Unison.Type.html"><span class="hs-identifier">Unison.Type</span></a></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Set</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Set</span></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Unison.ABT.html"><span class="hs-identifier">Unison.ABT</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">ABT</span></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Unison.Var.html"><span class="hs-identifier">Unison.Var</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Var.html#Var"><span class="hs-identifier">Var</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Unison.Names.html"><span class="hs-identifier">Unison.Names</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Names</span></span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Unison.NamesWithHistory.html"><span class="hs-identifier">Unison.NamesWithHistory</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Names</span></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Unison.Names.ResolutionResult.html"><span class="hs-identifier">Unison.Names.ResolutionResult</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Names</span></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Unison.Name.html"><span class="hs-identifier">Unison.Name</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Name</span></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Unison.Util.List.html"><span class="hs-identifier">Unison.Util.List</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">List</span></span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Set.NonEmpty</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">NES</span></span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span id="local-6989586621679198680"><span id="local-6989586621679198681"><span class="annot"><a href="Unison.Type.Names.html#bindNames"><span class="hs-identifier hs-type">bindNames</span></a></span><span>
+</span><span id="line-25"></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Var.html#Var"><span class="hs-identifier hs-type">Var</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679198681"><span class="hs-identifier hs-type">v</span></a></span><span>
+</span><span id="line-26"></span><span>  </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Set</span></span><span> </span><span class="annot"><a href="#local-6989586621679198681"><span class="hs-identifier hs-type">v</span></a></span><span>
+</span><span id="line-27"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Names.html#Names"><span class="hs-identifier hs-type">Names.Names</span></a></span><span>
+</span><span id="line-28"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Type.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679198681"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679198680"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-29"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Names.ResolutionResult.html#ResolutionResult"><span class="hs-identifier hs-type">Names.ResolutionResult</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679198681"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679198680"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Type.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679198681"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679198680"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-30"></span><span id="bindNames"><span class="annot"><span class="annottext">bindNames :: Set v -&gt; Names -&gt; Type v a -&gt; ResolutionResult v a (Type v a)
 </span><a href="Unison.Type.Names.html#bindNames"><span class="hs-identifier hs-var hs-var">bindNames</span></a></span></span><span> </span><span id="local-6989586621679198678"><span class="annot"><span class="annottext">Set v
 </span><a href="#local-6989586621679198678"><span class="hs-identifier hs-var">keepFree</span></a></span></span><span> </span><span id="local-6989586621679198677"><span class="annot"><span class="annottext">Names
 </span><a href="#local-6989586621679198677"><span class="hs-identifier hs-var">ns0</span></a></span></span><span> </span><span id="local-6989586621679198676"><span class="annot"><span class="annottext">Type v a
 </span><a href="#local-6989586621679198676"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">let</span><span>
-</span><span id="line-30"></span><span>  </span><span id="local-6989586621679198675"><span class="annot"><span class="annottext">ns :: NamesWithHistory
+</span><span id="line-31"></span><span>  </span><span id="local-6989586621679198675"><span class="annot"><span class="annottext">ns :: NamesWithHistory
 </span><a href="#local-6989586621679198675"><span class="hs-identifier hs-var hs-var">ns</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Names -&gt; Names -&gt; NamesWithHistory
 </span><a href="Unison.NamesWithHistory.html#NamesWithHistory"><span class="hs-identifier hs-var">Names.NamesWithHistory</span></a></span><span> </span><span class="annot"><span class="annottext">Names
 </span><a href="#local-6989586621679198677"><span class="hs-identifier hs-var">ns0</span></a></span><span> </span><span class="annot"><span class="annottext">Names
 forall a. Monoid a =&gt; a
 </span><span class="hs-identifier hs-var">mempty</span></span><span>
-</span><span id="line-31"></span><span>  </span><span id="local-6989586621679198673"><span class="annot"><span class="annottext">fvs :: [(v, a)]
+</span><span id="line-32"></span><span>  </span><span id="local-6989586621679198673"><span class="annot"><span class="annottext">fvs :: [(v, a)]
 </span><a href="#local-6989586621679198673"><span class="hs-identifier hs-var hs-var">fvs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Set v -&gt; Type v a -&gt; [(v, a)]
 forall (f :: * -&gt; *) v a.
 (Traversable f, Ord v) =&gt;
@@ -45,7 +46,7 @@ Set v -&gt; Term f v a -&gt; [(v, a)]
 </span><a href="Unison.ABT.html#freeVarOccurrences"><span class="hs-identifier hs-var">ABT.freeVarOccurrences</span></a></span><span> </span><span class="annot"><span class="annottext">Set v
 </span><a href="#local-6989586621679198678"><span class="hs-identifier hs-var">keepFree</span></a></span><span> </span><span class="annot"><span class="annottext">Type v a
 </span><a href="#local-6989586621679198676"><span class="hs-identifier hs-var">t</span></a></span><span>
-</span><span id="line-32"></span><span>  </span><span id="local-6989586621679198671"><span class="annot"><span class="annottext">rs :: [(v, a, Set Reference)]
+</span><span id="line-33"></span><span>  </span><span id="local-6989586621679198671"><span class="annot"><span class="annottext">rs :: [(v, a, Set Reference)]
 </span><a href="#local-6989586621679198671"><span class="hs-identifier hs-var hs-var">rs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="annottext">v
 </span><a href="#local-6989586621679198670"><span class="hs-identifier hs-var">v</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">a
 </span><a href="#local-6989586621679198669"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">HashQualified Name -&gt; NamesWithHistory -&gt; Set Reference
@@ -61,20 +62,20 @@ forall v. Var v =&gt; v -&gt; Name
 </span><a href="#local-6989586621679198670"><span class="hs-identifier hs-var">v</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679198669"><span class="annot"><span class="annottext">a
 </span><a href="#local-6989586621679198669"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[(v, a)]
 </span><a href="#local-6989586621679198673"><span class="hs-identifier hs-var">fvs</span></a></span><span> </span><span class="hs-special">]</span><span>
-</span><span id="line-33"></span><span>  </span><span id="local-6989586621679198665"><span class="annot"><span class="annottext">ok :: (var, annotation, Set Reference)
+</span><span id="line-34"></span><span>  </span><span id="local-6989586621679198665"><span class="annot"><span class="annottext">ok :: (var, annotation, Set Reference)
 -&gt; Either (f (ResolutionFailure var annotation)) (var, Reference)
 </span><a href="#local-6989586621679198665"><span class="hs-identifier hs-var hs-var">ok</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679198664"><span class="annot"><span class="annottext">var
 </span><a href="#local-6989586621679198664"><span class="hs-identifier hs-var">v</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679198663"><span class="annot"><span class="annottext">annotation
 </span><a href="#local-6989586621679198663"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679198662"><span class="annot"><span class="annottext">Set Reference
 </span><a href="#local-6989586621679198662"><span class="hs-identifier hs-var">rs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span>
-</span><span id="line-34"></span><span>    </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Set Reference -&gt; Int
+</span><span id="line-35"></span><span>    </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Set Reference -&gt; Int
 forall a. Set a -&gt; Int
 </span><span class="hs-identifier hs-var">Set.size</span></span><span> </span><span class="annot"><span class="annottext">Set Reference
 </span><a href="#local-6989586621679198662"><span class="hs-identifier hs-var">rs</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">1</span></span><span> </span><span>
-</span><span id="line-35"></span><span>       </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">(var, Reference)
+</span><span id="line-36"></span><span>       </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">(var, Reference)
 -&gt; Either (f (ResolutionFailure var annotation)) (var, Reference)
 forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
 </span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">var
@@ -82,12 +83,12 @@ forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
 forall a. Set a -&gt; a
 </span><span class="hs-identifier hs-var">Set.findMin</span></span><span> </span><span class="annot"><span class="annottext">Set Reference
 </span><a href="#local-6989586621679198662"><span class="hs-identifier hs-var">rs</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-36"></span><span>       </span><span class="hs-keyword">else</span><span> </span><span>
-</span><span id="line-37"></span><span>         </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Set Reference -&gt; Maybe (NESet Reference)
+</span><span id="line-37"></span><span>       </span><span class="hs-keyword">else</span><span> </span><span>
+</span><span id="line-38"></span><span>         </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Set Reference -&gt; Maybe (NESet Reference)
 forall a. Set a -&gt; Maybe (NESet a)
 </span><span class="hs-identifier hs-var">NES.nonEmptySet</span></span><span> </span><span class="annot"><span class="annottext">Set Reference
 </span><a href="#local-6989586621679198662"><span class="hs-identifier hs-var">rs</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-38"></span><span>           </span><span class="annot"><span class="annottext">Maybe (NESet Reference)
+</span><span id="line-39"></span><span>           </span><span class="annot"><span class="annottext">Maybe (NESet Reference)
 </span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">f (ResolutionFailure var annotation)
 -&gt; Either (f (ResolutionFailure var annotation)) (var, Reference)
 forall a b. a -&gt; Either a b
@@ -108,7 +109,7 @@ var
 </span><a href="#local-6989586621679198663"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">ResolutionError Reference
 forall ref. ResolutionError ref
 </span><a href="Unison.Names.ResolutionResult.html#NotFound"><span class="hs-identifier hs-var">Names.NotFound</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
-</span><span id="line-39"></span><span>           </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679198656"><span class="annot"><span class="annottext">NESet Reference
+</span><span id="line-40"></span><span>           </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679198656"><span class="annot"><span class="annottext">NESet Reference
 </span><a href="#local-6989586621679198656"><span class="hs-identifier hs-var">rs'</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">f (ResolutionFailure var annotation)
 -&gt; Either (f (ResolutionFailure var annotation)) (var, Reference)
 forall a b. a -&gt; Either a b
@@ -131,7 +132,7 @@ forall ref. Names -&gt; NESet ref -&gt; ResolutionError ref
 </span><a href="Unison.Names.ResolutionResult.html#Ambiguous"><span class="hs-identifier hs-var">Names.Ambiguous</span></a></span><span> </span><span class="annot"><span class="annottext">Names
 </span><a href="#local-6989586621679198677"><span class="hs-identifier hs-var">ns0</span></a></span><span> </span><span class="annot"><span class="annottext">NESet Reference
 </span><a href="#local-6989586621679198656"><span class="hs-identifier hs-var">rs'</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
-</span><span id="line-40"></span><span>  </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">((v, a, Set Reference)
+</span><span id="line-41"></span><span>  </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">((v, a, Set Reference)
  -&gt; Either (Seq (ResolutionFailure v a)) (v, Reference))
 -&gt; [(v, a, Set Reference)]
 -&gt; Either (Seq (ResolutionFailure v a)) [(v, Reference)]
@@ -155,4 +156,4 @@ forall v a. Var v =&gt; [(v, Reference)] -&gt; Type v a -&gt; Type v a
 </span><a href="Unison.Type.html#bindExternal"><span class="hs-identifier hs-var">bindExternal</span></a></span><span> </span><span class="annot"><span class="annottext">[(v, Reference)]
 </span><a href="#local-6989586621679198652"><span class="hs-identifier hs-var">es</span></a></span><span> </span><span class="annot"><span class="annottext">Type v a
 </span><a href="#local-6989586621679198676"><span class="hs-identifier hs-var">t</span></a></span><span>
-</span><span id="line-41"></span></pre></body></html>
+</span><span id="line-42"></span></pre></body></html>

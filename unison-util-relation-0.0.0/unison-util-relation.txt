@@ -230,9 +230,9 @@ ran :: Relation a b -> Set b
 
 -- | Builds a Set from a Relation
 toSet :: (Ord a, Ord b) => Relation a b -> Set (a, b)
-instance (GHC.Classes.Ord a, GHC.Classes.Ord b) => GHC.Classes.Ord (Unison.Util.Relation.Relation a b)
 instance (GHC.Classes.Eq a, GHC.Classes.Eq b) => GHC.Classes.Eq (Unison.Util.Relation.Relation a b)
 instance (Control.DeepSeq.NFData a, Control.DeepSeq.NFData b) => Control.DeepSeq.NFData (Unison.Util.Relation.Relation a b)
+instance (GHC.Classes.Ord a, GHC.Classes.Ord b) => GHC.Classes.Ord (Unison.Util.Relation.Relation a b)
 instance (GHC.Show.Show a, GHC.Show.Show b) => GHC.Show.Show (Unison.Util.Relation.Relation a b)
 instance (GHC.Classes.Ord a, GHC.Classes.Ord b) => GHC.Base.Monoid (Unison.Util.Relation.Relation a b)
 instance (GHC.Classes.Ord a, GHC.Classes.Ord b) => GHC.Base.Semigroup (Unison.Util.Relation.Relation a b)
@@ -288,8 +288,8 @@ difference :: (Ord a, Ord b, Ord c) => Relation3 a b c -> Relation3 a b c -> Rel
 
 -- | <tt>union x y</tt> computes the union of <tt>x</tt> and <tt>y</tt>.
 union :: (Ord a, Ord b, Ord c) => Relation3 a b c -> Relation3 a b c -> Relation3 a b c
-instance (GHC.Classes.Ord a, GHC.Classes.Ord b, GHC.Classes.Ord c) => GHC.Classes.Ord (Unison.Util.Relation3.Relation3 a b c)
 instance (GHC.Classes.Eq a, GHC.Classes.Eq b, GHC.Classes.Eq c) => GHC.Classes.Eq (Unison.Util.Relation3.Relation3 a b c)
+instance (GHC.Classes.Ord a, GHC.Classes.Ord b, GHC.Classes.Ord c) => GHC.Classes.Ord (Unison.Util.Relation3.Relation3 a b c)
 instance (GHC.Show.Show a, GHC.Show.Show b, GHC.Show.Show c) => GHC.Show.Show (Unison.Util.Relation3.Relation3 a b c)
 instance (GHC.Classes.Ord a, GHC.Classes.Ord b, GHC.Classes.Ord c) => GHC.Base.Semigroup (Unison.Util.Relation3.Relation3 a b c)
 instance (GHC.Classes.Ord a, GHC.Classes.Ord b, GHC.Classes.Ord c) => GHC.Base.Monoid (Unison.Util.Relation3.Relation3 a b c)
@@ -330,8 +330,8 @@ mapD2 :: (Ord a, Ord b, Ord b', Ord c, Ord d) => (b -> b') -> Relation4 a b c d 
 --   <tt>compare x y == compare (f x) (f y)</tt>.
 mapD2Monotonic :: (Ord a, Ord b, Ord b', Ord c, Ord d) => (b -> b') -> Relation4 a b c d -> Relation4 a b' c d
 insertAll :: Foldable f => Ord a => Ord b => Ord c => Ord d => f (a, b, c, d) -> Relation4 a b c d -> Relation4 a b c d
-instance (GHC.Classes.Ord a, GHC.Classes.Ord b, GHC.Classes.Ord c, GHC.Classes.Ord d) => GHC.Classes.Ord (Unison.Util.Relation4.Relation4 a b c d)
 instance (GHC.Classes.Eq a, GHC.Classes.Eq b, GHC.Classes.Eq c, GHC.Classes.Eq d) => GHC.Classes.Eq (Unison.Util.Relation4.Relation4 a b c d)
+instance (GHC.Classes.Ord a, GHC.Classes.Ord b, GHC.Classes.Ord c, GHC.Classes.Ord d) => GHC.Classes.Ord (Unison.Util.Relation4.Relation4 a b c d)
 instance (GHC.Show.Show a, GHC.Show.Show b, GHC.Show.Show c, GHC.Show.Show d) => GHC.Show.Show (Unison.Util.Relation4.Relation4 a b c d)
 instance (GHC.Classes.Ord a, GHC.Classes.Ord b, GHC.Classes.Ord c, GHC.Classes.Ord d) => GHC.Base.Semigroup (Unison.Util.Relation4.Relation4 a b c d)
 instance (GHC.Classes.Ord a, GHC.Classes.Ord b, GHC.Classes.Ord c, GHC.Classes.Ord d) => GHC.Base.Monoid (Unison.Util.Relation4.Relation4 a b c d)

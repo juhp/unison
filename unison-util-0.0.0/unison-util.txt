@@ -86,10 +86,6 @@ type Field2' s a = Field2 s s a a
 type Field3' s a = Field3 s s a a
 type Field4' s a = Field4 s s a a
 
-module U.Util.Map
-bimap :: Ord a' => (a -> a') -> (b -> b') -> Map a b -> Map a' b'
-bitraverse :: (Applicative f, Ord a') => (a -> f a') -> (b -> f b') -> Map a b -> f (Map a' b')
-
 module U.Util.Monoid
 intercalateMap :: (Foldable t, Monoid a) => a -> (b -> a) -> t b -> a
 fromMaybe :: Monoid a => Maybe a -> a
@@ -98,10 +94,6 @@ unlessM :: Monoid a => Bool -> a -> a
 isEmpty :: (Eq a, Monoid a) => a -> Bool
 nonEmpty :: (Eq a, Monoid a) => a -> Bool
 foldMapM :: (Monad m, Foldable f, Monoid b) => (a -> m b) -> f a -> m b
-
-module U.Util.Set
-traverse :: (Applicative f, Ord b) => (a -> f b) -> Set a -> f (Set b)
-mapMaybe :: Ord b => (a -> Maybe b) -> Set a -> Set b
 
 module U.Util.Text
 

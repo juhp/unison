@@ -2129,3 +2129,22 @@ writeUtf8 :: FilePath -> Text -> IO ()
 uncurry4 :: (a -> b -> c -> d -> e) -> (a, b, c, d) -> e
 reportBug :: String -> String -> String
 tShow :: Show a => a -> Text
+
+
+-- | <tt>Map</tt> utilities.
+module Unison.Util.Map
+bimap :: Ord a' => (a -> a') -> (b -> b') -> Map a b -> Map a' b'
+bitraverse :: (Applicative f, Ord a') => (a -> f a') -> (b -> f b') -> Map a b -> f (Map a' b')
+
+-- | Construct a map from a foldable container by mapping each element to
+--   monadic action that returns a key and a value.
+--   
+--   The map is constructed from the left: if two elements map to the same
+--   key, the second will overwrite the first.
+foldMapM :: (Ord k, Monad m, Foldable t) => (a -> m (k, v)) -> t a -> m (Map k v)
+unionWithM :: forall m k a. (Monad m, Ord k) => (a -> a -> m a) -> Map k a -> Map k a -> m (Map k a)
+
+module Unison.Util.Set
+mapMaybe :: Ord b => (a -> Maybe b) -> Set a -> Set b
+symmetricDifference :: Ord a => Set a -> Set a -> Set a
+traverse :: (Applicative f, Ord b) => (a -> f b) -> Set a -> f (Set b)

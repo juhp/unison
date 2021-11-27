@@ -566,10 +566,6 @@ isEmpty :: (Eq a, Monoid a) => a -> Bool
 nonEmpty :: (Eq a, Monoid a) => a -> Bool
 foldMapM :: (Monad m, Foldable f, Monoid b) => (a -> m b) -> f a -> m b
 
-module Unison.Util.Set
-symmetricDifference :: Ord a => Set a -> Set a -> Set a
-mapMaybe :: (Ord a, Ord b) => (a -> Maybe b) -> Set a -> Set b
-
 module Unison.WatchKind
 type WatchKind = String
 

@@ -549,13 +549,13 @@ LoopState :: Branch m -> Branch m -> NonEmpty Absolute -> Maybe (FilePath, SkipN
 type Action' m v = Action m (Either Event Input) v
 type SkipNextUpdate = Bool
 type InputDescription = Text
-root :: forall m_a1ti1 v_a1ti2. Lens' (LoopState m_a1ti1 v_a1ti2) (Branch m_a1ti1)
-numberedArgs :: forall m_a1ti1 v_a1ti2. Lens' (LoopState m_a1ti1 v_a1ti2) NumberedArgs
-latestTypecheckedFile :: forall m_a1ti1 v_a1ti2 v_a1toD. Lens (LoopState m_a1ti1 v_a1ti2) (LoopState m_a1ti1 v_a1toD) (Maybe (TypecheckedUnisonFile v_a1ti2 Ann)) (Maybe (TypecheckedUnisonFile v_a1toD Ann))
-latestFile :: forall m_a1ti1 v_a1ti2. Lens' (LoopState m_a1ti1 v_a1ti2) (Maybe (FilePath, SkipNextUpdate))
-lastSavedRoot :: forall m_a1ti1 v_a1ti2. Lens' (LoopState m_a1ti1 v_a1ti2) (Branch m_a1ti1)
-lastInput :: forall m_a1ti1 v_a1ti2. Lens' (LoopState m_a1ti1 v_a1ti2) (Maybe Input)
-currentPathStack :: forall m_a1ti1 v_a1ti2. Lens' (LoopState m_a1ti1 v_a1ti2) (NonEmpty Absolute)
+root :: forall m_a1ti0 v_a1ti1. Lens' (LoopState m_a1ti0 v_a1ti1) (Branch m_a1ti0)
+numberedArgs :: forall m_a1ti0 v_a1ti1. Lens' (LoopState m_a1ti0 v_a1ti1) NumberedArgs
+latestTypecheckedFile :: forall m_a1ti0 v_a1ti1 v_a1toC. Lens (LoopState m_a1ti0 v_a1ti1) (LoopState m_a1ti0 v_a1toC) (Maybe (TypecheckedUnisonFile v_a1ti1 Ann)) (Maybe (TypecheckedUnisonFile v_a1toC Ann))
+latestFile :: forall m_a1ti0 v_a1ti1. Lens' (LoopState m_a1ti0 v_a1ti1) (Maybe (FilePath, SkipNextUpdate))
+lastSavedRoot :: forall m_a1ti0 v_a1ti1. Lens' (LoopState m_a1ti0 v_a1ti1) (Branch m_a1ti0)
+lastInput :: forall m_a1ti0 v_a1ti1. Lens' (LoopState m_a1ti0 v_a1ti1) (Maybe Input)
+currentPathStack :: forall m_a1ti0 v_a1ti1. Lens' (LoopState m_a1ti0 v_a1ti1) (NonEmpty Absolute)
 currentPath :: Getter (LoopState m v) Absolute
 loopState0 :: Branch m -> Absolute -> LoopState m v
 eval :: Command m i v a -> Action m i v a

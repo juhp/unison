@@ -2129,6 +2129,8 @@ writeUtf8 :: FilePath -> Text -> IO ()
 uncurry4 :: (a -> b -> c -> d -> e) -> (a, b, c, d) -> e
 reportBug :: String -> String -> String
 tShow :: Show a => a -> Text
+onNothing :: Applicative m => m a -> Maybe a -> m a
+whenLeft :: Applicative m => Either a b -> (a -> m b) -> m b
 
 
 -- | <tt>Map</tt> utilities.

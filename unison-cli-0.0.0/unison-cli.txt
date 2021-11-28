@@ -90,6 +90,13 @@ DebugClearWatchI :: Input
 QuitI :: Input
 UiI :: Input
 DocsToHtmlI :: Path' -> FilePath -> Input
+GistI :: GistInput -> Input
+
+-- | <tt>"gist repo"</tt> pushes the contents of the current namespace to
+--   <tt>repo</tt>.
+data GistInput
+GistInput :: WriteRepo -> GistInput
+[repo] :: GistInput -> WriteRepo
 data Event
 UnisonFileChanged :: SourceName -> Source -> Event
 IncomingRootBranch :: Set Hash -> Event
@@ -108,6 +115,8 @@ Force :: Insistence
 Try :: Insistence
 instance GHC.Classes.Eq Unison.Codebase.Editor.Input.Insistence
 instance GHC.Show.Show Unison.Codebase.Editor.Input.Insistence
+instance GHC.Show.Show Unison.Codebase.Editor.Input.GistInput
+instance GHC.Classes.Eq Unison.Codebase.Editor.Input.GistInput
 instance GHC.Show.Show Unison.Codebase.Editor.Input.OutputLocation
 instance GHC.Classes.Eq Unison.Codebase.Editor.Input.OutputLocation
 instance GHC.Show.Show Unison.Codebase.Editor.Input.Input
@@ -356,6 +365,10 @@ CouldntLoadBranch :: Hash -> Output v
 NamespaceEmpty :: Either Absolute (Absolute, Absolute) -> Output v
 NoOp :: Output v
 RefusedToPush :: PushBehavior -> Output v
+
+-- | <tt>GistCreated repo hash</tt> means causal <tt>hash</tt> was just
+--   published to <tt>repo</tt>.
+GistCreated :: Int -> WriteRepo -> Hash -> Output v
 data NumberedOutput v
 ShowDiffNamespace :: Absolute -> Absolute -> PrettyPrintEnv -> BranchDiffOutput v Ann -> NumberedOutput v
 ShowDiffAfterUndo :: PrettyPrintEnv -> BranchDiffOutput v Ann -> NumberedOutput v
@@ -486,7 +499,7 @@ data Command m i v a
 [ViewRemoteBranch] :: ReadRemoteNamespace -> Command m i v (Either GitError (m (), Branch m))
 [ImportRemoteBranch] :: ReadRemoteNamespace -> SyncMode -> Command m i v (Either GitError (Branch m))
 [SyncLocalRootBranch] :: Branch m -> Command m i v ()
-[SyncRemoteRootBranch] :: WriteRepo -> Branch m -> SyncMode -> Command m i v (Either GitError ())
+[SyncRemoteBranch] :: Branch m -> WriteRepo -> PushGitBranchOpts -> Command m i v (Either GitError ())
 [AppendToReflog] :: Text -> Branch m -> Branch m -> Command m i v ()
 [LoadReflog] :: Command m i v [Entry Hash]
 [LoadTerm] :: Id -> Command m i v (Maybe (Term v Ann))
@@ -549,13 +562,13 @@ LoopState :: Branch m -> Branch m -> NonEmpty Absolute -> Maybe (FilePath, SkipN
 type Action' m v = Action m (Either Event Input) v
 type SkipNextUpdate = Bool
 type InputDescription = Text
-root :: forall m_a1ti0 v_a1ti1. Lens' (LoopState m_a1ti0 v_a1ti1) (Branch m_a1ti0)
-numberedArgs :: forall m_a1ti0 v_a1ti1. Lens' (LoopState m_a1ti0 v_a1ti1) NumberedArgs
-latestTypecheckedFile :: forall m_a1ti0 v_a1ti1 v_a1toC. Lens (LoopState m_a1ti0 v_a1ti1) (LoopState m_a1ti0 v_a1toC) (Maybe (TypecheckedUnisonFile v_a1ti1 Ann)) (Maybe (TypecheckedUnisonFile v_a1toC Ann))
-latestFile :: forall m_a1ti0 v_a1ti1. Lens' (LoopState m_a1ti0 v_a1ti1) (Maybe (FilePath, SkipNextUpdate))
-lastSavedRoot :: forall m_a1ti0 v_a1ti1. Lens' (LoopState m_a1ti0 v_a1ti1) (Branch m_a1ti0)
-lastInput :: forall m_a1ti0 v_a1ti1. Lens' (LoopState m_a1ti0 v_a1ti1) (Maybe Input)
-currentPathStack :: forall m_a1ti0 v_a1ti1. Lens' (LoopState m_a1ti0 v_a1ti1) (NonEmpty Absolute)
+root :: forall m_a1tHd v_a1tHe. Lens' (LoopState m_a1tHd v_a1tHe) (Branch m_a1tHd)
+numberedArgs :: forall m_a1tHd v_a1tHe. Lens' (LoopState m_a1tHd v_a1tHe) NumberedArgs
+latestTypecheckedFile :: forall m_a1tHd v_a1tHe v_a1tNP. Lens (LoopState m_a1tHd v_a1tHe) (LoopState m_a1tHd v_a1tNP) (Maybe (TypecheckedUnisonFile v_a1tHe Ann)) (Maybe (TypecheckedUnisonFile v_a1tNP Ann))
+latestFile :: forall m_a1tHd v_a1tHe. Lens' (LoopState m_a1tHd v_a1tHe) (Maybe (FilePath, SkipNextUpdate))
+lastSavedRoot :: forall m_a1tHd v_a1tHe. Lens' (LoopState m_a1tHd v_a1tHe) (Branch m_a1tHd)
+lastInput :: forall m_a1tHd v_a1tHe. Lens' (LoopState m_a1tHd v_a1tHe) (Maybe Input)
+currentPathStack :: forall m_a1tHd v_a1tHe. Lens' (LoopState m_a1tHd v_a1tHe) (NonEmpty Absolute)
 currentPath :: Getter (LoopState m v) Absolute
 loopState0 :: Branch m -> Absolute -> LoopState m v
 eval :: Command m i v a -> Action m i v a
@@ -775,6 +788,7 @@ execute :: InputPattern
 ioTest :: InputPattern
 makeStandalone :: InputPattern
 createAuthor :: InputPattern
+gist :: InputPattern
 validInputs :: [InputPattern]
 commandNames :: [String]
 commandNameArg :: ArgumentType
@@ -805,7 +819,7 @@ type Pretty = Pretty ColorText
 shortenDirectory :: FilePath -> IO FilePath
 renderFileName :: FilePath -> IO Pretty
 notifyNumbered :: Var v => NumberedOutput v -> (Pretty, NumberedArgs)
-prettyRemoteNamespace :: (ReadRepo, Maybe ShortBranchHash, Path) -> Pretty ColorText
+prettyRemoteNamespace :: ReadRemoteNamespace -> Pretty ColorText
 notifyUser :: forall v. Var v => FilePath -> Output v -> IO Pretty
 prettyPath' :: Path' -> Pretty
 prettyRelative :: Relative -> Pretty

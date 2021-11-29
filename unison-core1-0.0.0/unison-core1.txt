@@ -128,6 +128,17 @@ instance GHC.Classes.Ord Unison.Kind.Kind
 instance GHC.Classes.Eq Unison.Kind.Kind
 instance Unison.Hashable.Hashable Unison.Kind.Kind
 
+module Unison.Position
+
+-- | An indicator of whether something is absolute, e.g. ".foo.bar", or
+--   relative, e.g. "foo.bar"
+data Position
+Absolute :: Position
+Relative :: Position
+instance GHC.Show.Show Unison.Position.Position
+instance GHC.Classes.Ord Unison.Position.Position
+instance GHC.Classes.Eq Unison.Position.Position
+
 module Unison.Settings
 debugNoteLoc :: Bool
 debugNoteSummary :: Bool
@@ -823,6 +834,12 @@ makeAbsolute :: Name -> Name
 --   <i>O(1)</i>.
 makeRelative :: Name -> Name
 
+-- | Overwrite a name's position. This only changes the name's tag, it
+--   performs no manipulations to the segments of the name.
+--   
+--   <i>O(1)</i>.
+setPosition :: Position -> Name -> Name
+
 -- | Compute the "parent" of a name, unless the name is only a single
 --   segment, in which case it has no parent.
 --   
@@ -949,9 +966,6 @@ compareAlphabetical :: Alphabetical n => n -> n -> Ordering
 --   
 --   <i>O(n)</i>, where <i>n</i> is the number of name segments.
 compareSuffix :: Name -> Name -> Ordering
-instance GHC.Show.Show Unison.Name.Position
-instance GHC.Classes.Ord Unison.Name.Position
-instance GHC.Classes.Eq Unison.Name.Position
 instance GHC.Classes.Eq Unison.Name.Name
 instance Unison.Name.Parse Data.Text.Internal.Text Unison.NameSegment.NameSegment
 instance (Unison.Name.Parse a a2, Unison.Name.Parse b b2) => Unison.Name.Parse (a, b) (a2, b2)

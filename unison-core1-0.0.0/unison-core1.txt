@@ -989,6 +989,7 @@ toHash :: HashQualified n -> Maybe ShortHash
 fromNameHash :: Maybe Name -> Maybe ShortHash -> HashQualified Name
 take :: Int -> HashQualified n -> HashQualified n
 toString :: Show n => HashQualified n -> String
+toStringWith :: (n -> String) -> HashQualified n -> String
 fromString :: String -> Maybe (HashQualified Name)
 unsafeFromString :: String -> HashQualified Name
 fromText :: Text -> Maybe (HashQualified Name)
@@ -1036,6 +1037,7 @@ take :: Int -> HashQualified n -> HashQualified n
 toNameOnly :: HashQualified n -> HashQualified n
 toHash :: HashQualified n -> Maybe ShortHash
 toString :: Show n => HashQualified n -> String
+toStringWith :: (n -> String) -> HashQualified n -> String
 fromText :: Text -> Maybe (HashQualified Name)
 unsafeFromText :: Text -> HashQualified Name
 fromString :: String -> Maybe (HashQualified Name)

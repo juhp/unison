@@ -16,7 +16,7 @@ data Input
 ForkLocalBranchI :: Either ShortBranchHash Path' -> Path' -> Input
 MergeLocalBranchI :: Path' -> Path' -> MergeMode -> Input
 PreviewMergeLocalBranchI :: Path' -> Path' -> Input
-DiffNamespaceI :: Path' -> Path' -> Input
+DiffNamespaceI :: BranchId -> BranchId -> Input
 PullRemoteBranchI :: Maybe ReadRemoteNamespace -> Path' -> SyncMode -> Verbosity -> Input
 PushRemoteBranchI :: Maybe WriteRemotePath -> Path' -> PushBehavior -> SyncMode -> Input
 CreatePullRequestI :: ReadRemoteNamespace -> ReadRemoteNamespace -> Input
@@ -106,6 +106,7 @@ LatestFileLocation :: OutputLocation
 FileLocation :: FilePath -> OutputLocation
 type PatchPath = Split'
 type BranchId = Either ShortBranchHash Path'
+type AbsBranchId = Either ShortBranchHash Absolute
 parseBranchId :: String -> Either String BranchId
 type HashOrHQSplit' = Either ShortHash HQSplit'
 
@@ -362,7 +363,7 @@ BadName :: String -> Output v
 DefaultMetadataNotification :: Output v
 BadRootBranch :: GetRootBranchError -> Output v
 CouldntLoadBranch :: Hash -> Output v
-NamespaceEmpty :: Either Absolute (Absolute, Absolute) -> Output v
+NamespaceEmpty :: NonEmpty AbsBranchId -> Output v
 NoOp :: Output v
 RefusedToPush :: PushBehavior -> Output v
 
@@ -370,7 +371,7 @@ RefusedToPush :: PushBehavior -> Output v
 --   published to <tt>repo</tt>.
 GistCreated :: Int -> WriteRepo -> Hash -> Output v
 data NumberedOutput v
-ShowDiffNamespace :: Absolute -> Absolute -> PrettyPrintEnv -> BranchDiffOutput v Ann -> NumberedOutput v
+ShowDiffNamespace :: AbsBranchId -> AbsBranchId -> PrettyPrintEnv -> BranchDiffOutput v Ann -> NumberedOutput v
 ShowDiffAfterUndo :: PrettyPrintEnv -> BranchDiffOutput v Ann -> NumberedOutput v
 ShowDiffAfterDeleteDefinitions :: PrettyPrintEnv -> BranchDiffOutput v Ann -> NumberedOutput v
 ShowDiffAfterDeleteBranch :: Absolute -> PrettyPrintEnv -> BranchDiffOutput v Ann -> NumberedOutput v
@@ -573,13 +574,13 @@ LoopState :: Branch m -> Branch m -> NonEmpty Absolute -> Maybe (FilePath, SkipN
 type Action' m v = Action m (Either Event Input) v
 type SkipNextUpdate = Bool
 type InputDescription = Text
-root :: forall m_a1tRC v_a1tRD. Lens' (LoopState m_a1tRC v_a1tRD) (Branch m_a1tRC)
-numberedArgs :: forall m_a1tRC v_a1tRD. Lens' (LoopState m_a1tRC v_a1tRD) NumberedArgs
-latestTypecheckedFile :: forall m_a1tRC v_a1tRD v_a1u3n. Lens (LoopState m_a1tRC v_a1tRD) (LoopState m_a1tRC v_a1u3n) (Maybe (TypecheckedUnisonFile v_a1tRD Ann)) (Maybe (TypecheckedUnisonFile v_a1u3n Ann))
-latestFile :: forall m_a1tRC v_a1tRD. Lens' (LoopState m_a1tRC v_a1tRD) (Maybe (FilePath, SkipNextUpdate))
-lastSavedRoot :: forall m_a1tRC v_a1tRD. Lens' (LoopState m_a1tRC v_a1tRD) (Branch m_a1tRC)
-lastInput :: forall m_a1tRC v_a1tRD. Lens' (LoopState m_a1tRC v_a1tRD) (Maybe Input)
-currentPathStack :: forall m_a1tRC v_a1tRD. Lens' (LoopState m_a1tRC v_a1tRD) (NonEmpty Absolute)
+root :: forall m_a1tRU v_a1tRV. Lens' (LoopState m_a1tRU v_a1tRV) (Branch m_a1tRU)
+numberedArgs :: forall m_a1tRU v_a1tRV. Lens' (LoopState m_a1tRU v_a1tRV) NumberedArgs
+latestTypecheckedFile :: forall m_a1tRU v_a1tRV v_a1u3F. Lens (LoopState m_a1tRU v_a1tRV) (LoopState m_a1tRU v_a1u3F) (Maybe (TypecheckedUnisonFile v_a1tRV Ann)) (Maybe (TypecheckedUnisonFile v_a1u3F Ann))
+latestFile :: forall m_a1tRU v_a1tRV. Lens' (LoopState m_a1tRU v_a1tRV) (Maybe (FilePath, SkipNextUpdate))
+lastSavedRoot :: forall m_a1tRU v_a1tRV. Lens' (LoopState m_a1tRU v_a1tRV) (Branch m_a1tRU)
+lastInput :: forall m_a1tRU v_a1tRV. Lens' (LoopState m_a1tRU v_a1tRV) (Maybe Input)
+currentPathStack :: forall m_a1tRU v_a1tRV. Lens' (LoopState m_a1tRU v_a1tRV) (NonEmpty Absolute)
 currentPath :: Getter (LoopState m v) Absolute
 loopState0 :: Branch m -> Absolute -> LoopState m v
 instance Unison.Codebase.Editor.HandleInput.LoopState.MonadCommand (Unison.Util.Free.Free (Unison.Codebase.Editor.Command.Command m i v)) m i v
@@ -836,6 +837,7 @@ notifyNumbered :: Var v => NumberedOutput v -> (Pretty, NumberedArgs)
 prettyRemoteNamespace :: ReadRemoteNamespace -> Pretty ColorText
 notifyUser :: forall v. Var v => FilePath -> Output v -> IO Pretty
 prettyPath' :: Path' -> Pretty
+prettyBranchId :: AbsBranchId -> Pretty
 prettyRelative :: Relative -> Pretty
 prettyAbsolute :: Absolute -> Pretty
 prettySBH :: IsString s => ShortBranchHash -> Pretty s
@@ -862,7 +864,7 @@ HideNumbers :: ShowNumbers
 
 -- | <tt>ppe</tt> is just for rendering type signatures `oldPath, newPath
 --   :: Path.Absolute` are just for producing fully-qualified numbered args
-showDiffNamespace :: forall v. Var v => ShowNumbers -> PrettyPrintEnv -> Absolute -> Absolute -> BranchDiffOutput v Ann -> (Pretty, NumberedArgs)
+showDiffNamespace :: forall v. Var v => ShowNumbers -> PrettyPrintEnv -> AbsBranchId -> AbsBranchId -> BranchDiffOutput v Ann -> (Pretty, NumberedArgs)
 noResults :: Pretty
 listOfDefinitions' :: Var v => PrettyPrintEnv -> ListDetailed -> [SearchResult' v a] -> Pretty
 watchPrinter :: Var v => Text -> PrettyPrintEnv -> Ann -> WatchKind -> Term v () -> IsCacheHit -> Pretty

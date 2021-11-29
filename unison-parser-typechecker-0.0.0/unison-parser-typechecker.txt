@@ -25,7 +25,7 @@ RawMerge :: e -> Set (RawHash h) -> Raw h e
 newtype RawHash a
 RawHash :: Hash -> RawHash a
 [unRawHash] :: RawHash a -> Hash
-head_ :: forall m_am33 h_am34 e_am35. Lens' (Causal m_am33 h_am34 e_am35) e_am35
+head_ :: forall m_am35 h_am36 e_am37. Lens' (Causal m_am35 h_am36 e_am37) e_am37
 one :: Hashable e => e -> Causal m h e
 cons :: (Applicative m, Hashable e) => e -> Causal m h e -> Causal m h e
 cons' :: Hashable e => e -> RawHash h -> m (Causal m h e) -> Causal m h e
@@ -241,14 +241,14 @@ putBytes :: Put a -> a -> ByteString
 putWithParentDirs :: MonadIO m => Put a -> FilePath -> a -> m ()
 
 module Unison.Codebase.ShortBranchHash
-newtype ShortBranchHash
-ShortBranchHash :: Text -> ShortBranchHash
-[toText] :: ShortBranchHash -> Text
 toString :: ShortBranchHash -> String
 toHash :: Coercible Hash h => ShortBranchHash -> Maybe h
 fromHash :: Coercible h Hash => Int -> h -> ShortBranchHash
 fullFromHash :: Coercible h Hash => h -> ShortBranchHash
 fromText :: Text -> Maybe ShortBranchHash
+newtype ShortBranchHash
+ShortBranchHash :: Text -> ShortBranchHash
+[toText] :: ShortBranchHash -> Text
 instance GHC.Generics.Generic Unison.Codebase.ShortBranchHash.ShortBranchHash
 instance GHC.Classes.Ord Unison.Codebase.ShortBranchHash.ShortBranchHash
 instance GHC.Classes.Eq Unison.Codebase.ShortBranchHash.ShortBranchHash
@@ -1964,7 +1964,7 @@ isOne :: Branch m -> Bool
 before :: Monad m => Branch m -> Branch m -> m Bool
 lca :: Monad m => Branch m -> Branch m -> m (Maybe (Branch m))
 diff0 :: Monad m => Branch0 m -> Branch0 m -> m BranchDiff
-history :: forall m_a3oYV m_a3pcj. Iso (Branch m_a3oYV) (Branch m_a3pcj) (UnwrappedBranch m_a3oYV) (UnwrappedBranch m_a3pcj)
+history :: forall m_a3oYX m_a3pcl. Iso (Branch m_a3oYX) (Branch m_a3pcl) (UnwrappedBranch m_a3oYX) (UnwrappedBranch m_a3pcl)
 head :: Branch m -> Branch0 m
 headHash :: Branch m -> Hash
 children :: Lens' (Branch0 m) (Map NameSegment (Branch m))
@@ -1999,7 +1999,7 @@ modifyAtM :: forall n m. Functor n => Applicative m => Path -> (Branch m -> n (B
 children0 :: IndexedTraversal' NameSegment (Branch0 m) (Branch0 m)
 terms :: Lens' (Branch0 m) (Star Referent NameSegment)
 types :: Lens' (Branch0 m) (Star TypeReference NameSegment)
-edits :: forall m_a3oYR. Lens' (Branch0 m_a3oYR) (Map NameSegment (EditHash, m_a3oYR Patch))
+edits :: forall m_a3oYT. Lens' (Branch0 m_a3oYT) (Map NameSegment (EditHash, m_a3oYT Patch))
 deepReferents :: Branch0 m -> Set Referent
 deepTypeReferences :: Branch0 m -> Set TypeReference
 cachedRead :: forall m. MonadIO m => Cache m -> Deserialize m Raw Raw -> (EditHash -> m Patch) -> Hash -> m (Branch m)
@@ -3371,9 +3371,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5GRL loc_a5GRM. Lens' (Env v_a5GRL loc_a5GRM) (TypeLookup v_a5GRL loc_a5GRM)
-termsByShortname :: forall v_a5GRL loc_a5GRM. Lens' (Env v_a5GRL loc_a5GRM) (Map Name [NamedReference v_a5GRL loc_a5GRM])
-ambientAbilities :: forall v_a5GRL loc_a5GRM. Lens' (Env v_a5GRL loc_a5GRM) [Type v_a5GRL loc_a5GRM]
+typeLookup :: forall v_a5GRN loc_a5GRO. Lens' (Env v_a5GRN loc_a5GRO) (TypeLookup v_a5GRN loc_a5GRO)
+termsByShortname :: forall v_a5GRN loc_a5GRO. Lens' (Env v_a5GRN loc_a5GRO) (Map Name [NamedReference v_a5GRN loc_a5GRO])
+ambientAbilities :: forall v_a5GRN loc_a5GRO. Lens' (Env v_a5GRN loc_a5GRO) [Type v_a5GRN loc_a5GRO]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.

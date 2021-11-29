@@ -496,7 +496,7 @@ data Command m i v a
 [LoadLocalRootBranch] :: Command m i v (Branch m)
 [LoadLocalBranch] :: Hash -> Command m i v (Branch m)
 [Merge] :: MergeMode -> Branch m -> Branch m -> Command m i v (Branch m)
-[ViewRemoteBranch] :: ReadRemoteNamespace -> Command m i v (Either GitError (m (), Branch m))
+[ViewRemoteBranch] :: ReadRemoteNamespace -> (Branch m -> Free (Command m i v) r) -> Command m i v (Either GitError r)
 [ImportRemoteBranch] :: ReadRemoteNamespace -> SyncMode -> Command m i v (Either GitError (Branch m))
 [SyncLocalRootBranch] :: Branch m -> Command m i v ()
 [SyncRemoteBranch] :: Branch m -> WriteRepo -> PushGitBranchOpts -> Command m i v (Either GitError ())
@@ -527,6 +527,11 @@ data Command m i v a
 -- | Trigger an interactive fuzzy search over the provided options and
 --   return all selected results.
 [FuzzySelect] :: Options -> (a -> Text) -> [a] -> Command m i v (Maybe [a])
+
+-- | This allows us to implement MonadUnliftIO for (Free (Command m i v)).
+--   Ideally we will eventually remove the Command type entirely and won't
+--   need this anymore.
+[CmdUnliftIO] :: Command m i v (UnliftIO (Free (Command m i v)))
 type AmbientAbilities v = [Type v Ann]
 type LexedSource = (Text, [Token Lexeme])
 type Source = Text
@@ -540,6 +545,8 @@ type UseCache = Bool
 type EvalResult v = ([(v, Term v ())], Map v (Ann, WatchKind, Id, Term v (), Term v (), IsCacheHit))
 commandName :: Command m i v a -> String
 lookupEvalResult :: Ord v => v -> EvalResult v -> Maybe (Term v ())
+instance Control.Monad.IO.Class.MonadIO m => Control.Monad.IO.Class.MonadIO (Unison.Util.Free.Free (Unison.Codebase.Editor.Command.Command m i v))
+instance Control.Monad.IO.Class.MonadIO m => Control.Monad.IO.Unlift.MonadUnliftIO (Unison.Util.Free.Free (Unison.Codebase.Editor.Command.Command m i v))
 
 module Unison.Codebase.Editor.Propagate
 propagateAndApply :: forall m i v. (Applicative m, Var v) => Names -> Patch -> Branch0 m -> F m i v (Branch0 m)
@@ -549,6 +556,10 @@ instance Unison.ABT.Var v => GHC.Classes.Eq (Unison.Codebase.Editor.Propagate.Ed
 module Unison.Codebase.Editor.HandleInput.LoopState
 type F m i v = Free (Command m i v)
 type Action m i v = MaybeT (StateT (LoopState m v) (F m i v))
+
+-- | A typeclass representing monads which can evaluate <a>Command</a>s.
+class Monad n => MonadCommand n m v i | n -> m v i
+eval :: MonadCommand n m v i => Command m v i a -> n a
 type NumberedArgs = [String]
 data LoopState m v
 LoopState :: Branch m -> Branch m -> NonEmpty Absolute -> Maybe (FilePath, SkipNextUpdate) -> Maybe (TypecheckedUnisonFile v Ann) -> Maybe Input -> NumberedArgs -> LoopState m v
@@ -562,16 +573,19 @@ LoopState :: Branch m -> Branch m -> NonEmpty Absolute -> Maybe (FilePath, SkipN
 type Action' m v = Action m (Either Event Input) v
 type SkipNextUpdate = Bool
 type InputDescription = Text
-root :: forall m_a1tHf v_a1tHg. Lens' (LoopState m_a1tHf v_a1tHg) (Branch m_a1tHf)
-numberedArgs :: forall m_a1tHf v_a1tHg. Lens' (LoopState m_a1tHf v_a1tHg) NumberedArgs
-latestTypecheckedFile :: forall m_a1tHf v_a1tHg v_a1tNR. Lens (LoopState m_a1tHf v_a1tHg) (LoopState m_a1tHf v_a1tNR) (Maybe (TypecheckedUnisonFile v_a1tHg Ann)) (Maybe (TypecheckedUnisonFile v_a1tNR Ann))
-latestFile :: forall m_a1tHf v_a1tHg. Lens' (LoopState m_a1tHf v_a1tHg) (Maybe (FilePath, SkipNextUpdate))
-lastSavedRoot :: forall m_a1tHf v_a1tHg. Lens' (LoopState m_a1tHf v_a1tHg) (Branch m_a1tHf)
-lastInput :: forall m_a1tHf v_a1tHg. Lens' (LoopState m_a1tHf v_a1tHg) (Maybe Input)
-currentPathStack :: forall m_a1tHf v_a1tHg. Lens' (LoopState m_a1tHf v_a1tHg) (NonEmpty Absolute)
+root :: forall m_a1tRC v_a1tRD. Lens' (LoopState m_a1tRC v_a1tRD) (Branch m_a1tRC)
+numberedArgs :: forall m_a1tRC v_a1tRD. Lens' (LoopState m_a1tRC v_a1tRD) NumberedArgs
+latestTypecheckedFile :: forall m_a1tRC v_a1tRD v_a1u3n. Lens (LoopState m_a1tRC v_a1tRD) (LoopState m_a1tRC v_a1u3n) (Maybe (TypecheckedUnisonFile v_a1tRD Ann)) (Maybe (TypecheckedUnisonFile v_a1u3n Ann))
+latestFile :: forall m_a1tRC v_a1tRD. Lens' (LoopState m_a1tRC v_a1tRD) (Maybe (FilePath, SkipNextUpdate))
+lastSavedRoot :: forall m_a1tRC v_a1tRD. Lens' (LoopState m_a1tRC v_a1tRD) (Branch m_a1tRC)
+lastInput :: forall m_a1tRC v_a1tRD. Lens' (LoopState m_a1tRC v_a1tRD) (Maybe Input)
+currentPathStack :: forall m_a1tRC v_a1tRD. Lens' (LoopState m_a1tRC v_a1tRD) (NonEmpty Absolute)
 currentPath :: Getter (LoopState m v) Absolute
 loopState0 :: Branch m -> Absolute -> LoopState m v
-eval :: Command m i v a -> Action m i v a
+instance Unison.Codebase.Editor.HandleInput.LoopState.MonadCommand (Unison.Util.Free.Free (Unison.Codebase.Editor.Command.Command m i v)) m i v
+instance Unison.Codebase.Editor.HandleInput.LoopState.MonadCommand n m i v => Unison.Codebase.Editor.HandleInput.LoopState.MonadCommand (Control.Monad.Trans.State.Lazy.StateT s n) m i v
+instance Unison.Codebase.Editor.HandleInput.LoopState.MonadCommand n m i v => Unison.Codebase.Editor.HandleInput.LoopState.MonadCommand (Control.Monad.Trans.Maybe.MaybeT n) m i v
+instance Unison.Codebase.Editor.HandleInput.LoopState.MonadCommand n m i v => Unison.Codebase.Editor.HandleInput.LoopState.MonadCommand (Control.Monad.Trans.Except.ExceptT e n) m i v
 
 module Unison.Codebase.Editor.HandleInput.NamespaceDependencies
 
@@ -879,7 +893,7 @@ termName :: PrettyPrintEnv -> Referent -> Pretty
 typeName :: PrettyPrintEnv -> Reference -> Pretty
 
 module Unison.Codebase.Editor.HandleInput
-loop :: forall m v. (Monad m, Var v) => Action m (Either Event Input) v ()
+loop :: forall m v. (MonadUnliftIO m, Var v) => Action m (Either Event Input) v ()
 parseSearchType :: (Monad m, Var v) => SrcLoc -> String -> Action' m v (Either (Output v) (Type v Ann))
 
 module Unison.CommandLine.Welcome

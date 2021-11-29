@@ -2019,7 +2019,7 @@ module Unison.Codebase.Type
 
 -- | Abstract interface to a user's codebase.
 data Codebase m v a
-Codebase :: (Id -> m (Maybe (Term v a))) -> (Id -> m (Maybe (Type v a))) -> (Id -> m (Maybe (Decl v a))) -> (Id -> Term v a -> Type v a -> m ()) -> (Id -> Decl v a -> m ()) -> m (Either GetRootBranchError (Branch m)) -> (Branch m -> m ()) -> m (IO (), IO (Set Hash)) -> (Hash -> m (Maybe (Branch m))) -> (Branch m -> m ()) -> (Hash -> m Bool) -> (EditHash -> m (Maybe Patch)) -> (EditHash -> Patch -> m ()) -> (EditHash -> m Bool) -> (Reference -> m (Set Id)) -> (CodebasePath -> SyncMode -> Branch m -> m ()) -> (CodebasePath -> SyncMode -> Branch m -> m ()) -> (ReadRemoteNamespace -> m (Either GitError (m (), Branch m, CodebasePath))) -> (Branch m -> WriteRepo -> PushGitBranchOpts -> m (Either GitError ())) -> (WatchKind -> m [Id]) -> (WatchKind -> Id -> m (Maybe (Term v a))) -> (WatchKind -> Id -> Term v a -> m ()) -> m () -> m [Entry Hash] -> (Text -> Branch m -> Branch m -> m ()) -> (Reference -> m (Set Id)) -> (Reference -> m (Set Id)) -> m Int -> (ShortHash -> m (Set Id)) -> (ShortHash -> m (Set Id)) -> (ShortHash -> m (Set Id)) -> m Int -> (ShortBranchHash -> m (Set Hash)) -> Maybe (Hash -> Hash -> m (Maybe Hash)) -> Maybe (Hash -> Hash -> m Bool) -> Codebase m v a
+Codebase :: (Id -> m (Maybe (Term v a))) -> (Id -> m (Maybe (Type v a))) -> (Id -> m (Maybe (Decl v a))) -> (Id -> Term v a -> Type v a -> m ()) -> (Id -> Decl v a -> m ()) -> m (Either GetRootBranchError (Branch m)) -> (Branch m -> m ()) -> m (IO (), IO (Set Hash)) -> (Hash -> m (Maybe (Branch m))) -> (Branch m -> m ()) -> (Hash -> m Bool) -> (EditHash -> m (Maybe Patch)) -> (EditHash -> Patch -> m ()) -> (EditHash -> m Bool) -> (Reference -> m (Set Id)) -> (CodebasePath -> SyncMode -> Branch m -> m ()) -> (CodebasePath -> SyncMode -> Branch m -> m ()) -> (forall r. ReadRemoteNamespace -> ((Branch m, CodebasePath) -> m r) -> m (Either GitError r)) -> (Branch m -> WriteRepo -> PushGitBranchOpts -> m (Either GitError ())) -> (WatchKind -> m [Id]) -> (WatchKind -> Id -> m (Maybe (Term v a))) -> (WatchKind -> Id -> Term v a -> m ()) -> m () -> m [Entry Hash] -> (Text -> Branch m -> Branch m -> m ()) -> (Reference -> m (Set Id)) -> (Reference -> m (Set Id)) -> m Int -> (ShortHash -> m (Set Id)) -> (ShortHash -> m (Set Id)) -> (ShortHash -> m (Set Id)) -> m Int -> (ShortBranchHash -> m (Set Hash)) -> Maybe (Hash -> Hash -> m (Maybe Hash)) -> Maybe (Hash -> Hash -> m Bool) -> Codebase m v a
 
 -- | Get a user-defined term from the codebase.
 --   
@@ -2093,7 +2093,7 @@ Codebase :: (Id -> m (Maybe (Term v a))) -> (Id -> m (Maybe (Type v a))) -> (Id 
 -- | Copy a branch and all of its dependencies from this codebase into the
 --   given codebase.
 [syncToDirectory] :: Codebase m v a -> CodebasePath -> SyncMode -> Branch m -> m ()
-[viewRemoteBranch'] :: Codebase m v a -> ReadRemoteNamespace -> m (Either GitError (m (), Branch m, CodebasePath))
+[viewRemoteBranch'] :: Codebase m v a -> forall r. ReadRemoteNamespace -> ((Branch m, CodebasePath) -> m r) -> m (Either GitError r)
 
 -- | Push the given branch to the given repo, and optionally set it as the
 --   root branch.
@@ -2188,6 +2188,7 @@ CouldntLoadRootBranch :: Hash -> GetRootBranchError
 type SyncToDir m = CodebasePath -> SyncMode -> Branch m -> m ()
 instance GHC.Show.Show Unison.Codebase.Type.GetRootBranchError
 instance GHC.Show.Show Unison.Codebase.Type.GitError
+instance GHC.Exception.Type.Exception Unison.Codebase.Type.GitError
 
 module Unison.Codebase.SqliteCodebase.Conversions
 sbh1to2 :: ShortBranchHash -> ShortBranchHash
@@ -2498,12 +2499,12 @@ syncToDirectory :: Codebase m v a -> CodebasePath -> SyncMode -> Branch m -> m (
 
 -- | Pull a git branch and view it from the cache, without syncing into the
 --   local codebase.
-viewRemoteBranch :: MonadIO m => Codebase m v a -> ReadRemoteNamespace -> m (Either GitError (m (), Branch m))
+viewRemoteBranch :: MonadIO m => Codebase m v a -> ReadRemoteNamespace -> (Branch m -> m r) -> m (Either GitError r)
 
 -- | Sync elements as needed from a remote codebase into the local one. If
 --   <tt>sbh</tt> is supplied, we try to load the specified branch hash;
 --   otherwise we try to load the root branch.
-importRemoteBranch :: forall m v a. MonadIO m => Codebase m v a -> ReadRemoteNamespace -> SyncMode -> m (Either GitError (Branch m))
+importRemoteBranch :: forall m v a. MonadUnliftIO m => Codebase m v a -> ReadRemoteNamespace -> SyncMode -> m (Either GitError (Branch m))
 
 -- | Push the given branch to the given repo, and optionally set it as the
 --   root branch.
@@ -2835,13 +2836,13 @@ putPrettyNonempty :: Pretty ColorText -> IO ()
 
 module Unison.Codebase.Init
 data Init m v a
-Init :: (DebugName -> CodebasePath -> m (Either Pretty (m (), Codebase m v a))) -> (DebugName -> CodebasePath -> m (Either CreateCodebaseError (m (), Codebase m v a))) -> (CodebasePath -> CodebasePath) -> Init m v a
+Init :: (forall r. DebugName -> CodebasePath -> (Codebase m v a -> m r) -> m (Either Pretty r)) -> (forall r. DebugName -> CodebasePath -> (Codebase m v a -> m r) -> m (Either CreateCodebaseError r)) -> (CodebasePath -> CodebasePath) -> Init m v a
 
 -- | open an existing codebase
-[openCodebase] :: Init m v a -> DebugName -> CodebasePath -> m (Either Pretty (m (), Codebase m v a))
+[withOpenCodebase] :: Init m v a -> forall r. DebugName -> CodebasePath -> (Codebase m v a -> m r) -> m (Either Pretty r)
 
 -- | create a new codebase
-[createCodebase'] :: Init m v a -> DebugName -> CodebasePath -> m (Either CreateCodebaseError (m (), Codebase m v a))
+[withCreatedCodebase] :: Init m v a -> forall r. DebugName -> CodebasePath -> (Codebase m v a -> m r) -> m (Either CreateCodebaseError r)
 
 -- | given a codebase root, and given that the codebase root may have other
 --   junk in it, give the path to the "actual" files; e.g. what a forked
@@ -2855,21 +2856,22 @@ CouldntCreateCodebase :: Pretty -> InitError
 data CodebaseInitOptions
 Home :: CodebasePath -> CodebaseInitOptions
 Specified :: SpecifiedCodebase -> CodebaseInitOptions
-data InitResult m v a
-OpenedCodebase :: CodebasePath -> FinalizerAndCodebase m v a -> InitResult m v a
-CreatedCodebase :: CodebasePath -> FinalizerAndCodebase m v a -> InitResult m v a
-Error :: CodebasePath -> InitError -> InitResult m v a
+data InitResult
+OpenedCodebase :: InitResult
+CreatedCodebase :: InitResult
 data SpecifiedCodebase
 CreateWhenMissing :: CodebasePath -> SpecifiedCodebase
 DontCreateWhenMissing :: CodebasePath -> SpecifiedCodebase
 type Pretty = Pretty ColorText
-createCodebase :: MonadIO m => Init m v a -> DebugName -> CodebasePath -> m (Either Pretty (m (), Codebase m v a))
+createCodebase :: MonadIO m => Init m v a -> DebugName -> CodebasePath -> (Codebase m v a -> m r) -> m (Either Pretty r)
 
 -- | try to init a codebase where none exists and then exit regardless
 --   (i.e. `ucm --codebase dir init`)
 initCodebaseAndExit :: MonadIO m => Init m Symbol Ann -> DebugName -> Maybe CodebasePath -> m ()
-openOrCreateCodebase :: MonadIO m => Init m v a -> DebugName -> CodebaseInitOptions -> m (InitResult m v a)
-openNewUcmCodebaseOrExit :: MonadIO m => Init m Symbol Ann -> DebugName -> CodebasePath -> m (m (), Codebase m Symbol Ann)
+withOpenOrCreateCodebase :: MonadIO m => Init m v a -> DebugName -> CodebaseInitOptions -> ((InitResult, CodebasePath, Codebase m v a) -> m r) -> m (Either (CodebasePath, InitError) r)
+withNewUcmCodebaseOrExit :: MonadIO m => Init m Symbol Ann -> DebugName -> CodebasePath -> (Codebase m Symbol Ann -> m r) -> m r
+instance GHC.Classes.Eq Unison.Codebase.Init.InitResult
+instance GHC.Show.Show Unison.Codebase.Init.InitResult
 
 module Unison.Codebase.SqliteCodebase
 init :: HasCallStack => MonadUnliftIO m => Init m Symbol Ann
@@ -3369,9 +3371,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5Hbn loc_a5Hbo. Lens' (Env v_a5Hbn loc_a5Hbo) (TypeLookup v_a5Hbn loc_a5Hbo)
-termsByShortname :: forall v_a5Hbn loc_a5Hbo. Lens' (Env v_a5Hbn loc_a5Hbo) (Map Name [NamedReference v_a5Hbn loc_a5Hbo])
-ambientAbilities :: forall v_a5Hbn loc_a5Hbo. Lens' (Env v_a5Hbn loc_a5Hbo) [Type v_a5Hbn loc_a5Hbo]
+typeLookup :: forall v_a5GRL loc_a5GRM. Lens' (Env v_a5GRL loc_a5GRM) (TypeLookup v_a5GRL loc_a5GRM)
+termsByShortname :: forall v_a5GRL loc_a5GRM. Lens' (Env v_a5GRL loc_a5GRM) (Map Name [NamedReference v_a5GRL loc_a5GRM])
+ambientAbilities :: forall v_a5GRL loc_a5GRM. Lens' (Env v_a5GRL loc_a5GRM) [Type v_a5GRL loc_a5GRM]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.

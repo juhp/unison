@@ -2147,6 +2147,10 @@ foldMapM :: (Ord k, Monad m, Foldable t) => (a -> m (k, v)) -> t a -> m (Map k v
 unionWithM :: forall m k a. (Monad m, Ord k) => (a -> a -> m a) -> Map k a -> Map k a -> m (Map k a)
 
 module Unison.Util.Set
+
+-- | Set difference, but return <tt>Nothing</tt> if the difference is
+--   empty.
+difference1 :: Ord a => Set a -> Set a -> Maybe (Set a)
 mapMaybe :: Ord b => (a -> Maybe b) -> Set a -> Set b
 symmetricDifference :: Ord a => Set a -> Set a -> Set a
 traverse :: (Applicative f, Ord b) => (a -> f b) -> Set a -> f (Set b)

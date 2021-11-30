@@ -101,14 +101,16 @@ filterManyDom :: (Ord a, Ord b) => Relation a b -> Relation a b
 filterRan :: (Ord a, Ord b) => (b -> Bool) -> Relation a b -> Relation a b
 filterRanM :: (Applicative m, Ord a, Ord b) => (b -> m Bool) -> Relation a b -> m (Relation a b)
 
--- | Restrict the domain to not include these <tt>a</tt>
+-- | Named version of (<a>&lt;||</a>).
 subtractDom :: (Ord a, Ord b) => Set a -> Relation a b -> Relation a b
 
--- | Restrict the domain to not include these <tt>a</tt>
+-- | Restrict the domain to not include these <tt>a</tt>s.
 (<||) :: (Ord a, Ord b) => Set a -> Relation a b -> Relation a b
+
+-- | Named version of (<a>||&gt;</a>).
 subtractRan :: (Ord a, Ord b) => Set b -> Relation a b -> Relation a b
 
--- | Restrict the range to not include these <tt>b</tt>s
+-- | Restrict the range to not include these <tt>b</tt>s.
 (||>) :: (Ord a, Ord b) => Relation a b -> Set b -> Relation a b
 
 -- | Domain restriction for a relation. Modeled on z.

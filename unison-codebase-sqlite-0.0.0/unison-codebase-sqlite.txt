@@ -475,8 +475,14 @@ loadWatchesByWatchKind :: DB m => WatchKind -> m [IdH]
 loadWatchKindsByReference :: DB m => IdH -> m [WatchKind]
 clearWatches :: DB m => m ()
 addToDependentsIndex :: DB m => Reference -> Id -> m ()
+
+-- | Get non-self, user-defined dependents of a dependency.
 getDependentsForDependency :: DB m => Reference -> m [Id]
+
+-- | Get non-self dependencies of a user-defined dependent.
 getDependenciesForDependent :: DB m => Id -> m [Reference]
+
+-- | Get non-self, user-defined dependencies of a user-defined dependent.
 getDependencyIdsForDependent :: DB m => Id -> m [Id]
 addToTypeIndex :: DB m => Reference' TextId HashId -> Id -> m ()
 getReferentsByType :: DB m => Reference' TextId HashId -> m [Id]

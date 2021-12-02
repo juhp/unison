@@ -263,6 +263,138 @@ noConflicts :: TodoOutput v a -> Bool
 noEdits :: TodoOutput v a -> Bool
 instance (GHC.Show.Show v, GHC.Show.Show a) => GHC.Show.Show (Unison.Codebase.Editor.TodoOutput.TodoOutput v a)
 
+module Unison.Codebase.Editor.UriParser
+repoPath :: P ReadRemoteNamespace
+writeRepo :: P WriteRepo
+writeRepoPath :: P WriteRemotePath
+instance GHC.Show.Show Unison.Codebase.Editor.UriParser.Scheme
+instance GHC.Classes.Ord Unison.Codebase.Editor.UriParser.Scheme
+instance GHC.Classes.Eq Unison.Codebase.Editor.UriParser.Scheme
+instance GHC.Show.Show Unison.Codebase.Editor.UriParser.User
+instance GHC.Classes.Ord Unison.Codebase.Editor.UriParser.User
+instance GHC.Classes.Eq Unison.Codebase.Editor.UriParser.User
+instance GHC.Show.Show Unison.Codebase.Editor.UriParser.HostInfo
+instance GHC.Classes.Ord Unison.Codebase.Editor.UriParser.HostInfo
+instance GHC.Classes.Eq Unison.Codebase.Editor.UriParser.HostInfo
+instance GHC.Show.Show Unison.Codebase.Editor.UriParser.GitProtocol
+instance GHC.Classes.Ord Unison.Codebase.Editor.UriParser.GitProtocol
+instance GHC.Classes.Eq Unison.Codebase.Editor.UriParser.GitProtocol
+
+module Unison.Codebase.Editor.VersionParser
+
+-- | Parse git version strings into valid unison namespaces. "release/M1j"
+--   -&gt; "releases._M1j" "release/M1j.2" -&gt; "releases._M1j_2"
+--   "latest-*" -&gt; "trunk"
+defaultBaseLib :: Parsec Void Text ReadRemoteNamespace
+
+
+-- | Command-line fuzzy selection of arbitrary values. Shells out to fzf
+--   for the actual selection.
+module Unison.CommandLine.FuzzySelect
+
+-- | Allows prompting the user to interactively fuzzy-select a result from
+--   a list of options, currently shells out to <tt>fzf</tt> under the
+--   hood. If fzf is missing, or an error (other than ctrl-c) occurred,
+--   returns Nothing.
+fuzzySelect :: forall a. Options -> (a -> Text) -> [a] -> IO (Maybe [a])
+
+-- | Fuzzy Selection options
+data Options
+Options :: Bool -> Options
+[allowMultiSelect] :: Options -> Bool
+
+-- | Default <a>Options</a>
+defaultOptions :: Options
+
+
+-- | Provides Globbing for selecting types, terms and namespaces using
+--   wildcards.
+module Unison.CommandLine.Globbing
+
+-- | Expand a single glob pattern into all matching targets of the
+--   specified types.
+expandGlobs :: forall m. Set TargetType -> Branch0 m -> Absolute -> String -> Maybe [String]
+
+-- | Possible targets which a glob may select.
+data TargetType
+Type :: TargetType
+Term :: TargetType
+Namespace :: TargetType
+instance GHC.Show.Show Unison.CommandLine.Globbing.TargetType
+instance GHC.Classes.Ord Unison.CommandLine.Globbing.TargetType
+instance GHC.Classes.Eq Unison.CommandLine.Globbing.TargetType
+instance GHC.Show.Show Unison.CommandLine.Globbing.GlobArg
+
+module Unison.CommandLine.InputPattern
+data IsOptional
+Required :: IsOptional
+Optional :: IsOptional
+ZeroPlus :: IsOptional
+OnePlus :: IsOptional
+data InputPattern
+InputPattern :: String -> [String] -> [(IsOptional, ArgumentType)] -> Pretty ColorText -> ([String] -> Either (Pretty ColorText) Input) -> InputPattern
+[patternName] :: InputPattern -> String
+[aliases] :: InputPattern -> [String]
+[argTypes] :: InputPattern -> [(IsOptional, ArgumentType)]
+[help] :: InputPattern -> Pretty ColorText
+[parse] :: InputPattern -> [String] -> Either (Pretty ColorText) Input
+data ArgumentType
+ArgumentType :: String -> (forall m v a. Monad m => String -> Codebase m v a -> Branch m -> Absolute -> m [Completion]) -> Set TargetType -> ArgumentType
+[typeName] :: ArgumentType -> String
+
+-- | Generate completion suggestions for this argument type
+[suggestions] :: ArgumentType -> forall m v a. Monad m => String -> Codebase m v a -> Branch m -> Absolute -> m [Completion]
+
+-- | Select which targets glob patterns may expand into for this argument.
+--   An empty set disables globbing.
+[globTargets] :: ArgumentType -> Set TargetType
+argType :: InputPattern -> Int -> Maybe ArgumentType
+minArgs :: InputPattern -> Int
+maxArgs :: InputPattern -> Maybe Int
+noSuggestions :: Monad m => String -> Codebase m v a -> Branch m -> Absolute -> m [Completion]
+instance GHC.Classes.Eq Unison.CommandLine.InputPattern.IsOptional
+instance GHC.Show.Show Unison.CommandLine.InputPattern.IsOptional
+instance GHC.Show.Show Unison.CommandLine.InputPattern.ArgumentType
+
+module Unison.CommandLine
+allow :: FilePath -> Bool
+backtick :: IsString s => Pretty s -> Pretty s
+aside :: (ListLike s Char, IsString s) => Pretty s -> Pretty s -> Pretty s
+bigproblem :: (ListLike s Char, IsString s) => Pretty s -> Pretty s
+note :: (ListLike s Char, IsString s) => Pretty s -> Pretty s
+nothingTodo :: (ListLike s Char, IsString s) => Pretty s -> Pretty s
+plural :: Foldable f => f a -> b -> b -> b
+plural' :: Integral a => a -> b -> b -> b
+problem :: (ListLike s Char, IsString s) => Pretty s -> Pretty s
+tip :: (ListLike s Char, IsString s) => Pretty s -> Pretty s
+warn :: (ListLike s Char, IsString s) => Pretty s -> Pretty s
+warnNote :: String -> String
+completion :: String -> Completion
+completion' :: String -> Completion
+
+-- | Constructs a list of <tt>Completion</tt>s from a query and completion
+--   options by filtering them for prefix matches. A completion will be
+--   selected if it's an exact match for a provided option.
+exactComplete :: String -> [String] -> [Completion]
+fuzzyComplete :: String -> [String] -> [Completion]
+fuzzyCompleteHashQualified :: Names -> String -> [Completion]
+prefixIncomplete :: String -> [String] -> [Completion]
+prettyCompletion :: Bool -> (String, Pretty ColorText) -> Completion
+fixupCompletion :: String -> [Completion] -> [Completion]
+
+-- | Completes a list of options, limiting options to the same namespace as
+--   the query, or the namespace's children if the query is itself a
+--   namespace.
+--   
+--   E.g. query: "base" would match: ["base", "base.List", "base2"]
+--   wouldn't match: ["base.List.map", "contrib", "base2.List"]
+completeWithinQueryNamespace :: String -> [String] -> [Completion]
+parseInput :: Branch0 m -> Absolute -> [String] -> Map String InputPattern -> [String] -> Either (Pretty ColorText) Input
+prompt :: String
+watchBranchUpdates :: IO (Branch IO) -> TQueue Event -> Codebase IO v a -> IO (IO ())
+watchConfig :: FilePath -> IO (Config, IO ())
+watchFileSystem :: TQueue Event -> FilePath -> IO (IO ())
+
 module Unison.Codebase.Editor.Output
 data Output v
 Success :: Output v
@@ -363,6 +495,7 @@ BadName :: String -> Output v
 DefaultMetadataNotification :: Output v
 BadRootBranch :: GetRootBranchError -> Output v
 CouldntLoadBranch :: Hash -> Output v
+HelpMessage :: InputPattern -> Output v
 NamespaceEmpty :: NonEmpty AbsBranchId -> Output v
 NoOp :: Output v
 RefusedToPush :: PushBehavior -> Output v
@@ -421,50 +554,6 @@ instance GHC.Show.Show Unison.Codebase.Editor.Output.ReflogEntry
 instance GHC.Show.Show Unison.Codebase.Editor.Output.HistoryTail
 instance GHC.Show.Show Unison.Codebase.Editor.Output.TestReportStats
 instance GHC.Show.Show Unison.Codebase.Editor.Output.UndoFailureReason
-instance Unison.Var.Var v => GHC.Show.Show (Unison.Codebase.Editor.Output.Output v)
-
-module Unison.Codebase.Editor.UriParser
-repoPath :: P ReadRemoteNamespace
-writeRepo :: P WriteRepo
-writeRepoPath :: P WriteRemotePath
-instance GHC.Show.Show Unison.Codebase.Editor.UriParser.Scheme
-instance GHC.Classes.Ord Unison.Codebase.Editor.UriParser.Scheme
-instance GHC.Classes.Eq Unison.Codebase.Editor.UriParser.Scheme
-instance GHC.Show.Show Unison.Codebase.Editor.UriParser.User
-instance GHC.Classes.Ord Unison.Codebase.Editor.UriParser.User
-instance GHC.Classes.Eq Unison.Codebase.Editor.UriParser.User
-instance GHC.Show.Show Unison.Codebase.Editor.UriParser.HostInfo
-instance GHC.Classes.Ord Unison.Codebase.Editor.UriParser.HostInfo
-instance GHC.Classes.Eq Unison.Codebase.Editor.UriParser.HostInfo
-instance GHC.Show.Show Unison.Codebase.Editor.UriParser.GitProtocol
-instance GHC.Classes.Ord Unison.Codebase.Editor.UriParser.GitProtocol
-instance GHC.Classes.Eq Unison.Codebase.Editor.UriParser.GitProtocol
-
-module Unison.Codebase.Editor.VersionParser
-
--- | Parse git version strings into valid unison namespaces. "release/M1j"
---   -&gt; "releases._M1j" "release/M1j.2" -&gt; "releases._M1j_2"
---   "latest-*" -&gt; "trunk"
-defaultBaseLib :: Parsec Void Text ReadRemoteNamespace
-
-
--- | Command-line fuzzy selection of arbitrary values. Shells out to fzf
---   for the actual selection.
-module Unison.CommandLine.FuzzySelect
-
--- | Allows prompting the user to interactively fuzzy-select a result from
---   a list of options, currently shells out to <tt>fzf</tt> under the
---   hood. If fzf is missing, or an error (other than ctrl-c) occurred,
---   returns Nothing.
-fuzzySelect :: forall a. Options -> (a -> Text) -> [a] -> IO (Maybe [a])
-
--- | Fuzzy Selection options
-data Options
-Options :: Bool -> Options
-[allowMultiSelect] :: Options -> Bool
-
--- | Default <a>Options</a>
-defaultOptions :: Options
 
 module Unison.Codebase.Editor.Command
 data Command m i v a
@@ -574,13 +663,13 @@ LoopState :: Branch m -> Branch m -> NonEmpty Absolute -> Maybe (FilePath, SkipN
 type Action' m v = Action m (Either Event Input) v
 type SkipNextUpdate = Bool
 type InputDescription = Text
-root :: forall m_a1tRV v_a1tRW. Lens' (LoopState m_a1tRV v_a1tRW) (Branch m_a1tRV)
-numberedArgs :: forall m_a1tRV v_a1tRW. Lens' (LoopState m_a1tRV v_a1tRW) NumberedArgs
-latestTypecheckedFile :: forall m_a1tRV v_a1tRW v_a1u3G. Lens (LoopState m_a1tRV v_a1tRW) (LoopState m_a1tRV v_a1u3G) (Maybe (TypecheckedUnisonFile v_a1tRW Ann)) (Maybe (TypecheckedUnisonFile v_a1u3G Ann))
-latestFile :: forall m_a1tRV v_a1tRW. Lens' (LoopState m_a1tRV v_a1tRW) (Maybe (FilePath, SkipNextUpdate))
-lastSavedRoot :: forall m_a1tRV v_a1tRW. Lens' (LoopState m_a1tRV v_a1tRW) (Branch m_a1tRV)
-lastInput :: forall m_a1tRV v_a1tRW. Lens' (LoopState m_a1tRV v_a1tRW) (Maybe Input)
-currentPathStack :: forall m_a1tRV v_a1tRW. Lens' (LoopState m_a1tRV v_a1tRW) (NonEmpty Absolute)
+root :: forall m_a1tJI v_a1tJJ. Lens' (LoopState m_a1tJI v_a1tJJ) (Branch m_a1tJI)
+numberedArgs :: forall m_a1tJI v_a1tJJ. Lens' (LoopState m_a1tJI v_a1tJJ) NumberedArgs
+latestTypecheckedFile :: forall m_a1tJI v_a1tJJ v_a1tVt. Lens (LoopState m_a1tJI v_a1tJJ) (LoopState m_a1tJI v_a1tVt) (Maybe (TypecheckedUnisonFile v_a1tJJ Ann)) (Maybe (TypecheckedUnisonFile v_a1tVt Ann))
+latestFile :: forall m_a1tJI v_a1tJJ. Lens' (LoopState m_a1tJI v_a1tJJ) (Maybe (FilePath, SkipNextUpdate))
+lastSavedRoot :: forall m_a1tJI v_a1tJJ. Lens' (LoopState m_a1tJI v_a1tJJ) (Branch m_a1tJI)
+lastInput :: forall m_a1tJI v_a1tJJ. Lens' (LoopState m_a1tJI v_a1tJJ) (Maybe Input)
+currentPathStack :: forall m_a1tJI v_a1tJJ. Lens' (LoopState m_a1tJI v_a1tJJ) (NonEmpty Absolute)
 currentPath :: Getter (LoopState m v) Absolute
 loopState0 :: Branch m -> Absolute -> LoopState m v
 instance Unison.Codebase.Editor.HandleInput.LoopState.MonadCommand (Unison.Util.Free.Free (Unison.Codebase.Editor.Command.Command m i v)) m i v
@@ -611,95 +700,6 @@ module Unison.Codebase.Editor.HandleCommand
 typecheck :: (Monad m, Var v) => [Type v Ann] -> Codebase m v Ann -> ParsingEnv -> SourceName -> LexedSource -> m (TypecheckingResult v)
 typecheck' :: Monad m => Var v => [Type v Ann] -> Codebase m v Ann -> UnisonFile v Ann -> m (TypecheckingResult v)
 commandLine :: forall i v a gen. (Var v, DRG gen) => Config -> IO i -> (Branch IO -> IO ()) -> Runtime v -> (Output v -> IO ()) -> (NumberedOutput v -> IO NumberedArgs) -> (SourceName -> IO LoadSourceResult) -> Codebase IO v Ann -> Maybe BaseUrl -> (Int -> IO gen) -> Free (Command IO i v) a -> IO a
-
-
--- | Provides Globbing for selecting types, terms and namespaces using
---   wildcards.
-module Unison.CommandLine.Globbing
-
--- | Expand a single glob pattern into all matching targets of the
---   specified types.
-expandGlobs :: forall m. Set TargetType -> Branch0 m -> Absolute -> String -> Maybe [String]
-
--- | Possible targets which a glob may select.
-data TargetType
-Type :: TargetType
-Term :: TargetType
-Namespace :: TargetType
-instance GHC.Show.Show Unison.CommandLine.Globbing.TargetType
-instance GHC.Classes.Ord Unison.CommandLine.Globbing.TargetType
-instance GHC.Classes.Eq Unison.CommandLine.Globbing.TargetType
-instance GHC.Show.Show Unison.CommandLine.Globbing.GlobArg
-
-module Unison.CommandLine.InputPattern
-data IsOptional
-Required :: IsOptional
-Optional :: IsOptional
-ZeroPlus :: IsOptional
-OnePlus :: IsOptional
-data InputPattern
-InputPattern :: String -> [String] -> [(IsOptional, ArgumentType)] -> Pretty ColorText -> ([String] -> Either (Pretty ColorText) Input) -> InputPattern
-[patternName] :: InputPattern -> String
-[aliases] :: InputPattern -> [String]
-[argTypes] :: InputPattern -> [(IsOptional, ArgumentType)]
-[help] :: InputPattern -> Pretty ColorText
-[parse] :: InputPattern -> [String] -> Either (Pretty ColorText) Input
-data ArgumentType
-ArgumentType :: String -> (forall m v a. Monad m => String -> Codebase m v a -> Branch m -> Absolute -> m [Completion]) -> Set TargetType -> ArgumentType
-[typeName] :: ArgumentType -> String
-
--- | Generate completion suggestions for this argument type
-[suggestions] :: ArgumentType -> forall m v a. Monad m => String -> Codebase m v a -> Branch m -> Absolute -> m [Completion]
-
--- | Select which targets glob patterns may expand into for this argument.
---   An empty set disables globbing.
-[globTargets] :: ArgumentType -> Set TargetType
-argType :: InputPattern -> Int -> Maybe ArgumentType
-minArgs :: InputPattern -> Int
-maxArgs :: InputPattern -> Maybe Int
-noSuggestions :: Monad m => String -> Codebase m v a -> Branch m -> Absolute -> m [Completion]
-instance GHC.Classes.Eq Unison.CommandLine.InputPattern.IsOptional
-instance GHC.Show.Show Unison.CommandLine.InputPattern.IsOptional
-instance GHC.Show.Show Unison.CommandLine.InputPattern.ArgumentType
-
-module Unison.CommandLine
-allow :: FilePath -> Bool
-backtick :: IsString s => Pretty s -> Pretty s
-aside :: (ListLike s Char, IsString s) => Pretty s -> Pretty s -> Pretty s
-bigproblem :: (ListLike s Char, IsString s) => Pretty s -> Pretty s
-note :: (ListLike s Char, IsString s) => Pretty s -> Pretty s
-nothingTodo :: (ListLike s Char, IsString s) => Pretty s -> Pretty s
-plural :: Foldable f => f a -> b -> b -> b
-plural' :: Integral a => a -> b -> b -> b
-problem :: (ListLike s Char, IsString s) => Pretty s -> Pretty s
-tip :: (ListLike s Char, IsString s) => Pretty s -> Pretty s
-warn :: (ListLike s Char, IsString s) => Pretty s -> Pretty s
-warnNote :: String -> String
-completion :: String -> Completion
-completion' :: String -> Completion
-
--- | Constructs a list of <tt>Completion</tt>s from a query and completion
---   options by filtering them for prefix matches. A completion will be
---   selected if it's an exact match for a provided option.
-exactComplete :: String -> [String] -> [Completion]
-fuzzyComplete :: String -> [String] -> [Completion]
-fuzzyCompleteHashQualified :: Names -> String -> [Completion]
-prefixIncomplete :: String -> [String] -> [Completion]
-prettyCompletion :: Bool -> (String, Pretty ColorText) -> Completion
-fixupCompletion :: String -> [Completion] -> [Completion]
-
--- | Completes a list of options, limiting options to the same namespace as
---   the query, or the namespace's children if the query is itself a
---   namespace.
---   
---   E.g. query: "base" would match: ["base", "base.List", "base2"]
---   wouldn't match: ["base.List.map", "contrib", "base2.List"]
-completeWithinQueryNamespace :: String -> [String] -> [Completion]
-parseInput :: Branch0 m -> Absolute -> [String] -> Map String InputPattern -> [String] -> Either (Pretty ColorText) Input
-prompt :: String
-watchBranchUpdates :: IO (Branch IO) -> TQueue Event -> Codebase IO v a -> IO (IO ())
-watchConfig :: FilePath -> IO (Config, IO ())
-watchFileSystem :: TQueue Event -> FilePath -> IO (IO ())
 
 module Unison.CommandLine.InputPatterns
 showPatternHelp :: InputPattern -> Pretty ColorText

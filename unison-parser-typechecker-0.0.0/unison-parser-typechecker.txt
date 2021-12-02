@@ -25,14 +25,16 @@ RawMerge :: e -> Set (RawHash h) -> Raw h e
 newtype RawHash a
 RawHash :: Hash -> RawHash a
 [unRawHash] :: RawHash a -> Hash
-head_ :: forall m_am36 h_am37 e_am38. Lens' (Causal m_am36 h_am37 e_am38) e_am38
+
+-- | Focus the current head, keeping the hash up to date.
+head_ :: Hashable e => Lens' (Causal m h e) e
 one :: Hashable e => e -> Causal m h e
 cons :: (Applicative m, Hashable e) => e -> Causal m h e -> Causal m h e
 cons' :: Hashable e => e -> RawHash h -> m (Causal m h e) -> Causal m h e
 consDistinct :: (Applicative m, Eq e, Hashable e) => e -> Causal m h e -> Causal m h e
 uncons :: Applicative m => Causal m h e -> m (Maybe (e, Causal m h e))
 hash :: Hashable e => e -> Hash
-children :: Causal m h e -> Seq (m (Causal m h e))
+predecessors :: Causal m h e -> Seq (m (Causal m h e))
 type Deserialize m h e = RawHash h -> m (Raw h e)
 type Serialize m h e = RawHash h -> Raw h e -> m ()
 cachedRead :: MonadIO m => Cache (RawHash h) (Causal m h e) -> Deserialize m h e -> RawHash h -> m (Causal m h e)
@@ -47,17 +49,17 @@ transform :: Functor m => (forall a. m a -> n a) -> Causal m h e -> Causal n h e
 unsafeMapHashPreserving :: Functor m => (e -> e2) -> Causal m h e -> Causal m h e2
 before :: Monad m => Causal m h e -> Causal m h e -> m Bool
 beforeHash :: forall m h e. Monad m => Word -> RawHash h -> Causal m h e -> m Bool
-instance GHC.Show.Show a => GHC.Show.Show (Unison.Codebase.Causal.FoldHistoryResult a)
-instance GHC.Classes.Ord a => GHC.Classes.Ord (Unison.Codebase.Causal.FoldHistoryResult a)
-instance GHC.Classes.Eq a => GHC.Classes.Eq (Unison.Codebase.Causal.FoldHistoryResult a)
-instance GHC.Classes.Eq (Unison.Codebase.Causal.Causal m h a)
-instance GHC.Classes.Ord (Unison.Codebase.Causal.Causal m h a)
-instance Unison.Hashable.Hashable (Unison.Codebase.Causal.RawHash h)
 instance GHC.Generics.Generic (Unison.Codebase.Causal.RawHash a)
 instance GHC.Classes.Ord (Unison.Codebase.Causal.RawHash a)
 instance GHC.Classes.Eq (Unison.Codebase.Causal.RawHash a)
+instance GHC.Show.Show a => GHC.Show.Show (Unison.Codebase.Causal.FoldHistoryResult a)
+instance GHC.Classes.Ord a => GHC.Classes.Ord (Unison.Codebase.Causal.FoldHistoryResult a)
+instance GHC.Classes.Eq a => GHC.Classes.Eq (Unison.Codebase.Causal.FoldHistoryResult a)
 instance GHC.Show.Show e => GHC.Show.Show (Unison.Codebase.Causal.Causal m h e)
+instance GHC.Classes.Eq (Unison.Codebase.Causal.Causal m h a)
+instance GHC.Classes.Ord (Unison.Codebase.Causal.Causal m h a)
 instance GHC.Show.Show (Unison.Codebase.Causal.RawHash a)
+instance Unison.Hashable.Hashable (Unison.Codebase.Causal.RawHash h)
 
 module Unison.Codebase.Causal.FoldHistory
 data FoldHistoryResult a
@@ -1955,16 +1957,25 @@ cons :: Applicative m => Branch0 m -> Branch m -> Branch m
 uncons :: Applicative m => Branch m -> m (Maybe (Branch0 m, Branch m))
 empty :: Branch m
 empty0 :: Branch0 m
+
+-- | Discards the history of a Branch and its children, recursively
+discardHistory :: Applicative m => Branch m -> Branch m
+
+-- | Discards the history of a Branch0's children, recursively
 discardHistory0 :: Applicative m => Branch0 m -> Branch0 m
 toCausalRaw :: Branch m -> Raw Raw Raw
 transform :: Functor m => (forall a. m a -> n a) -> Branch m -> Branch n
+
+-- | Checks whether a branch is empty AND has no history.
 isEmpty :: Branch m -> Bool
+
+-- | Checks whether a Branch0 is empty.
 isEmpty0 :: Branch0 m -> Bool
 isOne :: Branch m -> Bool
 before :: Monad m => Branch m -> Branch m -> m Bool
 lca :: Monad m => Branch m -> Branch m -> m (Maybe (Branch m))
 diff0 :: Monad m => Branch0 m -> Branch0 m -> m BranchDiff
-history :: forall m_a3p9t m_a3pmR. Iso (Branch m_a3p9t) (Branch m_a3pmR) (UnwrappedBranch m_a3p9t) (UnwrappedBranch m_a3pmR)
+history :: Iso' (Branch m) (UnwrappedBranch m)
 head :: Branch m -> Branch0 m
 headHash :: Branch m -> Hash
 children :: Lens' (Branch0 m) (Map NameSegment (Branch m))
@@ -1974,10 +1985,33 @@ deepEdits' :: Branch0 m -> Map Name (EditHash, m Patch)
 
 -- | what does this do? —AI
 toList0 :: Branch0 m -> [(Path, Branch0 m)]
-stepManyAt :: (Monad m, Foldable f) => f (Path, Branch0 m -> Branch0 m) -> Branch m -> Branch m
+
+-- | Run a series of updates at specific locations, aggregating all changes
+--   into a single causal step.
+stepManyAt :: forall m f. (Monad m, Foldable f) => f (Path, Branch0 m -> Branch0 m) -> Branch m -> Branch m
+
+-- | Run a series of updates at specific locations, aggregating all changes
+--   into a single causal step.
 stepManyAtM :: (Monad m, Monad n, Foldable f) => f (Path, Branch0 m -> n (Branch0 m)) -> Branch m -> n (Branch m)
-stepManyAt0 :: forall f m. (Monad m, Foldable f) => f (Path, Branch0 m -> Branch0 m) -> Branch0 m -> Branch0 m
 stepEverywhere :: Applicative m => (Branch0 m -> Branch0 m) -> Branch0 m -> Branch0 m
+
+-- | Perform updates over many locations within a branch by batching up
+--   operations on sub-branches as much as possible without affecting
+--   semantics. This operation does not create any causal conses, the
+--   operations are performed directly on the current head of the provided
+--   branch and child branches. It's the caller's responsibility to apply
+--   updates in history however they choose.
+batchUpdates :: forall f m. (Monad m, Foldable f) => f (Path, Branch0 m -> Branch0 m) -> Branch0 m -> Branch0 m
+
+-- | Batch many updates. This allows us to apply the updates while
+--   minimizing redundant traversals. Semantics of operations are preserved
+--   by ensuring that all updates will always see changes by updates before
+--   them in the list.
+--   
+--   This method does not <a>step</a> any branches on its own, all causal
+--   changes must be performed in the updates themselves, or this batch
+--   update must be provided to 'stepManyAt(M)'.
+batchUpdatesM :: forall m n f. (Monad m, Monad n, Foldable f) => f (Path, Branch0 m -> n (Branch0 m)) -> Branch0 m -> n (Branch0 m)
 addTermName :: Referent -> NameSegment -> Metadata -> Branch0 m -> Branch0 m
 addTypeName :: TypeReference -> NameSegment -> Metadata -> Branch0 m -> Branch0 m
 deleteTermName :: Referent -> NameSegment -> Branch0 m -> Branch0 m
@@ -1999,19 +2033,21 @@ modifyAtM :: forall n m. Functor n => Applicative m => Path -> (Branch m -> n (B
 children0 :: IndexedTraversal' NameSegment (Branch0 m) (Branch0 m)
 terms :: Lens' (Branch0 m) (Star Referent NameSegment)
 types :: Lens' (Branch0 m) (Star TypeReference NameSegment)
-edits :: forall m_a3p9p. Lens' (Branch0 m_a3p9p) (Map NameSegment (EditHash, m_a3p9p Patch))
+edits :: Lens' (Branch0 m) (Map NameSegment (EditHash, m Patch))
 deepReferents :: Branch0 m -> Set Referent
 deepTypeReferences :: Branch0 m -> Set TypeReference
 cachedRead :: forall m. MonadIO m => Cache m -> Deserialize m Raw Raw -> (EditHash -> m Patch) -> Hash -> m (Branch m)
 type Cache m = Cache (RawHash Raw) (UnwrappedBranch m)
 sync :: Monad m => (Hash -> m Bool) -> Serialize m Raw Raw -> (EditHash -> m Patch -> m ()) -> Branch m -> m ()
-instance GHC.Classes.Eq (Unison.Codebase.Branch.Branch0 m)
-instance Unison.Hashable.Hashable (Unison.Codebase.Branch.Branch0 m)
 instance GHC.Show.Show Unison.Codebase.Branch.BranchDiff
 instance GHC.Classes.Ord Unison.Codebase.Branch.BranchDiff
 instance GHC.Classes.Eq Unison.Codebase.Branch.BranchDiff
 instance GHC.Classes.Ord (Unison.Codebase.Branch.Branch m)
 instance GHC.Classes.Eq (Unison.Codebase.Branch.Branch m)
+instance GHC.Classes.Eq Unison.Codebase.Branch.ActionLocation
+instance Control.Lens.Empty.AsEmpty (Unison.Codebase.Branch.Branch m)
+instance GHC.Classes.Eq (Unison.Codebase.Branch.Branch0 m)
+instance Unison.Hashable.Hashable (Unison.Codebase.Branch.Branch0 m)
 instance GHC.Base.Semigroup Unison.Codebase.Branch.BranchDiff
 instance GHC.Base.Monoid Unison.Codebase.Branch.BranchDiff
 
@@ -2271,23 +2307,21 @@ instance GHC.Classes.Eq Unison.Codebase.SqliteCodebase.Branch.Dependencies.Depen
 
 module Unison.Codebase.BranchUtil
 fromNames :: Monad m => Names -> Branch m
-hashesFromNames :: Monad m => Names -> Map Hash (Branch m)
-addFromNames :: Monad m => Names -> Branch0 m -> Branch0 m
+getBranch :: Split -> Branch0 m -> Maybe (Branch m)
 getTerm :: HQSplit -> Branch0 m -> Set Referent
+getType :: HQSplit -> Branch0 m -> Set Reference
+getTermMetadataAt :: (Path, a) -> Referent -> Branch0 m -> Metadata
+getTypeMetadataAt :: (Path, a) -> Reference -> Branch0 m -> Metadata
 getTermMetadataHQNamed :: (Path, HQSegment) -> Branch0 m -> R4 Referent NameSegment
 getTypeMetadataHQNamed :: (Path, HQSegment) -> Branch0 m -> R4 Reference NameSegment
-getTermMetadataAt :: (Path, a) -> Referent -> Branch0 m -> Metadata
-getType :: HQSplit -> Branch0 m -> Set Reference
-getTypeByShortHash :: ShortHash -> Branch0 m -> Set Reference
-getTypeMetadataAt :: (Path, a) -> Reference -> Branch0 m -> Metadata
-getBranch :: Split -> Branch0 m -> Maybe (Branch m)
-makeAddTermName :: Split -> Referent -> Metadata -> (Path, Branch0 m -> Branch0 m)
-makeDeleteTermName :: Split -> Referent -> (Path, Branch0 m -> Branch0 m)
-makeReplacePatch :: Applicative m => Split -> Patch -> (Path, Branch0 m -> Branch0 m)
-makeDeletePatch :: Split -> (Path, Branch0 m -> Branch0 m)
+makeSetBranch :: Split -> Branch m -> (Path, Branch0 m -> Branch0 m)
+makeDeleteBranch :: Split -> (Path, Branch0 m -> Branch0 m)
 makeAddTypeName :: Split -> Reference -> Metadata -> (Path, Branch0 m -> Branch0 m)
 makeDeleteTypeName :: Split -> Reference -> (Path, Branch0 m -> Branch0 m)
-makeSetBranch :: Split -> Branch m -> (Path, Branch0 m -> Branch0 m)
+makeAddTermName :: Split -> Referent -> Metadata -> (Path, Branch0 m -> Branch0 m)
+makeDeleteTermName :: Split -> Referent -> (Path, Branch0 m -> Branch0 m)
+makeDeletePatch :: Split -> (Path, Branch0 m -> Branch0 m)
+makeReplacePatch :: Applicative m => Split -> Patch -> (Path, Branch0 m -> Branch0 m)
 
 module Unison.Codebase.Branch.Names
 findHistoricalHQs :: Monad m => Set (HashQualified Name) -> Branch m -> m (Set (HashQualified Name), Names)
@@ -3375,9 +3409,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5Hot loc_a5Hou. Lens' (Env v_a5Hot loc_a5Hou) (TypeLookup v_a5Hot loc_a5Hou)
-termsByShortname :: forall v_a5Hot loc_a5Hou. Lens' (Env v_a5Hot loc_a5Hou) (Map Name [NamedReference v_a5Hot loc_a5Hou])
-ambientAbilities :: forall v_a5Hot loc_a5Hou. Lens' (Env v_a5Hot loc_a5Hou) [Type v_a5Hot loc_a5Hou]
+typeLookup :: forall v_a5I2Y loc_a5I2Z. Lens' (Env v_a5I2Y loc_a5I2Z) (TypeLookup v_a5I2Y loc_a5I2Z)
+termsByShortname :: forall v_a5I2Y loc_a5I2Z. Lens' (Env v_a5I2Y loc_a5I2Z) (Map Name [NamedReference v_a5I2Y loc_a5I2Z])
+ambientAbilities :: forall v_a5I2Y loc_a5I2Z. Lens' (Env v_a5I2Y loc_a5I2Z) [Type v_a5I2Y loc_a5I2Z]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.

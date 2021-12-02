@@ -2683,6 +2683,7 @@ hangUngrouped' :: (ListLike s Char, IsString s) => Pretty s -> Pretty s -> Prett
 hangUngrouped :: (ListLike s Char, IsString s) => Pretty s -> Pretty s -> Pretty s
 softHang' :: (ListLike s Char, IsString s) => Pretty s -> Pretty s -> Pretty s -> Pretty s
 softHang :: (ListLike s Char, IsString s) => Pretty s -> Pretty s -> Pretty s
+softHangNoSpace' :: (ListLike s Char, IsString s) => Pretty s -> Pretty s -> Pretty s -> Pretty s
 indent :: (ListLike s Char, IsString s) => Pretty s -> Pretty s -> Pretty s
 indentAfterNewline :: (ListLike s Char, IsString s) => Pretty s -> Pretty s -> Pretty s
 indentN :: (ListLike s Char, IsString s) => Width -> Pretty s -> Pretty s
@@ -2690,6 +2691,7 @@ indentNonEmptyN :: (ListLike s Char, IsString s) => Width -> Pretty s -> Pretty 
 indentNAfterNewline :: (ListLike s Char, IsString s) => Width -> Pretty s -> Pretty s
 invert :: Pretty ColorText -> Pretty ColorText
 isMultiLine :: Pretty s -> Bool
+isEmpty :: Eq s => IsString s => Pretty s -> Bool
 leftPad :: IsString s => Width -> Pretty s -> Pretty s
 lines :: (Foldable f, IsString s) => f (Pretty s) -> Pretty s
 linesNonEmpty :: (Foldable f, IsString s) => f (Pretty s) -> Pretty s
@@ -2700,6 +2702,7 @@ mayColumn2 :: (ListLike s Char, IsString s) => [(Pretty s, Maybe (Pretty s))] ->
 nest :: (ListLike s Char, IsString s) => Pretty s -> Pretty s -> Pretty s
 num :: (Show n, Num n, IsString s) => n -> Pretty s
 newline :: IsString s => Pretty s
+leftJustify :: (Eq s, Show s, ListLike s Char, IsString s) => [(Pretty s, a)] -> [(Pretty s, a)]
 lineSkip :: IsString s => Pretty s
 nonEmpty :: (Foldable f, IsString s) => f (Pretty s) -> [Pretty s]
 numbered :: (Foldable f, ListLike s Char, IsString s) => (Int -> Pretty s) -> f (Pretty s) -> Pretty s
@@ -2721,6 +2724,7 @@ sepSpaced :: (Foldable f, IsString s) => Pretty s -> f (Pretty s) -> Pretty s
 shown :: (Show a, IsString s) => a -> Pretty s
 softbreak :: IsString s => Pretty s
 spaceIfBreak :: IsString s => Pretty s
+spaceIfNeeded :: Eq s => IsString s => Pretty s -> Pretty s -> Pretty s
 spaced :: (Foldable f, IsString s) => f (Pretty s) -> Pretty s
 spacedMap :: (Foldable f, IsString s) => (a -> Pretty s) -> f a -> Pretty s
 spacesIfBreak :: IsString s => Int -> Pretty s
@@ -3371,9 +3375,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5H2j loc_a5H2k. Lens' (Env v_a5H2j loc_a5H2k) (TypeLookup v_a5H2j loc_a5H2k)
-termsByShortname :: forall v_a5H2j loc_a5H2k. Lens' (Env v_a5H2j loc_a5H2k) (Map Name [NamedReference v_a5H2j loc_a5H2k])
-ambientAbilities :: forall v_a5H2j loc_a5H2k. Lens' (Env v_a5H2j loc_a5H2k) [Type v_a5H2j loc_a5H2k]
+typeLookup :: forall v_a5Hot loc_a5Hou. Lens' (Env v_a5Hot loc_a5Hou) (TypeLookup v_a5Hot loc_a5Hou)
+termsByShortname :: forall v_a5Hot loc_a5Hou. Lens' (Env v_a5Hot loc_a5Hou) (Map Name [NamedReference v_a5Hot loc_a5Hou])
+ambientAbilities :: forall v_a5Hot loc_a5Hou. Lens' (Env v_a5Hot loc_a5Hou) [Type v_a5Hot loc_a5Hou]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.

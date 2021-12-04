@@ -165,7 +165,13 @@ deleteDom :: (Ord a, Ord b) => a -> Relation a b -> Relation a b
 deleteRan :: (Ord a, Ord b) => b -> Relation a b -> Relation a b
 deleteDomWhere :: (Ord a, Ord b) => (a -> Bool) -> b -> Relation a b -> Relation a b
 deleteRanWhere :: (Ord a, Ord b) => (b -> Bool) -> a -> Relation a b -> Relation a b
+
+-- | <tt>replaceDom x y r</tt> replaces all <tt>(x, _)</tt> with <tt>(y,
+--   _)</tt> in <tt>r</tt>.
 replaceDom :: (Ord a, Ord b) => a -> a -> Relation a b -> Relation a b
+
+-- | <tt>replaceRan x y r</tt> replaces all <tt>(_, x)</tt> with <tt>(_,
+--   y)</tt> in <tt>r</tt>.
 replaceRan :: (Ord a, Ord b) => b -> b -> Relation a b -> Relation a b
 updateDom :: (Ord a, Ord b) => (a -> a) -> b -> Relation a b -> Relation a b
 updateRan :: (Ord a, Ord b) => (b -> b) -> a -> Relation a b -> Relation a b

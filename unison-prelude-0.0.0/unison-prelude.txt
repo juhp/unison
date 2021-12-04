@@ -240,6 +240,10 @@ fmap :: Functor f => (a -> b) -> f a -> f b
 (<$) :: Functor f => a -> f b -> f a
 infixl 4 <$
 
+-- | The class <a>Typeable</a> allows a concrete representation of a type
+--   to be calculated.
+class Typeable (a :: k)
+
 -- | When a value is bound in <tt>do</tt>-notation, the pattern on the left
 --   hand side of <tt>&lt;-</tt> might not match. In this case, this class
 --   provides a function to recover.

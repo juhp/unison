@@ -49,32 +49,32 @@ $cshowsPrec :: Int -&gt; JournalMode -&gt; ShowS
 </span><span id="line-26"></span><span id="journalModeFromText"><span class="annot"><span class="annottext">journalModeFromText :: Text -&gt; Maybe JournalMode
 </span><a href="Unison.Sqlite.JournalMode.html#journalModeFromText"><span class="hs-identifier hs-var hs-var">journalModeFromText</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
 </span><span id="line-27"></span><span>  </span><span class="annot"><span class="annottext">Text
-</span><span class="hs-string">&quot;DELETE&quot;</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">JournalMode -&gt; Maybe JournalMode
+</span><span class="hs-string">&quot;delete&quot;</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">JournalMode -&gt; Maybe JournalMode
 forall a. a -&gt; Maybe a
 </span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">JournalMode
 </span><a href="Unison.Sqlite.JournalMode.html#JournalMode%27DELETE"><span class="hs-identifier hs-var">JournalMode'DELETE</span></a></span><span>
 </span><span id="line-28"></span><span>  </span><span class="annot"><span class="annottext">Text
-</span><span class="hs-string">&quot;TRUNCATE&quot;</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">JournalMode -&gt; Maybe JournalMode
+</span><span class="hs-string">&quot;truncate&quot;</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">JournalMode -&gt; Maybe JournalMode
 forall a. a -&gt; Maybe a
 </span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">JournalMode
 </span><a href="Unison.Sqlite.JournalMode.html#JournalMode%27TRUNCATE"><span class="hs-identifier hs-var">JournalMode'TRUNCATE</span></a></span><span>
 </span><span id="line-29"></span><span>  </span><span class="annot"><span class="annottext">Text
-</span><span class="hs-string">&quot;PERSIST&quot;</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">JournalMode -&gt; Maybe JournalMode
+</span><span class="hs-string">&quot;persist&quot;</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">JournalMode -&gt; Maybe JournalMode
 forall a. a -&gt; Maybe a
 </span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">JournalMode
 </span><a href="Unison.Sqlite.JournalMode.html#JournalMode%27PERSIST"><span class="hs-identifier hs-var">JournalMode'PERSIST</span></a></span><span>
 </span><span id="line-30"></span><span>  </span><span class="annot"><span class="annottext">Text
-</span><span class="hs-string">&quot;MEMORY&quot;</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">JournalMode -&gt; Maybe JournalMode
+</span><span class="hs-string">&quot;memory&quot;</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">JournalMode -&gt; Maybe JournalMode
 forall a. a -&gt; Maybe a
 </span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">JournalMode
 </span><a href="Unison.Sqlite.JournalMode.html#JournalMode%27MEMORY"><span class="hs-identifier hs-var">JournalMode'MEMORY</span></a></span><span>
 </span><span id="line-31"></span><span>  </span><span class="annot"><span class="annottext">Text
-</span><span class="hs-string">&quot;WAL&quot;</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">JournalMode -&gt; Maybe JournalMode
+</span><span class="hs-string">&quot;wal&quot;</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">JournalMode -&gt; Maybe JournalMode
 forall a. a -&gt; Maybe a
 </span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">JournalMode
 </span><a href="Unison.Sqlite.JournalMode.html#JournalMode%27WAL"><span class="hs-identifier hs-var">JournalMode'WAL</span></a></span><span>
 </span><span id="line-32"></span><span>  </span><span class="annot"><span class="annottext">Text
-</span><span class="hs-string">&quot;OFF&quot;</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">JournalMode -&gt; Maybe JournalMode
+</span><span class="hs-string">&quot;off&quot;</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">JournalMode -&gt; Maybe JournalMode
 forall a. a -&gt; Maybe a
 </span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">JournalMode
 </span><a href="Unison.Sqlite.JournalMode.html#JournalMode%27OFF"><span class="hs-identifier hs-var">JournalMode'OFF</span></a></span><span>
@@ -105,22 +105,22 @@ forall a. [a] -&gt; [a] -&gt; [a]
 </span><a href="Unison.Sqlite.JournalMode.html#journalModeToText"><span class="hs-identifier hs-var hs-var">journalModeToText</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
 </span><span id="line-41"></span><span>  </span><span class="annot"><span class="annottext">JournalMode
 </span><a href="Unison.Sqlite.JournalMode.html#JournalMode%27DELETE"><span class="hs-identifier hs-var">JournalMode'DELETE</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Text
-</span><span class="hs-string">&quot;DELETE&quot;</span></span><span>
+</span><span class="hs-string">&quot;delete&quot;</span></span><span>
 </span><span id="line-42"></span><span>  </span><span class="annot"><span class="annottext">JournalMode
 </span><a href="Unison.Sqlite.JournalMode.html#JournalMode%27TRUNCATE"><span class="hs-identifier hs-var">JournalMode'TRUNCATE</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Text
-</span><span class="hs-string">&quot;TRUNCATE&quot;</span></span><span>
+</span><span class="hs-string">&quot;truncate&quot;</span></span><span>
 </span><span id="line-43"></span><span>  </span><span class="annot"><span class="annottext">JournalMode
 </span><a href="Unison.Sqlite.JournalMode.html#JournalMode%27PERSIST"><span class="hs-identifier hs-var">JournalMode'PERSIST</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Text
-</span><span class="hs-string">&quot;PERSIST&quot;</span></span><span>
+</span><span class="hs-string">&quot;persist&quot;</span></span><span>
 </span><span id="line-44"></span><span>  </span><span class="annot"><span class="annottext">JournalMode
 </span><a href="Unison.Sqlite.JournalMode.html#JournalMode%27MEMORY"><span class="hs-identifier hs-var">JournalMode'MEMORY</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Text
-</span><span class="hs-string">&quot;MEMORY&quot;</span></span><span>
+</span><span class="hs-string">&quot;memory&quot;</span></span><span>
 </span><span id="line-45"></span><span>  </span><span class="annot"><span class="annottext">JournalMode
 </span><a href="Unison.Sqlite.JournalMode.html#JournalMode%27WAL"><span class="hs-identifier hs-var">JournalMode'WAL</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Text
-</span><span class="hs-string">&quot;WAL&quot;</span></span><span>
+</span><span class="hs-string">&quot;wal&quot;</span></span><span>
 </span><span id="line-46"></span><span>  </span><span class="annot"><span class="annottext">JournalMode
 </span><a href="Unison.Sqlite.JournalMode.html#JournalMode%27OFF"><span class="hs-identifier hs-var">JournalMode'OFF</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Text
-</span><span class="hs-string">&quot;OFF&quot;</span></span><span>
+</span><span class="hs-string">&quot;off&quot;</span></span><span>
 </span><span id="line-47"></span><span>
 </span><span id="line-48"></span><span class="annot"><a href="Unison.Sqlite.JournalMode.html#trySetJournalMode"><span class="hs-identifier hs-type">trySetJournalMode</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Sqlite.JournalMode.html#JournalMode"><span class="hs-identifier hs-type">JournalMode</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Sqlite.Transaction.html#Transaction"><span class="hs-identifier hs-type">Transaction</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
 </span><span id="line-49"></span><span id="trySetJournalMode"><span class="annot"><span class="annottext">trySetJournalMode :: JournalMode -&gt; Transaction ()

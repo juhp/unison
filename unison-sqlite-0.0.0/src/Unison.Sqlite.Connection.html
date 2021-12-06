@@ -213,33 +213,33 @@ forall (m :: * -&gt; *) e a.
 m a -&gt; (e -&gt; m a) -&gt; m a
 </span><span class="hs-operator hs-var">`catch`</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679082541"><span class="annot"><span class="annottext">SQLError
 </span><a href="#local-6989586621679082541"><span class="hs-identifier hs-var">exception</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Sqlite.SQLError</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
-</span><span id="line-122"></span><span>    </span><span class="annot"><span class="annottext">SqliteExceptionInfo a Connection -&gt; IO ()
+</span><span id="line-122"></span><span>    </span><span class="annot"><span class="annottext">SqliteQueryExceptionInfo a Connection -&gt; IO ()
 forall connection params a.
 Show connection =&gt;
-SqliteExceptionInfo params connection -&gt; IO a
-</span><a href="Unison.Sqlite.Exception.html#throwSqliteException"><span class="hs-identifier hs-var">throwSqliteException</span></a></span><span>
-</span><span id="line-123"></span><span>      </span><span class="annot"><span class="annottext">SqliteExceptionInfo :: forall params connection.
+SqliteQueryExceptionInfo params connection -&gt; IO a
+</span><a href="Unison.Sqlite.Exception.html#throwSqliteQueryException"><span class="hs-identifier hs-var">throwSqliteQueryException</span></a></span><span>
+</span><span id="line-123"></span><span>      </span><span class="annot"><span class="annottext">SqliteQueryExceptionInfo :: forall params connection.
 Sql
 -&gt; Maybe params
 -&gt; SomeSqliteExceptionReason
 -&gt; connection
--&gt; SqliteExceptionInfo params connection
-</span><a href="Unison.Sqlite.Exception.html#SqliteExceptionInfo"><span class="hs-identifier hs-type">SqliteExceptionInfo</span></a></span><span>
-</span><span id="line-124"></span><span>        </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">$sel:connection:SqliteExceptionInfo :: Connection
-</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aconnection%3ASqliteExceptionInfo"><span class="hs-identifier hs-var">connection</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Connection
+-&gt; SqliteQueryExceptionInfo params connection
+</span><a href="Unison.Sqlite.Exception.html#SqliteQueryExceptionInfo"><span class="hs-identifier hs-type">SqliteQueryExceptionInfo</span></a></span><span>
+</span><span id="line-124"></span><span>        </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">$sel:connection:SqliteQueryExceptionInfo :: Connection
+</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aconnection%3ASqliteQueryExceptionInfo"><span class="hs-identifier hs-var">connection</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Connection
 </span><a href="#local-6989586621679082547"><span class="hs-identifier hs-var">conn</span></a></span><span class="hs-special">,</span><span>
-</span><span id="line-125"></span><span>          </span><span class="annot"><span class="annottext">$sel:exception:SqliteExceptionInfo :: SomeSqliteExceptionReason
-</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aexception%3ASqliteExceptionInfo"><span class="hs-identifier hs-var">exception</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SQLError -&gt; SomeSqliteExceptionReason
+</span><span id="line-125"></span><span>          </span><span class="annot"><span class="annottext">$sel:exception:SqliteQueryExceptionInfo :: SomeSqliteExceptionReason
+</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aexception%3ASqliteQueryExceptionInfo"><span class="hs-identifier hs-var">exception</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SQLError -&gt; SomeSqliteExceptionReason
 forall e. SqliteExceptionReason e =&gt; e -&gt; SomeSqliteExceptionReason
 </span><a href="Unison.Sqlite.Exception.html#SomeSqliteExceptionReason"><span class="hs-identifier hs-var">SomeSqliteExceptionReason</span></a></span><span> </span><span class="annot"><span class="annottext">SQLError
 </span><a href="#local-6989586621679082541"><span class="hs-identifier hs-var">exception</span></a></span><span class="hs-special">,</span><span>
-</span><span id="line-126"></span><span>          </span><span class="annot"><span class="annottext">$sel:params:SqliteExceptionInfo :: Maybe a
-</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aparams%3ASqliteExceptionInfo"><span class="hs-identifier hs-var">params</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Maybe a
+</span><span id="line-126"></span><span>          </span><span class="annot"><span class="annottext">$sel:params:SqliteQueryExceptionInfo :: Maybe a
+</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aparams%3ASqliteQueryExceptionInfo"><span class="hs-identifier hs-var">params</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Maybe a
 forall a. a -&gt; Maybe a
 </span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">a
 </span><a href="#local-6989586621679082544"><span class="hs-identifier hs-var">params</span></a></span><span class="hs-special">,</span><span>
-</span><span id="line-127"></span><span>          </span><span class="annot"><span class="annottext">$sel:sql:SqliteExceptionInfo :: Sql
-</span><a href="Unison.Sqlite.Exception.html#%24sel%3Asql%3ASqliteExceptionInfo"><span class="hs-identifier hs-var">sql</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Sql
+</span><span id="line-127"></span><span>          </span><span class="annot"><span class="annottext">$sel:sql:SqliteQueryExceptionInfo :: Sql
+</span><a href="Unison.Sqlite.Exception.html#%24sel%3Asql%3ASqliteQueryExceptionInfo"><span class="hs-identifier hs-var">sql</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Sql
 </span><a href="#local-6989586621679082545"><span class="hs-identifier hs-var">s</span></a></span><span>
 </span><span id="line-128"></span><span>        </span><span class="hs-special">}</span><span>
 </span><span id="line-129"></span><span>
@@ -264,33 +264,33 @@ forall (m :: * -&gt; *) e a.
 m a -&gt; (e -&gt; m a) -&gt; m a
 </span><span class="hs-operator hs-var">`catch`</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679082527"><span class="annot"><span class="annottext">SQLError
 </span><a href="#local-6989586621679082527"><span class="hs-identifier hs-var">exception</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Sqlite.SQLError</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
-</span><span id="line-133"></span><span>    </span><span class="annot"><span class="annottext">SqliteExceptionInfo [a] Connection -&gt; IO ()
+</span><span id="line-133"></span><span>    </span><span class="annot"><span class="annottext">SqliteQueryExceptionInfo [a] Connection -&gt; IO ()
 forall connection params a.
 Show connection =&gt;
-SqliteExceptionInfo params connection -&gt; IO a
-</span><a href="Unison.Sqlite.Exception.html#throwSqliteException"><span class="hs-identifier hs-var">throwSqliteException</span></a></span><span>
-</span><span id="line-134"></span><span>      </span><span class="annot"><span class="annottext">SqliteExceptionInfo :: forall params connection.
+SqliteQueryExceptionInfo params connection -&gt; IO a
+</span><a href="Unison.Sqlite.Exception.html#throwSqliteQueryException"><span class="hs-identifier hs-var">throwSqliteQueryException</span></a></span><span>
+</span><span id="line-134"></span><span>      </span><span class="annot"><span class="annottext">SqliteQueryExceptionInfo :: forall params connection.
 Sql
 -&gt; Maybe params
 -&gt; SomeSqliteExceptionReason
 -&gt; connection
--&gt; SqliteExceptionInfo params connection
-</span><a href="Unison.Sqlite.Exception.html#SqliteExceptionInfo"><span class="hs-identifier hs-type">SqliteExceptionInfo</span></a></span><span>
-</span><span id="line-135"></span><span>        </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">$sel:connection:SqliteExceptionInfo :: Connection
-</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aconnection%3ASqliteExceptionInfo"><span class="hs-identifier hs-var">connection</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Connection
+-&gt; SqliteQueryExceptionInfo params connection
+</span><a href="Unison.Sqlite.Exception.html#SqliteQueryExceptionInfo"><span class="hs-identifier hs-type">SqliteQueryExceptionInfo</span></a></span><span>
+</span><span id="line-135"></span><span>        </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">$sel:connection:SqliteQueryExceptionInfo :: Connection
+</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aconnection%3ASqliteQueryExceptionInfo"><span class="hs-identifier hs-var">connection</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Connection
 </span><a href="#local-6989586621679082532"><span class="hs-identifier hs-var">conn</span></a></span><span class="hs-special">,</span><span>
-</span><span id="line-136"></span><span>          </span><span class="annot"><span class="annottext">$sel:exception:SqliteExceptionInfo :: SomeSqliteExceptionReason
-</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aexception%3ASqliteExceptionInfo"><span class="hs-identifier hs-var">exception</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SQLError -&gt; SomeSqliteExceptionReason
+</span><span id="line-136"></span><span>          </span><span class="annot"><span class="annottext">$sel:exception:SqliteQueryExceptionInfo :: SomeSqliteExceptionReason
+</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aexception%3ASqliteQueryExceptionInfo"><span class="hs-identifier hs-var">exception</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SQLError -&gt; SomeSqliteExceptionReason
 forall e. SqliteExceptionReason e =&gt; e -&gt; SomeSqliteExceptionReason
 </span><a href="Unison.Sqlite.Exception.html#SomeSqliteExceptionReason"><span class="hs-identifier hs-var">SomeSqliteExceptionReason</span></a></span><span> </span><span class="annot"><span class="annottext">SQLError
 </span><a href="#local-6989586621679082527"><span class="hs-identifier hs-var">exception</span></a></span><span class="hs-special">,</span><span>
-</span><span id="line-137"></span><span>          </span><span class="annot"><span class="annottext">$sel:params:SqliteExceptionInfo :: Maybe [a]
-</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aparams%3ASqliteExceptionInfo"><span class="hs-identifier hs-var">params</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; Maybe [a]
+</span><span id="line-137"></span><span>          </span><span class="annot"><span class="annottext">$sel:params:SqliteQueryExceptionInfo :: Maybe [a]
+</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aparams%3ASqliteQueryExceptionInfo"><span class="hs-identifier hs-var">params</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; Maybe [a]
 forall a. a -&gt; Maybe a
 </span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">[a]
 </span><a href="#local-6989586621679082529"><span class="hs-identifier hs-var">params</span></a></span><span class="hs-special">,</span><span>
-</span><span id="line-138"></span><span>          </span><span class="annot"><span class="annottext">$sel:sql:SqliteExceptionInfo :: Sql
-</span><a href="Unison.Sqlite.Exception.html#%24sel%3Asql%3ASqliteExceptionInfo"><span class="hs-identifier hs-var">sql</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Sql
+</span><span id="line-138"></span><span>          </span><span class="annot"><span class="annottext">$sel:sql:SqliteQueryExceptionInfo :: Sql
+</span><a href="Unison.Sqlite.Exception.html#%24sel%3Asql%3ASqliteQueryExceptionInfo"><span class="hs-identifier hs-var">sql</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Sql
 </span><a href="#local-6989586621679082530"><span class="hs-identifier hs-var">s</span></a></span><span>
 </span><span id="line-139"></span><span>        </span><span class="hs-special">}</span><span>
 </span><span id="line-140"></span><span>
@@ -314,32 +314,32 @@ forall (m :: * -&gt; *) e a.
 m a -&gt; (e -&gt; m a) -&gt; m a
 </span><span class="hs-operator hs-var">`catch`</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679082522"><span class="annot"><span class="annottext">SQLError
 </span><a href="#local-6989586621679082522"><span class="hs-identifier hs-var">exception</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Sqlite.SQLError</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
-</span><span id="line-146"></span><span>    </span><span class="annot"><span class="annottext">SqliteExceptionInfo Any Connection -&gt; IO ()
+</span><span id="line-146"></span><span>    </span><span class="annot"><span class="annottext">SqliteQueryExceptionInfo Any Connection -&gt; IO ()
 forall connection params a.
 Show connection =&gt;
-SqliteExceptionInfo params connection -&gt; IO a
-</span><a href="Unison.Sqlite.Exception.html#throwSqliteException"><span class="hs-identifier hs-var">throwSqliteException</span></a></span><span>
-</span><span id="line-147"></span><span>      </span><span class="annot"><span class="annottext">SqliteExceptionInfo :: forall params connection.
+SqliteQueryExceptionInfo params connection -&gt; IO a
+</span><a href="Unison.Sqlite.Exception.html#throwSqliteQueryException"><span class="hs-identifier hs-var">throwSqliteQueryException</span></a></span><span>
+</span><span id="line-147"></span><span>      </span><span class="annot"><span class="annottext">SqliteQueryExceptionInfo :: forall params connection.
 Sql
 -&gt; Maybe params
 -&gt; SomeSqliteExceptionReason
 -&gt; connection
--&gt; SqliteExceptionInfo params connection
-</span><a href="Unison.Sqlite.Exception.html#SqliteExceptionInfo"><span class="hs-identifier hs-type">SqliteExceptionInfo</span></a></span><span>
-</span><span id="line-148"></span><span>        </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">$sel:connection:SqliteExceptionInfo :: Connection
-</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aconnection%3ASqliteExceptionInfo"><span class="hs-identifier hs-var">connection</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Connection
+-&gt; SqliteQueryExceptionInfo params connection
+</span><a href="Unison.Sqlite.Exception.html#SqliteQueryExceptionInfo"><span class="hs-identifier hs-type">SqliteQueryExceptionInfo</span></a></span><span>
+</span><span id="line-148"></span><span>        </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">$sel:connection:SqliteQueryExceptionInfo :: Connection
+</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aconnection%3ASqliteQueryExceptionInfo"><span class="hs-identifier hs-var">connection</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Connection
 </span><a href="#local-6989586621679082526"><span class="hs-identifier hs-var">conn</span></a></span><span class="hs-special">,</span><span>
-</span><span id="line-149"></span><span>          </span><span class="annot"><span class="annottext">$sel:exception:SqliteExceptionInfo :: SomeSqliteExceptionReason
-</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aexception%3ASqliteExceptionInfo"><span class="hs-identifier hs-var">exception</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SQLError -&gt; SomeSqliteExceptionReason
+</span><span id="line-149"></span><span>          </span><span class="annot"><span class="annottext">$sel:exception:SqliteQueryExceptionInfo :: SomeSqliteExceptionReason
+</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aexception%3ASqliteQueryExceptionInfo"><span class="hs-identifier hs-var">exception</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SQLError -&gt; SomeSqliteExceptionReason
 forall e. SqliteExceptionReason e =&gt; e -&gt; SomeSqliteExceptionReason
 </span><a href="Unison.Sqlite.Exception.html#SomeSqliteExceptionReason"><span class="hs-identifier hs-var">SomeSqliteExceptionReason</span></a></span><span> </span><span class="annot"><span class="annottext">SQLError
 </span><a href="#local-6989586621679082522"><span class="hs-identifier hs-var">exception</span></a></span><span class="hs-special">,</span><span>
-</span><span id="line-150"></span><span>          </span><span class="annot"><span class="annottext">$sel:params:SqliteExceptionInfo :: Maybe Any
-</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aparams%3ASqliteExceptionInfo"><span class="hs-identifier hs-var">params</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Any
+</span><span id="line-150"></span><span>          </span><span class="annot"><span class="annottext">$sel:params:SqliteQueryExceptionInfo :: Maybe Any
+</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aparams%3ASqliteQueryExceptionInfo"><span class="hs-identifier hs-var">params</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Any
 forall a. Maybe a
 </span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-special">,</span><span>
-</span><span id="line-151"></span><span>          </span><span class="annot"><span class="annottext">$sel:sql:SqliteExceptionInfo :: Sql
-</span><a href="Unison.Sqlite.Exception.html#%24sel%3Asql%3ASqliteExceptionInfo"><span class="hs-identifier hs-var">sql</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Sql
+</span><span id="line-151"></span><span>          </span><span class="annot"><span class="annottext">$sel:sql:SqliteQueryExceptionInfo :: Sql
+</span><a href="Unison.Sqlite.Exception.html#%24sel%3Asql%3ASqliteQueryExceptionInfo"><span class="hs-identifier hs-var">sql</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Sql
 </span><a href="#local-6989586621679082524"><span class="hs-identifier hs-var">s</span></a></span><span>
 </span><span id="line-152"></span><span>        </span><span class="hs-special">}</span><span>
 </span><span id="line-153"></span><span>
@@ -368,33 +368,33 @@ forall (m :: * -&gt; *) e a.
 m a -&gt; (e -&gt; m a) -&gt; m a
 </span><span class="hs-operator hs-var">`catch`</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679082516"><span class="annot"><span class="annottext">SQLError
 </span><a href="#local-6989586621679082516"><span class="hs-identifier hs-var">exception</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Sqlite.SQLError</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
-</span><span id="line-159"></span><span>    </span><span class="annot"><span class="annottext">SqliteExceptionInfo a Connection -&gt; IO [b]
+</span><span id="line-159"></span><span>    </span><span class="annot"><span class="annottext">SqliteQueryExceptionInfo a Connection -&gt; IO [b]
 forall connection params a.
 Show connection =&gt;
-SqliteExceptionInfo params connection -&gt; IO a
-</span><a href="Unison.Sqlite.Exception.html#throwSqliteException"><span class="hs-identifier hs-var">throwSqliteException</span></a></span><span>
-</span><span id="line-160"></span><span>      </span><span class="annot"><span class="annottext">SqliteExceptionInfo :: forall params connection.
+SqliteQueryExceptionInfo params connection -&gt; IO a
+</span><a href="Unison.Sqlite.Exception.html#throwSqliteQueryException"><span class="hs-identifier hs-var">throwSqliteQueryException</span></a></span><span>
+</span><span id="line-160"></span><span>      </span><span class="annot"><span class="annottext">SqliteQueryExceptionInfo :: forall params connection.
 Sql
 -&gt; Maybe params
 -&gt; SomeSqliteExceptionReason
 -&gt; connection
--&gt; SqliteExceptionInfo params connection
-</span><a href="Unison.Sqlite.Exception.html#SqliteExceptionInfo"><span class="hs-identifier hs-type">SqliteExceptionInfo</span></a></span><span>
-</span><span id="line-161"></span><span>        </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">$sel:connection:SqliteExceptionInfo :: Connection
-</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aconnection%3ASqliteExceptionInfo"><span class="hs-identifier hs-var">connection</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Connection
+-&gt; SqliteQueryExceptionInfo params connection
+</span><a href="Unison.Sqlite.Exception.html#SqliteQueryExceptionInfo"><span class="hs-identifier hs-type">SqliteQueryExceptionInfo</span></a></span><span>
+</span><span id="line-161"></span><span>        </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">$sel:connection:SqliteQueryExceptionInfo :: Connection
+</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aconnection%3ASqliteQueryExceptionInfo"><span class="hs-identifier hs-var">connection</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Connection
 </span><a href="#local-6989586621679082521"><span class="hs-identifier hs-var">conn</span></a></span><span class="hs-special">,</span><span>
-</span><span id="line-162"></span><span>          </span><span class="annot"><span class="annottext">$sel:exception:SqliteExceptionInfo :: SomeSqliteExceptionReason
-</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aexception%3ASqliteExceptionInfo"><span class="hs-identifier hs-var">exception</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SQLError -&gt; SomeSqliteExceptionReason
+</span><span id="line-162"></span><span>          </span><span class="annot"><span class="annottext">$sel:exception:SqliteQueryExceptionInfo :: SomeSqliteExceptionReason
+</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aexception%3ASqliteQueryExceptionInfo"><span class="hs-identifier hs-var">exception</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SQLError -&gt; SomeSqliteExceptionReason
 forall e. SqliteExceptionReason e =&gt; e -&gt; SomeSqliteExceptionReason
 </span><a href="Unison.Sqlite.Exception.html#SomeSqliteExceptionReason"><span class="hs-identifier hs-var">SomeSqliteExceptionReason</span></a></span><span> </span><span class="annot"><span class="annottext">SQLError
 </span><a href="#local-6989586621679082516"><span class="hs-identifier hs-var">exception</span></a></span><span class="hs-special">,</span><span>
-</span><span id="line-163"></span><span>          </span><span class="annot"><span class="annottext">$sel:params:SqliteExceptionInfo :: Maybe a
-</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aparams%3ASqliteExceptionInfo"><span class="hs-identifier hs-var">params</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Maybe a
+</span><span id="line-163"></span><span>          </span><span class="annot"><span class="annottext">$sel:params:SqliteQueryExceptionInfo :: Maybe a
+</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aparams%3ASqliteQueryExceptionInfo"><span class="hs-identifier hs-var">params</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Maybe a
 forall a. a -&gt; Maybe a
 </span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">a
 </span><a href="#local-6989586621679082518"><span class="hs-identifier hs-var">params</span></a></span><span class="hs-special">,</span><span>
-</span><span id="line-164"></span><span>          </span><span class="annot"><span class="annottext">$sel:sql:SqliteExceptionInfo :: Sql
-</span><a href="Unison.Sqlite.Exception.html#%24sel%3Asql%3ASqliteExceptionInfo"><span class="hs-identifier hs-var">sql</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Sql
+</span><span id="line-164"></span><span>          </span><span class="annot"><span class="annottext">$sel:sql:SqliteQueryExceptionInfo :: Sql
+</span><a href="Unison.Sqlite.Exception.html#%24sel%3Asql%3ASqliteQueryExceptionInfo"><span class="hs-identifier hs-var">sql</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Sql
 </span><a href="#local-6989586621679082519"><span class="hs-identifier hs-var">s</span></a></span><span>
 </span><span id="line-165"></span><span>        </span><span class="hs-special">}</span><span>
 </span><span id="line-166"></span><span>
@@ -580,32 +580,32 @@ Connection -&gt; Sql -&gt; a -&gt; IO [b]
 </span><a href="#local-6989586621679082476"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="hs-keyword">of</span><span>
 </span><span id="line-214"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679082475"><span class="annot"><span class="annottext">SomeSqliteExceptionReason
 </span><a href="#local-6989586621679082475"><span class="hs-identifier hs-var">exception</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
-</span><span id="line-215"></span><span>      </span><span class="annot"><span class="annottext">SqliteExceptionInfo a Connection -&gt; IO r
+</span><span id="line-215"></span><span>      </span><span class="annot"><span class="annottext">SqliteQueryExceptionInfo a Connection -&gt; IO r
 forall connection params a.
 Show connection =&gt;
-SqliteExceptionInfo params connection -&gt; IO a
-</span><a href="Unison.Sqlite.Exception.html#throwSqliteException"><span class="hs-identifier hs-var">throwSqliteException</span></a></span><span>
-</span><span id="line-216"></span><span>        </span><span class="annot"><span class="annottext">SqliteExceptionInfo :: forall params connection.
+SqliteQueryExceptionInfo params connection -&gt; IO a
+</span><a href="Unison.Sqlite.Exception.html#throwSqliteQueryException"><span class="hs-identifier hs-var">throwSqliteQueryException</span></a></span><span>
+</span><span id="line-216"></span><span>        </span><span class="annot"><span class="annottext">SqliteQueryExceptionInfo :: forall params connection.
 Sql
 -&gt; Maybe params
 -&gt; SomeSqliteExceptionReason
 -&gt; connection
--&gt; SqliteExceptionInfo params connection
-</span><a href="Unison.Sqlite.Exception.html#SqliteExceptionInfo"><span class="hs-identifier hs-type">SqliteExceptionInfo</span></a></span><span>
-</span><span id="line-217"></span><span>          </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">$sel:connection:SqliteExceptionInfo :: Connection
-</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aconnection%3ASqliteExceptionInfo"><span class="hs-identifier hs-var">connection</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Connection
+-&gt; SqliteQueryExceptionInfo params connection
+</span><a href="Unison.Sqlite.Exception.html#SqliteQueryExceptionInfo"><span class="hs-identifier hs-type">SqliteQueryExceptionInfo</span></a></span><span>
+</span><span id="line-217"></span><span>          </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">$sel:connection:SqliteQueryExceptionInfo :: Connection
+</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aconnection%3ASqliteQueryExceptionInfo"><span class="hs-identifier hs-var">connection</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Connection
 </span><a href="#local-6989586621679082480"><span class="hs-identifier hs-var">conn</span></a></span><span class="hs-special">,</span><span>
 </span><span id="line-218"></span><span>            </span><span class="annot"><span class="annottext">SomeSqliteExceptionReason
 exception :: SomeSqliteExceptionReason
-$sel:exception:SqliteExceptionInfo :: SomeSqliteExceptionReason
+$sel:exception:SqliteQueryExceptionInfo :: SomeSqliteExceptionReason
 </span><a href="#local-6989586621679082475"><span class="hs-identifier hs-var hs-var">exception</span></a></span><span class="hs-special">,</span><span>
-</span><span id="line-219"></span><span>            </span><span class="annot"><span class="annottext">$sel:params:SqliteExceptionInfo :: Maybe a
-</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aparams%3ASqliteExceptionInfo"><span class="hs-identifier hs-var">params</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Maybe a
+</span><span id="line-219"></span><span>            </span><span class="annot"><span class="annottext">$sel:params:SqliteQueryExceptionInfo :: Maybe a
+</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aparams%3ASqliteQueryExceptionInfo"><span class="hs-identifier hs-var">params</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Maybe a
 forall a. a -&gt; Maybe a
 </span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">a
 </span><a href="#local-6989586621679082478"><span class="hs-identifier hs-var">params</span></a></span><span class="hs-special">,</span><span>
-</span><span id="line-220"></span><span>            </span><span class="annot"><span class="annottext">$sel:sql:SqliteExceptionInfo :: Sql
-</span><a href="Unison.Sqlite.Exception.html#%24sel%3Asql%3ASqliteExceptionInfo"><span class="hs-identifier hs-var">sql</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Sql
+</span><span id="line-220"></span><span>            </span><span class="annot"><span class="annottext">$sel:sql:SqliteQueryExceptionInfo :: Sql
+</span><a href="Unison.Sqlite.Exception.html#%24sel%3Asql%3ASqliteQueryExceptionInfo"><span class="hs-identifier hs-var">sql</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Sql
 </span><a href="#local-6989586621679082479"><span class="hs-identifier hs-var">s</span></a></span><span>
 </span><span id="line-221"></span><span>          </span><span class="hs-special">}</span><span>
 </span><span id="line-222"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679082474"><span class="annot"><span class="annottext">r
@@ -807,32 +807,32 @@ forall (m :: * -&gt; *) e a.
 m a -&gt; (e -&gt; m a) -&gt; m a
 </span><span class="hs-operator hs-var">`catch`</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679082433"><span class="annot"><span class="annottext">SQLError
 </span><a href="#local-6989586621679082433"><span class="hs-identifier hs-var">exception</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Sqlite.SQLError</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
-</span><span id="line-287"></span><span>    </span><span class="annot"><span class="annottext">SqliteExceptionInfo Any Connection -&gt; IO [a]
+</span><span id="line-287"></span><span>    </span><span class="annot"><span class="annottext">SqliteQueryExceptionInfo Any Connection -&gt; IO [a]
 forall connection params a.
 Show connection =&gt;
-SqliteExceptionInfo params connection -&gt; IO a
-</span><a href="Unison.Sqlite.Exception.html#throwSqliteException"><span class="hs-identifier hs-var">throwSqliteException</span></a></span><span>
-</span><span id="line-288"></span><span>      </span><span class="annot"><span class="annottext">SqliteExceptionInfo :: forall params connection.
+SqliteQueryExceptionInfo params connection -&gt; IO a
+</span><a href="Unison.Sqlite.Exception.html#throwSqliteQueryException"><span class="hs-identifier hs-var">throwSqliteQueryException</span></a></span><span>
+</span><span id="line-288"></span><span>      </span><span class="annot"><span class="annottext">SqliteQueryExceptionInfo :: forall params connection.
 Sql
 -&gt; Maybe params
 -&gt; SomeSqliteExceptionReason
 -&gt; connection
--&gt; SqliteExceptionInfo params connection
-</span><a href="Unison.Sqlite.Exception.html#SqliteExceptionInfo"><span class="hs-identifier hs-type">SqliteExceptionInfo</span></a></span><span>
-</span><span id="line-289"></span><span>        </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">$sel:connection:SqliteExceptionInfo :: Connection
-</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aconnection%3ASqliteExceptionInfo"><span class="hs-identifier hs-var">connection</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Connection
+-&gt; SqliteQueryExceptionInfo params connection
+</span><a href="Unison.Sqlite.Exception.html#SqliteQueryExceptionInfo"><span class="hs-identifier hs-type">SqliteQueryExceptionInfo</span></a></span><span>
+</span><span id="line-289"></span><span>        </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">$sel:connection:SqliteQueryExceptionInfo :: Connection
+</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aconnection%3ASqliteQueryExceptionInfo"><span class="hs-identifier hs-var">connection</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Connection
 </span><a href="#local-6989586621679082437"><span class="hs-identifier hs-var">conn</span></a></span><span class="hs-special">,</span><span>
-</span><span id="line-290"></span><span>          </span><span class="annot"><span class="annottext">$sel:exception:SqliteExceptionInfo :: SomeSqliteExceptionReason
-</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aexception%3ASqliteExceptionInfo"><span class="hs-identifier hs-var">exception</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SQLError -&gt; SomeSqliteExceptionReason
+</span><span id="line-290"></span><span>          </span><span class="annot"><span class="annottext">$sel:exception:SqliteQueryExceptionInfo :: SomeSqliteExceptionReason
+</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aexception%3ASqliteQueryExceptionInfo"><span class="hs-identifier hs-var">exception</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SQLError -&gt; SomeSqliteExceptionReason
 forall e. SqliteExceptionReason e =&gt; e -&gt; SomeSqliteExceptionReason
 </span><a href="Unison.Sqlite.Exception.html#SomeSqliteExceptionReason"><span class="hs-identifier hs-var">SomeSqliteExceptionReason</span></a></span><span> </span><span class="annot"><span class="annottext">SQLError
 </span><a href="#local-6989586621679082433"><span class="hs-identifier hs-var">exception</span></a></span><span class="hs-special">,</span><span>
-</span><span id="line-291"></span><span>          </span><span class="annot"><span class="annottext">$sel:params:SqliteExceptionInfo :: Maybe Any
-</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aparams%3ASqliteExceptionInfo"><span class="hs-identifier hs-var">params</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Any
+</span><span id="line-291"></span><span>          </span><span class="annot"><span class="annottext">$sel:params:SqliteQueryExceptionInfo :: Maybe Any
+</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aparams%3ASqliteQueryExceptionInfo"><span class="hs-identifier hs-var">params</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Any
 forall a. Maybe a
 </span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-special">,</span><span>
-</span><span id="line-292"></span><span>          </span><span class="annot"><span class="annottext">$sel:sql:SqliteExceptionInfo :: Sql
-</span><a href="Unison.Sqlite.Exception.html#%24sel%3Asql%3ASqliteExceptionInfo"><span class="hs-identifier hs-var">sql</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Sql
+</span><span id="line-292"></span><span>          </span><span class="annot"><span class="annottext">$sel:sql:SqliteQueryExceptionInfo :: Sql
+</span><a href="Unison.Sqlite.Exception.html#%24sel%3Asql%3ASqliteQueryExceptionInfo"><span class="hs-identifier hs-var">sql</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Sql
 </span><a href="#local-6989586621679082435"><span class="hs-identifier hs-var">s</span></a></span><span>
 </span><span id="line-293"></span><span>        </span><span class="hs-special">}</span><span>
 </span><span id="line-294"></span><span>
@@ -985,31 +985,31 @@ forall a. FromRow a =&gt; Connection -&gt; Sql -&gt; IO [a]
 </span><a href="#local-6989586621679082408"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="hs-keyword">of</span><span>
 </span><span id="line-330"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679082407"><span class="annot"><span class="annottext">SomeSqliteExceptionReason
 </span><a href="#local-6989586621679082407"><span class="hs-identifier hs-var">exception</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
-</span><span id="line-331"></span><span>      </span><span class="annot"><span class="annottext">SqliteExceptionInfo Any Connection -&gt; IO r
+</span><span id="line-331"></span><span>      </span><span class="annot"><span class="annottext">SqliteQueryExceptionInfo Any Connection -&gt; IO r
 forall connection params a.
 Show connection =&gt;
-SqliteExceptionInfo params connection -&gt; IO a
-</span><a href="Unison.Sqlite.Exception.html#throwSqliteException"><span class="hs-identifier hs-var">throwSqliteException</span></a></span><span>
-</span><span id="line-332"></span><span>        </span><span class="annot"><span class="annottext">SqliteExceptionInfo :: forall params connection.
+SqliteQueryExceptionInfo params connection -&gt; IO a
+</span><a href="Unison.Sqlite.Exception.html#throwSqliteQueryException"><span class="hs-identifier hs-var">throwSqliteQueryException</span></a></span><span>
+</span><span id="line-332"></span><span>        </span><span class="annot"><span class="annottext">SqliteQueryExceptionInfo :: forall params connection.
 Sql
 -&gt; Maybe params
 -&gt; SomeSqliteExceptionReason
 -&gt; connection
--&gt; SqliteExceptionInfo params connection
-</span><a href="Unison.Sqlite.Exception.html#SqliteExceptionInfo"><span class="hs-identifier hs-type">SqliteExceptionInfo</span></a></span><span>
-</span><span id="line-333"></span><span>          </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">$sel:connection:SqliteExceptionInfo :: Connection
-</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aconnection%3ASqliteExceptionInfo"><span class="hs-identifier hs-var">connection</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Connection
+-&gt; SqliteQueryExceptionInfo params connection
+</span><a href="Unison.Sqlite.Exception.html#SqliteQueryExceptionInfo"><span class="hs-identifier hs-type">SqliteQueryExceptionInfo</span></a></span><span>
+</span><span id="line-333"></span><span>          </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">$sel:connection:SqliteQueryExceptionInfo :: Connection
+</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aconnection%3ASqliteQueryExceptionInfo"><span class="hs-identifier hs-var">connection</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Connection
 </span><a href="#local-6989586621679082411"><span class="hs-identifier hs-var">conn</span></a></span><span class="hs-special">,</span><span>
 </span><span id="line-334"></span><span>            </span><span class="annot"><span class="annottext">SomeSqliteExceptionReason
 exception :: SomeSqliteExceptionReason
-$sel:exception:SqliteExceptionInfo :: SomeSqliteExceptionReason
+$sel:exception:SqliteQueryExceptionInfo :: SomeSqliteExceptionReason
 </span><a href="#local-6989586621679082407"><span class="hs-identifier hs-var hs-var">exception</span></a></span><span class="hs-special">,</span><span>
-</span><span id="line-335"></span><span>            </span><span class="annot"><span class="annottext">$sel:params:SqliteExceptionInfo :: Maybe Any
-</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aparams%3ASqliteExceptionInfo"><span class="hs-identifier hs-var">params</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Any
+</span><span id="line-335"></span><span>            </span><span class="annot"><span class="annottext">$sel:params:SqliteQueryExceptionInfo :: Maybe Any
+</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aparams%3ASqliteQueryExceptionInfo"><span class="hs-identifier hs-var">params</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Any
 forall a. Maybe a
 </span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-special">,</span><span>
-</span><span id="line-336"></span><span>            </span><span class="annot"><span class="annottext">$sel:sql:SqliteExceptionInfo :: Sql
-</span><a href="Unison.Sqlite.Exception.html#%24sel%3Asql%3ASqliteExceptionInfo"><span class="hs-identifier hs-var">sql</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Sql
+</span><span id="line-336"></span><span>            </span><span class="annot"><span class="annottext">$sel:sql:SqliteQueryExceptionInfo :: Sql
+</span><a href="Unison.Sqlite.Exception.html#%24sel%3Asql%3ASqliteQueryExceptionInfo"><span class="hs-identifier hs-var">sql</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Sql
 </span><a href="#local-6989586621679082410"><span class="hs-identifier hs-var">s</span></a></span><span>
 </span><span id="line-337"></span><span>          </span><span class="hs-special">}</span><span>
 </span><span id="line-338"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679082406"><span class="annot"><span class="annottext">r
@@ -1040,13 +1040,18 @@ Connection -&gt; Sql -&gt; ([a] -&gt; Either e r) -&gt; IO r
 </span><span class="hs-identifier hs-var">coerce</span></span><span> </span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679082405"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="#local-6989586621679082404"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679082403"><span class="hs-identifier hs-type">r</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Sqlite.Only</span></span><span> </span><span class="annot"><a href="#local-6989586621679082405"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="#local-6989586621679082404"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679082403"><span class="hs-identifier hs-type">r</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; Either e r
 </span><a href="#local-6989586621679082400"><span class="hs-identifier hs-var">check</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-349"></span><span>
-</span><span id="line-350"></span><span id="local-6989586621679082638"><span id="local-6989586621679082639"><span id="local-6989586621679082640"><span class="annot"><a href="Unison.Sqlite.Connection.html#queryMaybeRowCheck_"><span class="hs-identifier hs-type">queryMaybeRowCheck_</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Sqlite.FromRow</span></span><span> </span><span class="annot"><a href="#local-6989586621679082640"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Sqlite.Exception.html#SqliteExceptionReason"><span class="hs-identifier hs-type">SqliteExceptionReason</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679082639"><span class="hs-identifier hs-type">e</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Unison.Sqlite.Connection.html#Connection"><span class="hs-identifier hs-type">Connection</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Sqlite.Sql.html#Sql"><span class="hs-identifier hs-type">Sql</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679082640"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="#local-6989586621679082639"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679082638"><span class="hs-identifier hs-type">r</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679082638"><span class="hs-identifier hs-type">r</span></a></span></span></span></span><span>
-</span><span id="line-351"></span><span id="queryMaybeRowCheck_"><span class="annot"><span class="annottext">queryMaybeRowCheck_ :: Connection -&gt; Sql -&gt; (Maybe a -&gt; Either e r) -&gt; IO r
+</span><span id="line-350"></span><span id="local-6989586621679082638"><span id="local-6989586621679082639"><span id="local-6989586621679082640"><span class="annot"><a href="Unison.Sqlite.Connection.html#queryMaybeRowCheck_"><span class="hs-identifier hs-type">queryMaybeRowCheck_</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-351"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Sqlite.FromRow</span></span><span> </span><span class="annot"><a href="#local-6989586621679082640"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Sqlite.Exception.html#SqliteExceptionReason"><span class="hs-identifier hs-type">SqliteExceptionReason</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679082639"><span class="hs-identifier hs-type">e</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-352"></span><span>  </span><span class="annot"><a href="Unison.Sqlite.Connection.html#Connection"><span class="hs-identifier hs-type">Connection</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-353"></span><span>  </span><span class="annot"><a href="Unison.Sqlite.Sql.html#Sql"><span class="hs-identifier hs-type">Sql</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-354"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679082640"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="#local-6989586621679082639"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679082638"><span class="hs-identifier hs-type">r</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-355"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679082638"><span class="hs-identifier hs-type">r</span></a></span></span></span></span><span>
+</span><span id="line-356"></span><span id="queryMaybeRowCheck_"><span class="annot"><span class="annottext">queryMaybeRowCheck_ :: Connection -&gt; Sql -&gt; (Maybe a -&gt; Either e r) -&gt; IO r
 </span><a href="Unison.Sqlite.Connection.html#queryMaybeRowCheck_"><span class="hs-identifier hs-var hs-var">queryMaybeRowCheck_</span></a></span></span><span> </span><span id="local-6989586621679082399"><span class="annot"><span class="annottext">Connection
 </span><a href="#local-6989586621679082399"><span class="hs-identifier hs-var">conn</span></a></span></span><span> </span><span id="local-6989586621679082398"><span class="annot"><span class="annottext">Sql
 </span><a href="#local-6989586621679082398"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span id="local-6989586621679082397"><span class="annot"><span class="annottext">Maybe a -&gt; Either e r
 </span><a href="#local-6989586621679082397"><span class="hs-identifier hs-var">check</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-352"></span><span>  </span><span class="annot"><span class="annottext">Connection
+</span><span id="line-357"></span><span>  </span><span class="annot"><span class="annottext">Connection
 -&gt; Sql -&gt; ([a] -&gt; Either SomeSqliteExceptionReason r) -&gt; IO r
 forall a r.
 FromRow a =&gt;
@@ -1055,7 +1060,7 @@ Connection
 </span><a href="Unison.Sqlite.Connection.html#gqueryListCheck_"><span class="hs-identifier hs-var">gqueryListCheck_</span></a></span><span> </span><span class="annot"><span class="annottext">Connection
 </span><a href="#local-6989586621679082399"><span class="hs-identifier hs-var">conn</span></a></span><span> </span><span class="annot"><span class="annottext">Sql
 </span><a href="#local-6989586621679082398"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
-</span><span id="line-353"></span><span>    </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">(e -&gt; SomeSqliteExceptionReason)
+</span><span id="line-358"></span><span>    </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">(e -&gt; SomeSqliteExceptionReason)
 -&gt; Either e r -&gt; Either SomeSqliteExceptionReason r
 forall a c b. (a -&gt; c) -&gt; Either a b -&gt; Either c b
 </span><span class="hs-identifier hs-var">mapLeft</span></span><span> </span><span class="annot"><span class="annottext">e -&gt; SomeSqliteExceptionReason
@@ -1064,7 +1069,7 @@ forall e. SqliteExceptionReason e =&gt; e -&gt; SomeSqliteExceptionReason
 </span><a href="#local-6989586621679082397"><span class="hs-identifier hs-var">check</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe a
 forall a. Maybe a
 </span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-special">)</span><span>
-</span><span id="line-354"></span><span>    </span><span class="hs-special">[</span><span id="local-6989586621679082396"><span class="annot"><span class="annottext">a
+</span><span id="line-359"></span><span>    </span><span class="hs-special">[</span><span id="local-6989586621679082396"><span class="annot"><span class="annottext">a
 </span><a href="#local-6989586621679082396"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">(e -&gt; SomeSqliteExceptionReason)
 -&gt; Either e r -&gt; Either SomeSqliteExceptionReason r
 forall a c b. (a -&gt; c) -&gt; Either a b -&gt; Either c b
@@ -1075,7 +1080,7 @@ forall e. SqliteExceptionReason e =&gt; e -&gt; SomeSqliteExceptionReason
 forall a. a -&gt; Maybe a
 </span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">a
 </span><a href="#local-6989586621679082396"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
-</span><span id="line-355"></span><span>    </span><span id="local-6989586621679082395"><span class="annot"><span class="annottext">[a]
+</span><span id="line-360"></span><span>    </span><span id="local-6989586621679082395"><span class="annot"><span class="annottext">[a]
 </span><a href="#local-6989586621679082395"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">SomeSqliteExceptionReason -&gt; Either SomeSqliteExceptionReason r
 forall a b. a -&gt; Either a b
 </span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ExpectedAtMostOneRowException -&gt; SomeSqliteExceptionReason
@@ -1085,20 +1090,20 @@ forall e. SqliteExceptionReason e =&gt; e -&gt; SomeSqliteExceptionReason
 forall a. a -&gt; String
 </span><span class="hs-identifier hs-var">anythingToString</span></span><span> </span><span class="annot"><span class="annottext">[a]
 </span><a href="#local-6989586621679082395"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
-</span><span id="line-356"></span><span>
-</span><span id="line-357"></span><span class="annot"><a href="Unison.Sqlite.Connection.html#queryMaybeColCheck_"><span class="hs-identifier hs-type">queryMaybeColCheck_</span></a></span><span> </span><span class="hs-glyph">::</span><span>
-</span><span id="line-358"></span><span>  </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679082394"><span class="annot"><a href="#local-6989586621679082394"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span id="local-6989586621679082393"><span class="annot"><a href="#local-6989586621679082393"><span class="hs-identifier hs-type">e</span></a></span></span><span> </span><span id="local-6989586621679082392"><span class="annot"><a href="#local-6989586621679082392"><span class="hs-identifier hs-type">r</span></a></span></span><span class="hs-operator">.</span><span>
-</span><span id="line-359"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Sqlite.FromField</span></span><span> </span><span class="annot"><a href="#local-6989586621679082394"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Sqlite.Exception.html#SqliteExceptionReason"><span class="hs-identifier hs-type">SqliteExceptionReason</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679082393"><span class="hs-identifier hs-type">e</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
-</span><span id="line-360"></span><span>  </span><span class="annot"><a href="Unison.Sqlite.Connection.html#Connection"><span class="hs-identifier hs-type">Connection</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
-</span><span id="line-361"></span><span>  </span><span class="annot"><a href="Unison.Sqlite.Sql.html#Sql"><span class="hs-identifier hs-type">Sql</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
-</span><span id="line-362"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679082394"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="#local-6989586621679082393"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679082392"><span class="hs-identifier hs-type">r</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
-</span><span id="line-363"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679082392"><span class="hs-identifier hs-type">r</span></a></span><span>
-</span><span id="line-364"></span><span id="queryMaybeColCheck_"><span class="annot"><span class="annottext">queryMaybeColCheck_ :: Connection -&gt; Sql -&gt; (Maybe a -&gt; Either e r) -&gt; IO r
+</span><span id="line-361"></span><span>
+</span><span id="line-362"></span><span class="annot"><a href="Unison.Sqlite.Connection.html#queryMaybeColCheck_"><span class="hs-identifier hs-type">queryMaybeColCheck_</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-363"></span><span>  </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679082394"><span class="annot"><a href="#local-6989586621679082394"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span id="local-6989586621679082393"><span class="annot"><a href="#local-6989586621679082393"><span class="hs-identifier hs-type">e</span></a></span></span><span> </span><span id="local-6989586621679082392"><span class="annot"><a href="#local-6989586621679082392"><span class="hs-identifier hs-type">r</span></a></span></span><span class="hs-operator">.</span><span>
+</span><span id="line-364"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Sqlite.FromField</span></span><span> </span><span class="annot"><a href="#local-6989586621679082394"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Sqlite.Exception.html#SqliteExceptionReason"><span class="hs-identifier hs-type">SqliteExceptionReason</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679082393"><span class="hs-identifier hs-type">e</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-365"></span><span>  </span><span class="annot"><a href="Unison.Sqlite.Connection.html#Connection"><span class="hs-identifier hs-type">Connection</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-366"></span><span>  </span><span class="annot"><a href="Unison.Sqlite.Sql.html#Sql"><span class="hs-identifier hs-type">Sql</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-367"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679082394"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="#local-6989586621679082393"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679082392"><span class="hs-identifier hs-type">r</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-368"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679082392"><span class="hs-identifier hs-type">r</span></a></span><span>
+</span><span id="line-369"></span><span id="queryMaybeColCheck_"><span class="annot"><span class="annottext">queryMaybeColCheck_ :: Connection -&gt; Sql -&gt; (Maybe a -&gt; Either e r) -&gt; IO r
 </span><a href="Unison.Sqlite.Connection.html#queryMaybeColCheck_"><span class="hs-identifier hs-var hs-var">queryMaybeColCheck_</span></a></span></span><span> </span><span id="local-6989586621679082391"><span class="annot"><span class="annottext">Connection
 </span><a href="#local-6989586621679082391"><span class="hs-identifier hs-var">conn</span></a></span></span><span> </span><span id="local-6989586621679082390"><span class="annot"><span class="annottext">Sql
 </span><a href="#local-6989586621679082390"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span id="local-6989586621679082389"><span class="annot"><span class="annottext">Maybe a -&gt; Either e r
 </span><a href="#local-6989586621679082389"><span class="hs-identifier hs-var">check</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-365"></span><span>  </span><span class="annot"><span class="annottext">Connection -&gt; Sql -&gt; (Maybe (Only a) -&gt; Either e r) -&gt; IO r
+</span><span id="line-370"></span><span>  </span><span class="annot"><span class="annottext">Connection -&gt; Sql -&gt; (Maybe (Only a) -&gt; Either e r) -&gt; IO r
 forall a e r.
 (FromRow a, SqliteExceptionReason e) =&gt;
 Connection -&gt; Sql -&gt; (Maybe a -&gt; Either e r) -&gt; IO r
@@ -1107,14 +1112,14 @@ Connection -&gt; Sql -&gt; (Maybe a -&gt; Either e r) -&gt; IO r
 </span><a href="#local-6989586621679082390"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Maybe a -&gt; Either e r) -&gt; Maybe (Only a) -&gt; Either e r
 </span><span class="hs-identifier hs-var">coerce</span></span><span> </span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679082394"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="#local-6989586621679082393"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679082392"><span class="hs-identifier hs-type">r</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Sqlite.Only</span></span><span> </span><span class="annot"><a href="#local-6989586621679082394"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="#local-6989586621679082393"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679082392"><span class="hs-identifier hs-type">r</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Maybe a -&gt; Either e r
 </span><a href="#local-6989586621679082389"><span class="hs-identifier hs-var">check</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-366"></span><span>
-</span><span id="line-367"></span><span id="local-6989586621679082629"><span id="local-6989586621679082630"><span id="local-6989586621679082631"><span class="annot"><a href="Unison.Sqlite.Connection.html#queryOneRowCheck_"><span class="hs-identifier hs-type">queryOneRowCheck_</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Sqlite.FromRow</span></span><span> </span><span class="annot"><a href="#local-6989586621679082631"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Sqlite.Exception.html#SqliteExceptionReason"><span class="hs-identifier hs-type">SqliteExceptionReason</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679082630"><span class="hs-identifier hs-type">e</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Unison.Sqlite.Connection.html#Connection"><span class="hs-identifier hs-type">Connection</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Sqlite.Sql.html#Sql"><span class="hs-identifier hs-type">Sql</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679082631"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="#local-6989586621679082630"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679082629"><span class="hs-identifier hs-type">r</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679082629"><span class="hs-identifier hs-type">r</span></a></span></span></span></span><span>
-</span><span id="line-368"></span><span id="queryOneRowCheck_"><span class="annot"><span class="annottext">queryOneRowCheck_ :: Connection -&gt; Sql -&gt; (a -&gt; Either e r) -&gt; IO r
+</span><span id="line-371"></span><span>
+</span><span id="line-372"></span><span id="local-6989586621679082629"><span id="local-6989586621679082630"><span id="local-6989586621679082631"><span class="annot"><a href="Unison.Sqlite.Connection.html#queryOneRowCheck_"><span class="hs-identifier hs-type">queryOneRowCheck_</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Sqlite.FromRow</span></span><span> </span><span class="annot"><a href="#local-6989586621679082631"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Sqlite.Exception.html#SqliteExceptionReason"><span class="hs-identifier hs-type">SqliteExceptionReason</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679082630"><span class="hs-identifier hs-type">e</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Unison.Sqlite.Connection.html#Connection"><span class="hs-identifier hs-type">Connection</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Sqlite.Sql.html#Sql"><span class="hs-identifier hs-type">Sql</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679082631"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="#local-6989586621679082630"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679082629"><span class="hs-identifier hs-type">r</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679082629"><span class="hs-identifier hs-type">r</span></a></span></span></span></span><span>
+</span><span id="line-373"></span><span id="queryOneRowCheck_"><span class="annot"><span class="annottext">queryOneRowCheck_ :: Connection -&gt; Sql -&gt; (a -&gt; Either e r) -&gt; IO r
 </span><a href="Unison.Sqlite.Connection.html#queryOneRowCheck_"><span class="hs-identifier hs-var hs-var">queryOneRowCheck_</span></a></span></span><span> </span><span id="local-6989586621679082388"><span class="annot"><span class="annottext">Connection
 </span><a href="#local-6989586621679082388"><span class="hs-identifier hs-var">conn</span></a></span></span><span> </span><span id="local-6989586621679082387"><span class="annot"><span class="annottext">Sql
 </span><a href="#local-6989586621679082387"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span id="local-6989586621679082386"><span class="annot"><span class="annottext">a -&gt; Either e r
 </span><a href="#local-6989586621679082386"><span class="hs-identifier hs-var">check</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-369"></span><span>  </span><span class="annot"><span class="annottext">Connection
+</span><span id="line-374"></span><span>  </span><span class="annot"><span class="annottext">Connection
 -&gt; Sql -&gt; ([a] -&gt; Either SomeSqliteExceptionReason r) -&gt; IO r
 forall a r.
 FromRow a =&gt;
@@ -1123,7 +1128,7 @@ Connection
 </span><a href="Unison.Sqlite.Connection.html#gqueryListCheck_"><span class="hs-identifier hs-var">gqueryListCheck_</span></a></span><span> </span><span class="annot"><span class="annottext">Connection
 </span><a href="#local-6989586621679082388"><span class="hs-identifier hs-var">conn</span></a></span><span> </span><span class="annot"><span class="annottext">Sql
 </span><a href="#local-6989586621679082387"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
-</span><span id="line-370"></span><span>    </span><span class="hs-special">[</span><span id="local-6989586621679082385"><span class="annot"><span class="annottext">a
+</span><span id="line-375"></span><span>    </span><span class="hs-special">[</span><span id="local-6989586621679082385"><span class="annot"><span class="annottext">a
 </span><a href="#local-6989586621679082385"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">(e -&gt; SomeSqliteExceptionReason)
 -&gt; Either e r -&gt; Either SomeSqliteExceptionReason r
 forall a c b. (a -&gt; c) -&gt; Either a b -&gt; Either c b
@@ -1132,7 +1137,7 @@ forall e. SqliteExceptionReason e =&gt; e -&gt; SomeSqliteExceptionReason
 </span><a href="Unison.Sqlite.Exception.html#SomeSqliteExceptionReason"><span class="hs-identifier hs-var">SomeSqliteExceptionReason</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; Either e r
 </span><a href="#local-6989586621679082386"><span class="hs-identifier hs-var">check</span></a></span><span> </span><span class="annot"><span class="annottext">a
 </span><a href="#local-6989586621679082385"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-371"></span><span>    </span><span id="local-6989586621679082384"><span class="annot"><span class="annottext">[a]
+</span><span id="line-376"></span><span>    </span><span id="local-6989586621679082384"><span class="annot"><span class="annottext">[a]
 </span><a href="#local-6989586621679082384"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">SomeSqliteExceptionReason -&gt; Either SomeSqliteExceptionReason r
 forall a b. a -&gt; Either a b
 </span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ExpectedExactlyOneRowException -&gt; SomeSqliteExceptionReason
@@ -1142,20 +1147,20 @@ forall e. SqliteExceptionReason e =&gt; e -&gt; SomeSqliteExceptionReason
 forall a. a -&gt; String
 </span><span class="hs-identifier hs-var">anythingToString</span></span><span> </span><span class="annot"><span class="annottext">[a]
 </span><a href="#local-6989586621679082384"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
-</span><span id="line-372"></span><span>
-</span><span id="line-373"></span><span class="annot"><a href="Unison.Sqlite.Connection.html#queryOneColCheck_"><span class="hs-identifier hs-type">queryOneColCheck_</span></a></span><span> </span><span class="hs-glyph">::</span><span>
-</span><span id="line-374"></span><span>  </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679082383"><span class="annot"><a href="#local-6989586621679082383"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span id="local-6989586621679082382"><span class="annot"><a href="#local-6989586621679082382"><span class="hs-identifier hs-type">e</span></a></span></span><span> </span><span id="local-6989586621679082381"><span class="annot"><a href="#local-6989586621679082381"><span class="hs-identifier hs-type">r</span></a></span></span><span class="hs-operator">.</span><span>
-</span><span id="line-375"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Sqlite.FromField</span></span><span> </span><span class="annot"><a href="#local-6989586621679082383"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Sqlite.Exception.html#SqliteExceptionReason"><span class="hs-identifier hs-type">SqliteExceptionReason</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679082382"><span class="hs-identifier hs-type">e</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
-</span><span id="line-376"></span><span>  </span><span class="annot"><a href="Unison.Sqlite.Connection.html#Connection"><span class="hs-identifier hs-type">Connection</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
-</span><span id="line-377"></span><span>  </span><span class="annot"><a href="Unison.Sqlite.Sql.html#Sql"><span class="hs-identifier hs-type">Sql</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
-</span><span id="line-378"></span><span>  </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679082383"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="#local-6989586621679082382"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679082381"><span class="hs-identifier hs-type">r</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
-</span><span id="line-379"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679082381"><span class="hs-identifier hs-type">r</span></a></span><span>
-</span><span id="line-380"></span><span id="queryOneColCheck_"><span class="annot"><span class="annottext">queryOneColCheck_ :: Connection -&gt; Sql -&gt; (a -&gt; Either e r) -&gt; IO r
+</span><span id="line-377"></span><span>
+</span><span id="line-378"></span><span class="annot"><a href="Unison.Sqlite.Connection.html#queryOneColCheck_"><span class="hs-identifier hs-type">queryOneColCheck_</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-379"></span><span>  </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679082383"><span class="annot"><a href="#local-6989586621679082383"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span id="local-6989586621679082382"><span class="annot"><a href="#local-6989586621679082382"><span class="hs-identifier hs-type">e</span></a></span></span><span> </span><span id="local-6989586621679082381"><span class="annot"><a href="#local-6989586621679082381"><span class="hs-identifier hs-type">r</span></a></span></span><span class="hs-operator">.</span><span>
+</span><span id="line-380"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Sqlite.FromField</span></span><span> </span><span class="annot"><a href="#local-6989586621679082383"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Sqlite.Exception.html#SqliteExceptionReason"><span class="hs-identifier hs-type">SqliteExceptionReason</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679082382"><span class="hs-identifier hs-type">e</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-381"></span><span>  </span><span class="annot"><a href="Unison.Sqlite.Connection.html#Connection"><span class="hs-identifier hs-type">Connection</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-382"></span><span>  </span><span class="annot"><a href="Unison.Sqlite.Sql.html#Sql"><span class="hs-identifier hs-type">Sql</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-383"></span><span>  </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679082383"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="#local-6989586621679082382"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679082381"><span class="hs-identifier hs-type">r</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-384"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679082381"><span class="hs-identifier hs-type">r</span></a></span><span>
+</span><span id="line-385"></span><span id="queryOneColCheck_"><span class="annot"><span class="annottext">queryOneColCheck_ :: Connection -&gt; Sql -&gt; (a -&gt; Either e r) -&gt; IO r
 </span><a href="Unison.Sqlite.Connection.html#queryOneColCheck_"><span class="hs-identifier hs-var hs-var">queryOneColCheck_</span></a></span></span><span> </span><span id="local-6989586621679082380"><span class="annot"><span class="annottext">Connection
 </span><a href="#local-6989586621679082380"><span class="hs-identifier hs-var">conn</span></a></span></span><span> </span><span id="local-6989586621679082379"><span class="annot"><span class="annottext">Sql
 </span><a href="#local-6989586621679082379"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span id="local-6989586621679082378"><span class="annot"><span class="annottext">a -&gt; Either e r
 </span><a href="#local-6989586621679082378"><span class="hs-identifier hs-var">check</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-381"></span><span>  </span><span class="annot"><span class="annottext">Connection -&gt; Sql -&gt; (Only a -&gt; Either e r) -&gt; IO r
+</span><span id="line-386"></span><span>  </span><span class="annot"><span class="annottext">Connection -&gt; Sql -&gt; (Only a -&gt; Either e r) -&gt; IO r
 forall a e r.
 (FromRow a, SqliteExceptionReason e) =&gt;
 Connection -&gt; Sql -&gt; (a -&gt; Either e r) -&gt; IO r
@@ -1164,23 +1169,23 @@ Connection -&gt; Sql -&gt; (a -&gt; Either e r) -&gt; IO r
 </span><a href="#local-6989586621679082379"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(a -&gt; Either e r) -&gt; Only a -&gt; Either e r
 </span><span class="hs-identifier hs-var">coerce</span></span><span> </span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679082383"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="#local-6989586621679082382"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679082381"><span class="hs-identifier hs-type">r</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Sqlite.Only</span></span><span> </span><span class="annot"><a href="#local-6989586621679082383"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="#local-6989586621679082382"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679082381"><span class="hs-identifier hs-type">r</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">a -&gt; Either e r
 </span><a href="#local-6989586621679082378"><span class="hs-identifier hs-var">check</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-382"></span><span>
-</span><span id="line-383"></span><span class="hs-comment">-- Low-level</span><span>
-</span><span id="line-384"></span><span>
-</span><span id="line-385"></span><span class="hs-comment">-- | Perform an action within a named savepoint. The action is provided a rollback action.</span><span>
-</span><span id="line-386"></span><span id="local-6989586621679082377"><span class="annot"><a href="Unison.Sqlite.Connection.html#withSavepoint"><span class="hs-identifier hs-type">withSavepoint</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Sqlite.Connection.html#Connection"><span class="hs-identifier hs-type">Connection</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679082377"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679082377"><span class="hs-identifier hs-type">a</span></a></span></span><span>
-</span><span id="line-387"></span><span id="withSavepoint"><span class="annot"><span class="annottext">withSavepoint :: Connection -&gt; Text -&gt; (IO () -&gt; IO a) -&gt; IO a
+</span><span id="line-387"></span><span>
+</span><span id="line-388"></span><span class="hs-comment">-- Low-level</span><span>
+</span><span id="line-389"></span><span>
+</span><span id="line-390"></span><span class="hs-comment">-- | Perform an action within a named savepoint. The action is provided a rollback action.</span><span>
+</span><span id="line-391"></span><span id="local-6989586621679082377"><span class="annot"><a href="Unison.Sqlite.Connection.html#withSavepoint"><span class="hs-identifier hs-type">withSavepoint</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Sqlite.Connection.html#Connection"><span class="hs-identifier hs-type">Connection</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679082377"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679082377"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-392"></span><span id="withSavepoint"><span class="annot"><span class="annottext">withSavepoint :: Connection -&gt; Text -&gt; (IO () -&gt; IO a) -&gt; IO a
 </span><a href="Unison.Sqlite.Connection.html#withSavepoint"><span class="hs-identifier hs-var hs-var">withSavepoint</span></a></span></span><span> </span><span id="local-6989586621679082376"><span class="annot"><span class="annottext">Connection
 </span><a href="#local-6989586621679082376"><span class="hs-identifier hs-var">conn</span></a></span></span><span> </span><span id="local-6989586621679082375"><span class="annot"><span class="annottext">Text
 </span><a href="#local-6989586621679082375"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span id="local-6989586621679082374"><span class="annot"><span class="annottext">IO () -&gt; IO a
 </span><a href="#local-6989586621679082374"><span class="hs-identifier hs-var">action</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-388"></span><span>  </span><span class="annot"><span class="annottext">((forall a. IO a -&gt; IO a) -&gt; IO a) -&gt; IO a
+</span><span id="line-393"></span><span>  </span><span class="annot"><span class="annottext">((forall a. IO a -&gt; IO a) -&gt; IO a) -&gt; IO a
 forall (m :: * -&gt; *) b.
 MonadUnliftIO m =&gt;
 ((forall a. m a -&gt; m a) -&gt; m b) -&gt; m b
 </span><span class="hs-identifier hs-var">uninterruptibleMask</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679082372"><span class="annot"><span class="annottext">forall a. IO a -&gt; IO a
 </span><a href="#local-6989586621679082372"><span class="hs-identifier hs-var">restore</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-389"></span><span>    </span><span class="annot"><span class="annottext">Connection -&gt; Sql -&gt; IO ()
+</span><span id="line-394"></span><span>    </span><span class="annot"><span class="annottext">Connection -&gt; Sql -&gt; IO ()
 </span><a href="Unison.Sqlite.Connection.html#execute_"><span class="hs-identifier hs-var">execute_</span></a></span><span> </span><span class="annot"><span class="annottext">Connection
 </span><a href="#local-6989586621679082376"><span class="hs-identifier hs-var">conn</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text -&gt; Sql
 </span><a href="Unison.Sqlite.Sql.html#Sql"><span class="hs-identifier hs-var">Sql</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text
@@ -1188,27 +1193,27 @@ MonadUnliftIO m =&gt;
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Text
 </span><a href="#local-6989586621679082375"><span class="hs-identifier hs-var">name</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
-</span><span id="line-390"></span><span>    </span><span id="local-6989586621679082370"><span class="annot"><span class="annottext">a
+</span><span id="line-395"></span><span>    </span><span id="local-6989586621679082370"><span class="annot"><span class="annottext">a
 </span><a href="#local-6989586621679082370"><span class="hs-identifier hs-var">result</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span>
-</span><span id="line-391"></span><span>      </span><span class="annot"><span class="annottext">IO a -&gt; IO a
+</span><span id="line-396"></span><span>      </span><span class="annot"><span class="annottext">IO a -&gt; IO a
 forall a. IO a -&gt; IO a
 </span><a href="#local-6989586621679082372"><span class="hs-identifier hs-var">restore</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">IO () -&gt; IO a
 </span><a href="#local-6989586621679082374"><span class="hs-identifier hs-var">action</span></a></span><span> </span><span class="annot"><span class="annottext">IO ()
 </span><a href="#local-6989586621679082369"><span class="hs-identifier hs-var">rollback</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">IO a -&gt; IO () -&gt; IO a
 forall (m :: * -&gt; *) a b. MonadUnliftIO m =&gt; m a -&gt; m b -&gt; m a
 </span><span class="hs-operator hs-var">`onException`</span></span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-392"></span><span>        </span><span class="annot"><span class="annottext">IO ()
+</span><span id="line-397"></span><span>        </span><span class="annot"><span class="annottext">IO ()
 </span><a href="#local-6989586621679082369"><span class="hs-identifier hs-var">rollback</span></a></span><span>
-</span><span id="line-393"></span><span>        </span><span class="annot"><span class="annottext">IO ()
+</span><span id="line-398"></span><span>        </span><span class="annot"><span class="annottext">IO ()
 </span><a href="#local-6989586621679082367"><span class="hs-identifier hs-var">release</span></a></span><span>
-</span><span id="line-394"></span><span>    </span><span class="annot"><span class="annottext">IO ()
+</span><span id="line-399"></span><span>    </span><span class="annot"><span class="annottext">IO ()
 </span><a href="#local-6989586621679082367"><span class="hs-identifier hs-var">release</span></a></span><span>
-</span><span id="line-395"></span><span>    </span><span class="annot"><span class="annottext">a -&gt; IO a
+</span><span id="line-400"></span><span>    </span><span class="annot"><span class="annottext">a -&gt; IO a
 forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
 </span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">a
 </span><a href="#local-6989586621679082370"><span class="hs-identifier hs-var">result</span></a></span><span>
-</span><span id="line-396"></span><span>  </span><span class="hs-keyword">where</span><span>
-</span><span id="line-397"></span><span>    </span><span id="local-6989586621679082369"><span class="annot"><span class="annottext">rollback :: IO ()
+</span><span id="line-401"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-402"></span><span>    </span><span id="local-6989586621679082369"><span class="annot"><span class="annottext">rollback :: IO ()
 </span><a href="#local-6989586621679082369"><span class="hs-identifier hs-var hs-var">rollback</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Connection -&gt; Sql -&gt; IO ()
 </span><a href="Unison.Sqlite.Connection.html#execute_"><span class="hs-identifier hs-var">execute_</span></a></span><span> </span><span class="annot"><span class="annottext">Connection
 </span><a href="#local-6989586621679082376"><span class="hs-identifier hs-var">conn</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text -&gt; Sql
@@ -1217,7 +1222,7 @@ forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Text
 </span><a href="#local-6989586621679082375"><span class="hs-identifier hs-var">name</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
-</span><span id="line-398"></span><span>    </span><span id="local-6989586621679082367"><span class="annot"><span class="annottext">release :: IO ()
+</span><span id="line-403"></span><span>    </span><span id="local-6989586621679082367"><span class="annot"><span class="annottext">release :: IO ()
 </span><a href="#local-6989586621679082367"><span class="hs-identifier hs-var hs-var">release</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Connection -&gt; Sql -&gt; IO ()
 </span><a href="Unison.Sqlite.Connection.html#execute_"><span class="hs-identifier hs-var">execute_</span></a></span><span> </span><span class="annot"><span class="annottext">Connection
 </span><a href="#local-6989586621679082376"><span class="hs-identifier hs-var">conn</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text -&gt; Sql
@@ -1226,9 +1231,9 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Text
 </span><a href="#local-6989586621679082375"><span class="hs-identifier hs-var">name</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
-</span><span id="line-399"></span><span>
-</span><span id="line-400"></span><span id="local-6989586621679082364"><span id="local-6989586621679082365"><span id="local-6989586621679082366"><span class="annot"><a href="Unison.Sqlite.Connection.html#withStatement"><span class="hs-identifier hs-type">withStatement</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Sqlite.FromRow</span></span><span> </span><span class="annot"><a href="#local-6989586621679082366"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Sqlite.ToRow</span></span><span> </span><span class="annot"><a href="#local-6989586621679082365"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Unison.Sqlite.Connection.html#Connection"><span class="hs-identifier hs-type">Connection</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Sqlite.Sql.html#Sql"><span class="hs-identifier hs-type">Sql</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679082365"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679082366"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679082364"><span class="hs-identifier hs-type">c</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679082364"><span class="hs-identifier hs-type">c</span></a></span></span></span></span><span>
-</span><span id="line-401"></span><span id="withStatement"><span class="annot"><span class="annottext">withStatement :: Connection -&gt; Sql -&gt; b -&gt; (IO (Maybe a) -&gt; IO c) -&gt; IO c
+</span><span id="line-404"></span><span>
+</span><span id="line-405"></span><span id="local-6989586621679082364"><span id="local-6989586621679082365"><span id="local-6989586621679082366"><span class="annot"><a href="Unison.Sqlite.Connection.html#withStatement"><span class="hs-identifier hs-type">withStatement</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Sqlite.FromRow</span></span><span> </span><span class="annot"><a href="#local-6989586621679082366"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Sqlite.ToRow</span></span><span> </span><span class="annot"><a href="#local-6989586621679082365"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Unison.Sqlite.Connection.html#Connection"><span class="hs-identifier hs-type">Connection</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Sqlite.Sql.html#Sql"><span class="hs-identifier hs-type">Sql</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679082365"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679082366"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679082364"><span class="hs-identifier hs-type">c</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679082364"><span class="hs-identifier hs-type">c</span></a></span></span></span></span><span>
+</span><span id="line-406"></span><span id="withStatement"><span class="annot"><span class="annottext">withStatement :: Connection -&gt; Sql -&gt; b -&gt; (IO (Maybe a) -&gt; IO c) -&gt; IO c
 </span><a href="Unison.Sqlite.Connection.html#withStatement"><span class="hs-identifier hs-var hs-var">withStatement</span></a></span></span><span> </span><span id="local-6989586621679082363"><span class="annot"><span class="annottext">conn :: Connection
 </span><a href="#local-6989586621679082363"><span class="hs-identifier hs-var">conn</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><a href="Unison.Sqlite.Connection.html#Connection"><span class="hs-identifier hs-type">Connection</span></a></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">String
@@ -1237,46 +1242,46 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><a href="#local-6989586621679082361"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span id="local-6989586621679082360"><span class="annot"><span class="annottext">b
 </span><a href="#local-6989586621679082360"><span class="hs-identifier hs-var">params</span></a></span></span><span> </span><span id="local-6989586621679082359"><span class="annot"><span class="annottext">IO (Maybe a) -&gt; IO c
 </span><a href="#local-6989586621679082359"><span class="hs-identifier hs-var">callback</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-402"></span><span>  </span><span class="annot"><span class="annottext">IO c
+</span><span id="line-407"></span><span>  </span><span class="annot"><span class="annottext">IO c
 </span><a href="#local-6989586621679082358"><span class="hs-identifier hs-var">thing</span></a></span><span> </span><span class="annot"><span class="annottext">IO c -&gt; (SQLError -&gt; IO c) -&gt; IO c
 forall (m :: * -&gt; *) e a.
 (MonadUnliftIO m, Exception e) =&gt;
 m a -&gt; (e -&gt; m a) -&gt; m a
 </span><span class="hs-operator hs-var">`catch`</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679082357"><span class="annot"><span class="annottext">SQLError
 </span><a href="#local-6989586621679082357"><span class="hs-identifier hs-var">exception</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Sqlite.SQLError</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
-</span><span id="line-403"></span><span>    </span><span class="annot"><span class="annottext">SqliteExceptionInfo b Connection -&gt; IO c
+</span><span id="line-408"></span><span>    </span><span class="annot"><span class="annottext">SqliteQueryExceptionInfo b Connection -&gt; IO c
 forall connection params a.
 Show connection =&gt;
-SqliteExceptionInfo params connection -&gt; IO a
-</span><a href="Unison.Sqlite.Exception.html#throwSqliteException"><span class="hs-identifier hs-var">throwSqliteException</span></a></span><span>
-</span><span id="line-404"></span><span>      </span><span class="annot"><span class="annottext">SqliteExceptionInfo :: forall params connection.
+SqliteQueryExceptionInfo params connection -&gt; IO a
+</span><a href="Unison.Sqlite.Exception.html#throwSqliteQueryException"><span class="hs-identifier hs-var">throwSqliteQueryException</span></a></span><span>
+</span><span id="line-409"></span><span>      </span><span class="annot"><span class="annottext">SqliteQueryExceptionInfo :: forall params connection.
 Sql
 -&gt; Maybe params
 -&gt; SomeSqliteExceptionReason
 -&gt; connection
--&gt; SqliteExceptionInfo params connection
-</span><a href="Unison.Sqlite.Exception.html#SqliteExceptionInfo"><span class="hs-identifier hs-type">SqliteExceptionInfo</span></a></span><span>
-</span><span id="line-405"></span><span>        </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">$sel:connection:SqliteExceptionInfo :: Connection
-</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aconnection%3ASqliteExceptionInfo"><span class="hs-identifier hs-var">connection</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Connection
+-&gt; SqliteQueryExceptionInfo params connection
+</span><a href="Unison.Sqlite.Exception.html#SqliteQueryExceptionInfo"><span class="hs-identifier hs-type">SqliteQueryExceptionInfo</span></a></span><span>
+</span><span id="line-410"></span><span>        </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">$sel:connection:SqliteQueryExceptionInfo :: Connection
+</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aconnection%3ASqliteQueryExceptionInfo"><span class="hs-identifier hs-var">connection</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Connection
 </span><a href="#local-6989586621679082363"><span class="hs-identifier hs-var">conn</span></a></span><span class="hs-special">,</span><span>
-</span><span id="line-406"></span><span>          </span><span class="annot"><span class="annottext">$sel:exception:SqliteExceptionInfo :: SomeSqliteExceptionReason
-</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aexception%3ASqliteExceptionInfo"><span class="hs-identifier hs-var">exception</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SQLError -&gt; SomeSqliteExceptionReason
+</span><span id="line-411"></span><span>          </span><span class="annot"><span class="annottext">$sel:exception:SqliteQueryExceptionInfo :: SomeSqliteExceptionReason
+</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aexception%3ASqliteQueryExceptionInfo"><span class="hs-identifier hs-var">exception</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SQLError -&gt; SomeSqliteExceptionReason
 forall e. SqliteExceptionReason e =&gt; e -&gt; SomeSqliteExceptionReason
 </span><a href="Unison.Sqlite.Exception.html#SomeSqliteExceptionReason"><span class="hs-identifier hs-var">SomeSqliteExceptionReason</span></a></span><span> </span><span class="annot"><span class="annottext">SQLError
 </span><a href="#local-6989586621679082357"><span class="hs-identifier hs-var">exception</span></a></span><span class="hs-special">,</span><span>
-</span><span id="line-407"></span><span>          </span><span class="annot"><span class="annottext">$sel:params:SqliteExceptionInfo :: Maybe b
-</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aparams%3ASqliteExceptionInfo"><span class="hs-identifier hs-var">params</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">b -&gt; Maybe b
+</span><span id="line-412"></span><span>          </span><span class="annot"><span class="annottext">$sel:params:SqliteQueryExceptionInfo :: Maybe b
+</span><a href="Unison.Sqlite.Exception.html#%24sel%3Aparams%3ASqliteQueryExceptionInfo"><span class="hs-identifier hs-var">params</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">b -&gt; Maybe b
 forall a. a -&gt; Maybe a
 </span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">b
 </span><a href="#local-6989586621679082360"><span class="hs-identifier hs-var">params</span></a></span><span class="hs-special">,</span><span>
-</span><span id="line-408"></span><span>          </span><span class="annot"><span class="annottext">$sel:sql:SqliteExceptionInfo :: Sql
-</span><a href="Unison.Sqlite.Exception.html#%24sel%3Asql%3ASqliteExceptionInfo"><span class="hs-identifier hs-var">sql</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Sql
+</span><span id="line-413"></span><span>          </span><span class="annot"><span class="annottext">$sel:sql:SqliteQueryExceptionInfo :: Sql
+</span><a href="Unison.Sqlite.Exception.html#%24sel%3Asql%3ASqliteQueryExceptionInfo"><span class="hs-identifier hs-var">sql</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Sql
 </span><a href="#local-6989586621679082361"><span class="hs-identifier hs-var">s</span></a></span><span>
-</span><span id="line-409"></span><span>        </span><span class="hs-special">}</span><span>
-</span><span id="line-410"></span><span>  </span><span class="hs-keyword">where</span><span>
-</span><span id="line-411"></span><span>    </span><span id="local-6989586621679082358"><span class="annot"><span class="annottext">thing :: IO c
+</span><span id="line-414"></span><span>        </span><span class="hs-special">}</span><span>
+</span><span id="line-415"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-416"></span><span>    </span><span id="local-6989586621679082358"><span class="annot"><span class="annottext">thing :: IO c
 </span><a href="#local-6989586621679082358"><span class="hs-identifier hs-var hs-var">thing</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-412"></span><span>      </span><span class="annot"><span class="annottext">IO Statement -&gt; (Statement -&gt; IO ()) -&gt; (Statement -&gt; IO c) -&gt; IO c
+</span><span id="line-417"></span><span>      </span><span class="annot"><span class="annottext">IO Statement -&gt; (Statement -&gt; IO ()) -&gt; (Statement -&gt; IO c) -&gt; IO c
 forall (m :: * -&gt; *) a b c.
 MonadUnliftIO m =&gt;
 m a -&gt; (a -&gt; m b) -&gt; (a -&gt; m c) -&gt; m c
@@ -1287,27 +1292,27 @@ m a -&gt; (a -&gt; m b) -&gt; (a -&gt; m c) -&gt; m c
 </span><a href="#local-6989586621679082361"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Statement -&gt; IO ()
 </span><span class="hs-identifier hs-var">Sqlite.closeStatement</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679082354"><span class="annot"><span class="annottext">Statement
 </span><a href="#local-6989586621679082354"><span class="hs-identifier hs-var">statement</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-413"></span><span>        </span><span class="annot"><span class="annottext">Statement -&gt; b -&gt; IO ()
+</span><span id="line-418"></span><span>        </span><span class="annot"><span class="annottext">Statement -&gt; b -&gt; IO ()
 forall params. ToRow params =&gt; Statement -&gt; params -&gt; IO ()
 </span><span class="hs-identifier hs-var">Sqlite.bind</span></span><span> </span><span class="annot"><span class="annottext">Statement
 </span><a href="#local-6989586621679082354"><span class="hs-identifier hs-var">statement</span></a></span><span> </span><span class="annot"><span class="annottext">b
 </span><a href="#local-6989586621679082360"><span class="hs-identifier hs-var">params</span></a></span><span>
-</span><span id="line-414"></span><span>        </span><span class="annot"><span class="annottext">IO (Maybe a) -&gt; IO c
+</span><span id="line-419"></span><span>        </span><span class="annot"><span class="annottext">IO (Maybe a) -&gt; IO c
 </span><a href="#local-6989586621679082359"><span class="hs-identifier hs-var">callback</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Statement -&gt; IO (Maybe a)
 forall r. FromRow r =&gt; Statement -&gt; IO (Maybe r)
 </span><span class="hs-identifier hs-var">Sqlite.nextRow</span></span><span> </span><span class="annot"><span class="annottext">Statement
 </span><a href="#local-6989586621679082354"><span class="hs-identifier hs-var">statement</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-415"></span><span>
-</span><span id="line-416"></span><span class="hs-comment">------------------------------------------------------------------------------------------------------------------------</span><span>
-</span><span id="line-417"></span><span class="hs-comment">-- Exceptions</span><span>
-</span><span id="line-418"></span><span>
-</span><span id="line-419"></span><span class="hs-comment">-- | A query was expected to return exactly one row, but it did not. The exception carries a string representation of</span><span>
-</span><span id="line-420"></span><span class="hs-comment">-- the rows that were actually returned.</span><span>
-</span><span id="line-421"></span><span class="hs-keyword">newtype</span><span> </span><span id="ExpectedExactlyOneRowException"><span class="annot"><a href="Unison.Sqlite.Connection.html#ExpectedExactlyOneRowException"><span class="hs-identifier hs-var">ExpectedExactlyOneRowException</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ExpectedExactlyOneRowException"><span class="annot"><a href="Unison.Sqlite.Connection.html#ExpectedExactlyOneRowException"><span class="hs-identifier hs-var">ExpectedExactlyOneRowException</span></a></span></span><span>
-</span><span id="line-422"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="%24sel%3Arows%3AExpectedExactlyOneRowException"><span class="annot"><span class="annottext">ExpectedExactlyOneRowException -&gt; String
+</span><span id="line-420"></span><span>
+</span><span id="line-421"></span><span class="hs-comment">------------------------------------------------------------------------------------------------------------------------</span><span>
+</span><span id="line-422"></span><span class="hs-comment">-- Exceptions</span><span>
+</span><span id="line-423"></span><span>
+</span><span id="line-424"></span><span class="hs-comment">-- | A query was expected to return exactly one row, but it did not. The exception carries a string representation of</span><span>
+</span><span id="line-425"></span><span class="hs-comment">-- the rows that were actually returned.</span><span>
+</span><span id="line-426"></span><span class="hs-keyword">newtype</span><span> </span><span id="ExpectedExactlyOneRowException"><span class="annot"><a href="Unison.Sqlite.Connection.html#ExpectedExactlyOneRowException"><span class="hs-identifier hs-var">ExpectedExactlyOneRowException</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ExpectedExactlyOneRowException"><span class="annot"><a href="Unison.Sqlite.Connection.html#ExpectedExactlyOneRowException"><span class="hs-identifier hs-var">ExpectedExactlyOneRowException</span></a></span></span><span>
+</span><span id="line-427"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="%24sel%3Arows%3AExpectedExactlyOneRowException"><span class="annot"><span class="annottext">ExpectedExactlyOneRowException -&gt; String
 </span><a href="Unison.Sqlite.Connection.html#%24sel%3Arows%3AExpectedExactlyOneRowException"><span class="hs-identifier hs-var hs-var">rows</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
-</span><span id="line-423"></span><span>  </span><span class="hs-special">}</span><span>
-</span><span id="line-424"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679082345"><span id="local-6989586621679082347"><span id="local-6989586621679082349"><span class="annot"><span class="annottext">Int -&gt; ExpectedExactlyOneRowException -&gt; ShowS
+</span><span id="line-428"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-429"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679082345"><span id="local-6989586621679082347"><span id="local-6989586621679082349"><span class="annot"><span class="annottext">Int -&gt; ExpectedExactlyOneRowException -&gt; ShowS
 [ExpectedExactlyOneRowException] -&gt; ShowS
 ExpectedExactlyOneRowException -&gt; String
 (Int -&gt; ExpectedExactlyOneRowException -&gt; ShowS)
@@ -1323,7 +1328,7 @@ $cshow :: ExpectedExactlyOneRowException -&gt; String
 showsPrec :: Int -&gt; ExpectedExactlyOneRowException -&gt; ShowS
 $cshowsPrec :: Int -&gt; ExpectedExactlyOneRowException -&gt; ShowS
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
-</span><span id="line-425"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Show ExpectedExactlyOneRowException
+</span><span id="line-430"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Show ExpectedExactlyOneRowException
 Typeable ExpectedExactlyOneRowException
 Show ExpectedExactlyOneRowException
 -&gt; Typeable ExpectedExactlyOneRowException
@@ -1332,14 +1337,14 @@ forall e. Show e -&gt; Typeable e -&gt; SqliteExceptionReason e
 $cp2SqliteExceptionReason :: Typeable ExpectedExactlyOneRowException
 $cp1SqliteExceptionReason :: Show ExpectedExactlyOneRowException
 </span><a href="Unison.Sqlite.Exception.html#C%3ASqliteExceptionReason"><span class="hs-identifier hs-var hs-var hs-var hs-var">SqliteExceptionReason</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-426"></span><span>
-</span><span id="line-427"></span><span class="hs-comment">-- | A query was expected to return exactly one row, but it did not. The exception carries a string representation of</span><span>
-</span><span id="line-428"></span><span class="hs-comment">-- the rows that were actually returned.</span><span>
-</span><span id="line-429"></span><span class="hs-keyword">newtype</span><span> </span><span id="ExpectedAtMostOneRowException"><span class="annot"><a href="Unison.Sqlite.Connection.html#ExpectedAtMostOneRowException"><span class="hs-identifier hs-var">ExpectedAtMostOneRowException</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ExpectedAtMostOneRowException"><span class="annot"><a href="Unison.Sqlite.Connection.html#ExpectedAtMostOneRowException"><span class="hs-identifier hs-var">ExpectedAtMostOneRowException</span></a></span></span><span>
-</span><span id="line-430"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="%24sel%3Arows%3AExpectedAtMostOneRowException"><span class="annot"><span class="annottext">ExpectedAtMostOneRowException -&gt; String
+</span><span id="line-431"></span><span>
+</span><span id="line-432"></span><span class="hs-comment">-- | A query was expected to return exactly one row, but it did not. The exception carries a string representation of</span><span>
+</span><span id="line-433"></span><span class="hs-comment">-- the rows that were actually returned.</span><span>
+</span><span id="line-434"></span><span class="hs-keyword">newtype</span><span> </span><span id="ExpectedAtMostOneRowException"><span class="annot"><a href="Unison.Sqlite.Connection.html#ExpectedAtMostOneRowException"><span class="hs-identifier hs-var">ExpectedAtMostOneRowException</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ExpectedAtMostOneRowException"><span class="annot"><a href="Unison.Sqlite.Connection.html#ExpectedAtMostOneRowException"><span class="hs-identifier hs-var">ExpectedAtMostOneRowException</span></a></span></span><span>
+</span><span id="line-435"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="%24sel%3Arows%3AExpectedAtMostOneRowException"><span class="annot"><span class="annottext">ExpectedAtMostOneRowException -&gt; String
 </span><a href="Unison.Sqlite.Connection.html#%24sel%3Arows%3AExpectedAtMostOneRowException"><span class="hs-identifier hs-var hs-var">rows</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
-</span><span id="line-431"></span><span>  </span><span class="hs-special">}</span><span>
-</span><span id="line-432"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679082335"><span id="local-6989586621679082337"><span id="local-6989586621679082339"><span class="annot"><span class="annottext">Int -&gt; ExpectedAtMostOneRowException -&gt; ShowS
+</span><span id="line-436"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-437"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679082335"><span id="local-6989586621679082337"><span id="local-6989586621679082339"><span class="annot"><span class="annottext">Int -&gt; ExpectedAtMostOneRowException -&gt; ShowS
 [ExpectedAtMostOneRowException] -&gt; ShowS
 ExpectedAtMostOneRowException -&gt; String
 (Int -&gt; ExpectedAtMostOneRowException -&gt; ShowS)
@@ -1355,7 +1360,7 @@ $cshow :: ExpectedAtMostOneRowException -&gt; String
 showsPrec :: Int -&gt; ExpectedAtMostOneRowException -&gt; ShowS
 $cshowsPrec :: Int -&gt; ExpectedAtMostOneRowException -&gt; ShowS
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
-</span><span id="line-433"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Show ExpectedAtMostOneRowException
+</span><span id="line-438"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Show ExpectedAtMostOneRowException
 Typeable ExpectedAtMostOneRowException
 Show ExpectedAtMostOneRowException
 -&gt; Typeable ExpectedAtMostOneRowException
@@ -1364,4 +1369,4 @@ forall e. Show e -&gt; Typeable e -&gt; SqliteExceptionReason e
 $cp2SqliteExceptionReason :: Typeable ExpectedAtMostOneRowException
 $cp1SqliteExceptionReason :: Show ExpectedAtMostOneRowException
 </span><a href="#local-6989586621679082333"><span class="hs-identifier hs-var hs-var hs-var hs-var">SqliteExceptionReason</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-434"></span></pre></body></html>
+</span><span id="line-439"></span></pre></body></html>

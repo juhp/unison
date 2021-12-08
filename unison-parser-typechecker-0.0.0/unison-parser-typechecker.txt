@@ -3410,9 +3410,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5I2N loc_a5I2O. Lens' (Env v_a5I2N loc_a5I2O) (TypeLookup v_a5I2N loc_a5I2O)
-termsByShortname :: forall v_a5I2N loc_a5I2O. Lens' (Env v_a5I2N loc_a5I2O) (Map Name [NamedReference v_a5I2N loc_a5I2O])
-ambientAbilities :: forall v_a5I2N loc_a5I2O. Lens' (Env v_a5I2N loc_a5I2O) [Type v_a5I2N loc_a5I2O]
+typeLookup :: forall v_a5I8l loc_a5I8m. Lens' (Env v_a5I8l loc_a5I8m) (TypeLookup v_a5I8l loc_a5I8m)
+termsByShortname :: forall v_a5I8l loc_a5I8m. Lens' (Env v_a5I8l loc_a5I8m) (Map Name [NamedReference v_a5I8l loc_a5I8m])
+ambientAbilities :: forall v_a5I8l loc_a5I8m. Lens' (Env v_a5I8l loc_a5I8m) [Type v_a5I8l loc_a5I8m]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.
@@ -4699,6 +4699,7 @@ VALU :: POp
 TLTT :: POp
 PRNT :: POp
 INFO :: POp
+TRCE :: POp
 ATOM :: POp
 type FOp = Word64
 close :: (Var v, Monoid a) => Set v -> Term v a -> Term v a
@@ -5022,6 +5023,7 @@ DRPB :: BPrim2
 IDXB :: BPrim2
 CATB :: BPrim2
 THRO :: BPrim2
+TRCE :: BPrim2
 data Branch
 Test1 :: !Word64 -> !Section -> !Section -> Branch
 Test2 :: !Word64 -> !Section -> !Word64 -> !Section -> !Section -> Branch
@@ -5447,8 +5449,9 @@ module Unison.Runtime.Machine
 type Tag = Word64
 type DEnv = EnumMap Word64 Closure
 data CCache
-CCache :: EnumMap Word64 ForeignFunc -> TVar (EnumMap Word64 Combs) -> TVar (EnumMap Word64 Reference) -> TVar (EnumMap Word64 Reference) -> TVar Word64 -> TVar Word64 -> TVar (Map Reference (SuperGroup Symbol)) -> TVar (Map Reference Word64) -> TVar (Map Reference Word64) -> CCache
+CCache :: EnumMap Word64 ForeignFunc -> (Text -> Closure -> IO ()) -> TVar (EnumMap Word64 Combs) -> TVar (EnumMap Word64 Reference) -> TVar (EnumMap Word64 Reference) -> TVar Word64 -> TVar Word64 -> TVar (Map Reference (SuperGroup Symbol)) -> TVar (Map Reference Word64) -> TVar (Map Reference Word64) -> CCache
 [foreignFuncs] :: CCache -> EnumMap Word64 ForeignFunc
+[tracer] :: CCache -> Text -> Closure -> IO ()
 [combs] :: CCache -> TVar (EnumMap Word64 Combs)
 [combRefs] :: CCache -> TVar (EnumMap Word64 Reference)
 [tagRefs] :: CCache -> TVar (EnumMap Word64 Reference)
@@ -5469,6 +5472,7 @@ eval0 :: CCache -> Section -> IO ()
 topDEnv :: Map Reference Word64 -> Map Reference Word64 -> (DEnv, K -> K)
 apply0 :: Maybe (Stack 'UN -> Stack 'BX -> IO ()) -> CCache -> Word64 -> IO ()
 apply1 :: (Stack 'UN -> Stack 'BX -> IO ()) -> CCache -> Closure -> IO ()
+jump0 :: (Stack 'UN -> Stack 'BX -> IO ()) -> CCache -> Closure -> IO ()
 lookupDenv :: Word64 -> DEnv -> Closure
 exec :: CCache -> DEnv -> Stack 'UN -> Stack 'BX -> K -> Instr -> IO (DEnv, Stack 'UN, Stack 'BX, K)
 eval :: CCache -> DEnv -> Stack 'UN -> Stack 'BX -> K -> Section -> IO ()
@@ -5515,6 +5519,7 @@ compareAsNat :: Int -> Int -> Ordering
 floatTag :: Word64
 natTag :: Word64
 charTag :: Word64
+unitTag :: Word64
 universalCompare :: (Foreign -> Foreign -> Ordering) -> Closure -> Closure -> Ordering
 
 module Unison.Runtime.Interface

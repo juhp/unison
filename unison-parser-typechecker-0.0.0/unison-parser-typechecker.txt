@@ -1970,7 +1970,11 @@ transform :: Functor m => (forall a. m a -> n a) -> Branch m -> Branch n
 -- | Checks whether a branch is empty AND has no history.
 isEmpty :: Branch m -> Bool
 
--- | Checks whether a Branch0 is empty.
+-- | Checks whether a Branch0 is empty, which means that the branch
+--   contains no terms or types, and that the heads of all children are
+--   empty by the same definition. This is not as easy as checking whether
+--   the branch is equal to the <a>empty0</a> branch because child branches
+--   may be empty, but still have history.
 isEmpty0 :: Branch0 m -> Bool
 isOne :: Branch m -> Bool
 before :: Monad m => Branch m -> Branch m -> m Bool
@@ -1980,6 +1984,7 @@ history :: Iso' (Branch m) (UnwrappedBranch m)
 head :: Branch m -> Branch0 m
 headHash :: Branch m -> Hash
 children :: Lens' (Branch0 m) (Map NameSegment (Branch m))
+nonEmptyChildren :: Branch0 m -> Map NameSegment (Branch m)
 
 -- | a version of <a>deepEdits</a> that returns the `m Patch` as well.
 deepEdits' :: Branch0 m -> Map Name (EditHash, m Patch)
@@ -3410,9 +3415,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5I8l loc_a5I8m. Lens' (Env v_a5I8l loc_a5I8m) (TypeLookup v_a5I8l loc_a5I8m)
-termsByShortname :: forall v_a5I8l loc_a5I8m. Lens' (Env v_a5I8l loc_a5I8m) (Map Name [NamedReference v_a5I8l loc_a5I8m])
-ambientAbilities :: forall v_a5I8l loc_a5I8m. Lens' (Env v_a5I8l loc_a5I8m) [Type v_a5I8l loc_a5I8m]
+typeLookup :: forall v_a5Idf loc_a5Idg. Lens' (Env v_a5Idf loc_a5Idg) (TypeLookup v_a5Idf loc_a5Idg)
+termsByShortname :: forall v_a5Idf loc_a5Idg. Lens' (Env v_a5Idf loc_a5Idg) (Map Name [NamedReference v_a5Idf loc_a5Idg])
+ambientAbilities :: forall v_a5Idf loc_a5Idg. Lens' (Env v_a5Idf loc_a5Idg) [Type v_a5Idf loc_a5Idg]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.

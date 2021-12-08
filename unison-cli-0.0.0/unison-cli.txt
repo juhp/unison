@@ -663,13 +663,13 @@ LoopState :: Branch m -> Branch m -> NonEmpty Absolute -> Maybe (FilePath, SkipN
 type Action' m v = Action m (Either Event Input) v
 type SkipNextUpdate = Bool
 type InputDescription = Text
-root :: forall m_a1tL3 v_a1tL4. Lens' (LoopState m_a1tL3 v_a1tL4) (Branch m_a1tL3)
-numberedArgs :: forall m_a1tL3 v_a1tL4. Lens' (LoopState m_a1tL3 v_a1tL4) NumberedArgs
-latestTypecheckedFile :: forall m_a1tL3 v_a1tL4 v_a1tWO. Lens (LoopState m_a1tL3 v_a1tL4) (LoopState m_a1tL3 v_a1tWO) (Maybe (TypecheckedUnisonFile v_a1tL4 Ann)) (Maybe (TypecheckedUnisonFile v_a1tWO Ann))
-latestFile :: forall m_a1tL3 v_a1tL4. Lens' (LoopState m_a1tL3 v_a1tL4) (Maybe (FilePath, SkipNextUpdate))
-lastSavedRoot :: forall m_a1tL3 v_a1tL4. Lens' (LoopState m_a1tL3 v_a1tL4) (Branch m_a1tL3)
-lastInput :: forall m_a1tL3 v_a1tL4. Lens' (LoopState m_a1tL3 v_a1tL4) (Maybe Input)
-currentPathStack :: forall m_a1tL3 v_a1tL4. Lens' (LoopState m_a1tL3 v_a1tL4) (NonEmpty Absolute)
+root :: forall m_a1tL6 v_a1tL7. Lens' (LoopState m_a1tL6 v_a1tL7) (Branch m_a1tL6)
+numberedArgs :: forall m_a1tL6 v_a1tL7. Lens' (LoopState m_a1tL6 v_a1tL7) NumberedArgs
+latestTypecheckedFile :: forall m_a1tL6 v_a1tL7 v_a1tWR. Lens (LoopState m_a1tL6 v_a1tL7) (LoopState m_a1tL6 v_a1tWR) (Maybe (TypecheckedUnisonFile v_a1tL7 Ann)) (Maybe (TypecheckedUnisonFile v_a1tWR Ann))
+latestFile :: forall m_a1tL6 v_a1tL7. Lens' (LoopState m_a1tL6 v_a1tL7) (Maybe (FilePath, SkipNextUpdate))
+lastSavedRoot :: forall m_a1tL6 v_a1tL7. Lens' (LoopState m_a1tL6 v_a1tL7) (Branch m_a1tL6)
+lastInput :: forall m_a1tL6 v_a1tL7. Lens' (LoopState m_a1tL6 v_a1tL7) (Maybe Input)
+currentPathStack :: forall m_a1tL6 v_a1tL7. Lens' (LoopState m_a1tL6 v_a1tL7) (NonEmpty Absolute)
 currentPath :: Getter (LoopState m v) Absolute
 loopState0 :: Branch m -> Absolute -> LoopState m v
 instance Unison.Codebase.Editor.HandleInput.LoopState.MonadCommand (Unison.Util.Free.Free (Unison.Codebase.Editor.Command.Command m i v)) m i v
@@ -818,6 +818,7 @@ patchArg :: ArgumentType
 allCompletors :: Monad m => [String -> Codebase m v a -> Branch m -> Absolute -> m [Completion]] -> String -> Codebase m v a -> Branch m -> Absolute -> m [Completion]
 bothCompletors :: Monad m => (String -> t2 -> t3 -> t4 -> m [Completion]) -> (String -> t2 -> t3 -> t4 -> m [Completion]) -> String -> t2 -> t3 -> t4 -> m [Completion]
 
+-- | A completer for namespace paths.
 pathCompletor :: Applicative f => (String -> [String] -> [Completion]) -> (Branch0 m -> Set Text) -> String -> codebase -> Branch m -> Absolute -> f [Completion]
 namespaceArg :: ArgumentType
 

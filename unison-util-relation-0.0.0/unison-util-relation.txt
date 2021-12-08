@@ -286,6 +286,7 @@ fromNestedDom :: (Ord a, Ord b, Ord c) => Relation (a, b) c -> Relation3 a b c
 fromNestedRan :: (Ord a, Ord b, Ord c) => Relation a (b, c) -> Relation3 a b c
 fromList :: (Ord a, Ord b, Ord c) => [(a, b, c)] -> Relation3 a b c
 empty :: (Ord a, Ord b, Ord c) => Relation3 a b c
+null :: Relation3 a b c -> Bool
 insert :: (Ord a, Ord b, Ord c) => a -> b -> c -> Relation3 a b c -> Relation3 a b c
 delete :: (Ord a, Ord b, Ord c) => a -> b -> c -> Relation3 a b c -> Relation3 a b c
 insertAll :: Foldable f => Ord a => Ord b => Ord c => f (a, b, c) -> Relation3 a b c -> Relation3 a b c
@@ -313,6 +314,7 @@ size :: (Ord a, Ord b, Ord c, Ord d) => Relation4 a b c d -> Int
 toNestedList :: Relation4 a b c d -> [(a, (b, (c, d)))]
 toList :: Relation4 a b c d -> [(a, b, c, d)]
 empty :: (Ord a, Ord b, Ord c, Ord d) => Relation4 a b c d
+null :: Relation4 a b c d -> Bool
 fromList :: (Ord a, Ord b, Ord c, Ord d) => [(a, b, c, d)] -> Relation4 a b c d
 filter :: (Ord a, Ord b, Ord c, Ord d) => ((a, b, c, d) -> Bool) -> Relation4 a b c d -> Relation4 a b c d
 selectD3 :: (Ord a, Ord b, Ord c, Ord d) => c -> Relation4 a b c d -> Relation4 a b c d

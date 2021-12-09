@@ -4306,6 +4306,28 @@ couldntLoadBranch :: Hash -> ServerError
 ambiguousNamespace :: HashQualifiedName -> Set HashQualifiedName -> ServerError
 missingSigForTerm :: HashQualifiedName -> ServerError
 
+module Unison.Server.Endpoints.Projects
+type ProjectsAPI = "projects" :> QueryParam "rootBranch" ShortBranchHash :> APIGet [ProjectListing]
+newtype ProjectOwner
+ProjectOwner :: Text -> ProjectOwner
+data ProjectListing
+ProjectListing :: ProjectOwner -> Text -> UnisonHash -> ProjectListing
+[owner] :: ProjectListing -> ProjectOwner
+[name] :: ProjectListing -> Text
+[hash] :: ProjectListing -> UnisonHash
+backendListEntryToProjectListing :: Var v => ProjectOwner -> ShallowListEntry v a -> Maybe ProjectListing
+entryToOwner :: Var v => ShallowListEntry v a -> Maybe ProjectOwner
+serve :: forall v. Var v => Handler () -> Codebase IO v Ann -> Maybe ShortBranchHash -> Handler (APIHeaders [ProjectListing])
+instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Endpoints.Projects.ProjectOwner
+instance GHC.Show.Show Unison.Server.Endpoints.Projects.ProjectOwner
+instance GHC.Generics.Generic Unison.Server.Endpoints.Projects.ProjectOwner
+instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Endpoints.Projects.ProjectListing
+instance GHC.Show.Show Unison.Server.Endpoints.Projects.ProjectListing
+instance GHC.Generics.Generic Unison.Server.Endpoints.Projects.ProjectListing
+instance Servant.Docs.Internal.ToSample Unison.Server.Endpoints.Projects.ProjectListing
+instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Endpoints.Projects.ProjectListing
+instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Endpoints.Projects.ProjectOwner
+
 module Unison.Server.Endpoints.NamespaceListing
 type NamespaceListingAPI = "list" :> QueryParam "rootBranch" ShortBranchHash :> QueryParam "relativeTo" NamespaceFQN :> QueryParam "namespace" NamespaceFQN :> APIGet NamespaceListing
 data NamespaceListing
@@ -4425,7 +4447,7 @@ RawHtml :: ByteString -> RawHtml
 [unRaw] :: RawHtml -> ByteString
 type OpenApiJSON = "openapi.json" :> Get '[JSON] OpenApi
 type DocAPI = UnisonAPI :<|> OpenApiJSON :<|> Raw
-type UnisonAPI = NamespaceListingAPI :<|> NamespaceDetailsAPI :<|> DefinitionsAPI :<|> FuzzyFindAPI
+type UnisonAPI = NamespaceListingAPI :<|> NamespaceDetailsAPI :<|> ProjectsAPI :<|> DefinitionsAPI :<|> FuzzyFindAPI
 type WebUI = CaptureAll "route" Text :> Get '[HTML] RawHtml
 type ServerAPI = ("ui" :> WebUI) :<|> ("api" :> DocAPI)
 type AuthedServerAPI = ("static" :> Raw) :<|> (Capture "token" Text :> ServerAPI)

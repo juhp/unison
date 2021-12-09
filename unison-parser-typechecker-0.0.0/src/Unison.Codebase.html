@@ -1125,22 +1125,22 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621680844085"><span class="annot"><span class="annottext">Branch m
 </span><a href="#local-6989586621680844085"><span class="hs-identifier hs-var">branch</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680844084"><span class="annot"><span class="annottext">WatchKind
 </span><a href="#local-6989586621680844084"><span class="hs-identifier hs-var">cacheDir</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-355"></span><span>         </span><span class="annot"><span class="annottext">WatchKind -&gt; m () -&gt; m ()
+</span><span id="line-355"></span><span>         </span><span class="annot"><span class="annottext">WatchKind -&gt; m Hash -&gt; m Hash
 forall (m :: * -&gt; *) a. MonadIO m =&gt; WatchKind -&gt; m a -&gt; m a
 </span><a href="Unison.Codebase.Editor.Git.html#withStatus"><span class="hs-identifier hs-var">withStatus</span></a></span><span> </span><span class="annot"><span class="annottext">WatchKind
-</span><span class="hs-string">&quot;Importing downloaded files into local codebase...&quot;</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; m ()) -&gt; m () -&gt; m ()
+</span><span class="hs-string">&quot;Importing downloaded files into local codebase...&quot;</span></span><span> </span><span class="annot"><span class="annottext">(m Hash -&gt; m Hash) -&gt; m Hash -&gt; m Hash
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-356"></span><span>           </span><span id="local-6989586621680844083"><span class="annot"><span class="annottext">Branch m
-</span><a href="#local-6989586621680844083"><span class="hs-identifier hs-var">branch</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Branch m -&gt; m (Branch m)
+</span><a href="#local-6989586621680844083"><span class="hs-identifier hs-var">processedBranch</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Branch m -&gt; m (Branch m)
 </span><a href="#local-6989586621680844082"><span class="hs-identifier hs-var">preprocessOp</span></a></span><span> </span><span class="annot"><span class="annottext">Branch m
 </span><a href="#local-6989586621680844085"><span class="hs-identifier hs-var">branch</span></a></span><span>
-</span><span id="line-357"></span><span>           </span><span class="annot"><span class="annottext">WatchKind -&gt; m () -&gt; m ()
+</span><span id="line-357"></span><span>           </span><span class="annot"><span class="annottext">WatchKind -&gt; m Hash -&gt; m Hash
 forall (m :: * -&gt; *) a. MonadIO m =&gt; WatchKind -&gt; m a -&gt; m a
 </span><span class="hs-identifier hs-var">time</span></span><span> </span><span class="annot"><span class="annottext">WatchKind
-</span><span class="hs-string">&quot;SyncFromDirectory&quot;</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; m ()) -&gt; m () -&gt; m ()
+</span><span class="hs-string">&quot;SyncFromDirectory&quot;</span></span><span> </span><span class="annot"><span class="annottext">(m Hash -&gt; m Hash) -&gt; m Hash -&gt; m Hash
 forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span>
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
 </span><span id="line-358"></span><span>             </span><span class="annot"><span class="annottext">Codebase m v a -&gt; WatchKind -&gt; SyncMode -&gt; Branch m -&gt; m ()
 forall (m :: * -&gt; *) v a.
 Codebase m v a -&gt; WatchKind -&gt; SyncMode -&gt; Branch m -&gt; m ()
@@ -1148,11 +1148,11 @@ Codebase m v a -&gt; WatchKind -&gt; SyncMode -&gt; Branch m -&gt; m ()
 </span><a href="#local-6989586621680844091"><span class="hs-identifier hs-var">codebase</span></a></span><span> </span><span class="annot"><span class="annottext">WatchKind
 </span><a href="#local-6989586621680844084"><span class="hs-identifier hs-var">cacheDir</span></a></span><span> </span><span class="annot"><span class="annottext">SyncMode
 </span><a href="#local-6989586621680844089"><span class="hs-identifier hs-var">mode</span></a></span><span> </span><span class="annot"><span class="annottext">Branch m
-</span><a href="#local-6989586621680844083"><span class="hs-identifier hs-var">branch</span></a></span><span>
-</span><span id="line-359"></span><span>         </span><span class="hs-identifier">pure</span><span> </span><span class="hs-operator">$</span><span> </span><span class="annot"><span class="annottext">Branch m -&gt; Hash
+</span><a href="#local-6989586621680844083"><span class="hs-identifier hs-var">processedBranch</span></a></span><span>
+</span><span id="line-359"></span><span>             </span><span class="hs-identifier">pure</span><span> </span><span class="hs-operator">$</span><span> </span><span class="annot"><span class="annottext">Branch m -&gt; Hash
 forall (m :: * -&gt; *). Branch m -&gt; Hash
 </span><a href="Unison.Codebase.Branch.html#headHash"><span class="hs-identifier hs-var">Branch.headHash</span></a></span><span> </span><span class="annot"><span class="annottext">Branch m
-</span><a href="#local-6989586621680844085"><span class="hs-identifier hs-var">branch</span></a></span><span>
+</span><a href="#local-6989586621680844083"><span class="hs-identifier hs-var">processedBranch</span></a></span><span>
 </span><span id="line-360"></span><span>  </span><span class="annot"><span class="annottext">WatchKind
 -&gt; ExceptT GitError m (Branch m) -&gt; ExceptT GitError m (Branch m)
 forall (m :: * -&gt; *) a. MonadIO m =&gt; WatchKind -&gt; m a -&gt; m a

@@ -2045,6 +2045,15 @@ deepTypeReferences :: Branch0 m -> Set TypeReference
 cachedRead :: forall m. MonadIO m => Cache m -> Deserialize m Raw Raw -> (EditHash -> m Patch) -> Hash -> m (Branch m)
 type Cache m = Cache (RawHash Raw) (UnwrappedBranch m)
 sync :: Monad m => (Hash -> m Bool) -> Serialize m Raw Raw -> (EditHash -> m Patch -> m ()) -> Branch m -> m ()
+
+-- | <tt>head <a>consBranchSnapshot</a> base</tt> Cons's the current state
+--   of <tt>head</tt> onto <tt>base</tt> as-is. Consider whether you really
+--   want this behaviour or the behaviour of <a>squashMerge</a> That is, it
+--   does not perform any common ancestor detection, or change
+--   reconciliation, it sets the current state of the base branch to the
+--   new state as a new causal step (or returns the existing base if there
+--   are no)
+consBranchSnapshot :: forall m. Monad m => Branch m -> Branch m -> Branch m
 instance GHC.Show.Show Unison.Codebase.Branch.BranchDiff
 instance GHC.Classes.Ord Unison.Codebase.Branch.BranchDiff
 instance GHC.Classes.Eq Unison.Codebase.Branch.BranchDiff
@@ -2544,7 +2553,13 @@ viewRemoteBranch :: MonadIO m => Codebase m v a -> ReadRemoteNamespace -> (Branc
 -- | Sync elements as needed from a remote codebase into the local one. If
 --   <tt>sbh</tt> is supplied, we try to load the specified branch hash;
 --   otherwise we try to load the root branch.
-importRemoteBranch :: forall m v a. MonadUnliftIO m => Codebase m v a -> ReadRemoteNamespace -> SyncMode -> m (Either GitError (Branch m))
+importRemoteBranch :: forall m v a. MonadUnliftIO m => Codebase m v a -> ReadRemoteNamespace -> SyncMode -> Preprocessing m -> m (Either GitError (Branch m))
+
+-- | An optional preprocessing step to run on branches before they're
+--   imported into the local codebase.
+data Preprocessing m
+Unmodified :: Preprocessing m
+Preprocessed :: (Branch m -> m (Branch m)) -> Preprocessing m
 
 -- | Push the given branch to the given repo, and optionally set it as the
 --   root branch.
@@ -3415,9 +3430,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5Idf loc_a5Idg. Lens' (Env v_a5Idf loc_a5Idg) (TypeLookup v_a5Idf loc_a5Idg)
-termsByShortname :: forall v_a5Idf loc_a5Idg. Lens' (Env v_a5Idf loc_a5Idg) (Map Name [NamedReference v_a5Idf loc_a5Idg])
-ambientAbilities :: forall v_a5Idf loc_a5Idg. Lens' (Env v_a5Idf loc_a5Idg) [Type v_a5Idf loc_a5Idg]
+typeLookup :: forall v_a5IhC loc_a5IhD. Lens' (Env v_a5IhC loc_a5IhD) (TypeLookup v_a5IhC loc_a5IhD)
+termsByShortname :: forall v_a5IhC loc_a5IhD. Lens' (Env v_a5IhC loc_a5IhD) (Map Name [NamedReference v_a5IhC loc_a5IhD])
+ambientAbilities :: forall v_a5IhC loc_a5IhD. Lens' (Env v_a5IhC loc_a5IhD) [Type v_a5IhC loc_a5IhD]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.

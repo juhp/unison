@@ -17,7 +17,7 @@ ForkLocalBranchI :: Either ShortBranchHash Path' -> Path' -> Input
 MergeLocalBranchI :: Path' -> Path' -> MergeMode -> Input
 PreviewMergeLocalBranchI :: Path' -> Path' -> Input
 DiffNamespaceI :: BranchId -> BranchId -> Input
-PullRemoteBranchI :: Maybe ReadRemoteNamespace -> Path' -> SyncMode -> Verbosity -> Input
+PullRemoteBranchI :: Maybe ReadRemoteNamespace -> Path' -> SyncMode -> PullMode -> Verbosity -> Input
 PushRemoteBranchI :: Maybe WriteRemotePath -> Path' -> PushBehavior -> SyncMode -> Input
 CreatePullRequestI :: ReadRemoteNamespace -> ReadRemoteNamespace -> Input
 LoadPullRequestI :: ReadRemoteNamespace -> ReadRemoteNamespace -> Path' -> Input
@@ -114,8 +114,13 @@ type HashOrHQSplit' = Either ShortHash HQSplit'
 data Insistence
 Force :: Insistence
 Try :: Insistence
+data PullMode
+PullWithHistory :: PullMode
+PullWithoutHistory :: PullMode
 instance GHC.Classes.Eq Unison.Codebase.Editor.Input.Insistence
 instance GHC.Show.Show Unison.Codebase.Editor.Input.Insistence
+instance GHC.Show.Show Unison.Codebase.Editor.Input.PullMode
+instance GHC.Classes.Eq Unison.Codebase.Editor.Input.PullMode
 instance GHC.Show.Show Unison.Codebase.Editor.Input.GistInput
 instance GHC.Classes.Eq Unison.Codebase.Editor.Input.GistInput
 instance GHC.Show.Show Unison.Codebase.Editor.Input.OutputLocation
@@ -473,6 +478,7 @@ StartOfCurrentPathHistory :: Output v
 History :: Maybe Int -> [(ShortBranchHash, Diff)] -> HistoryTail -> Output v
 ShowReflog :: [ReflogEntry] -> Output v
 PullAlreadyUpToDate :: ReadRemoteNamespace -> Path' -> Output v
+PullSuccessful :: ReadRemoteNamespace -> Path' -> Output v
 MergeAlreadyUpToDate :: Path' -> Path' -> Output v
 PreviewMergeAlreadyUpToDate :: Path' -> Path' -> Output v
 
@@ -587,7 +593,7 @@ data Command m i v a
 [LoadLocalBranch] :: Hash -> Command m i v (Branch m)
 [Merge] :: MergeMode -> Branch m -> Branch m -> Command m i v (Branch m)
 [ViewRemoteBranch] :: ReadRemoteNamespace -> (Branch m -> Free (Command m i v) r) -> Command m i v (Either GitError r)
-[ImportRemoteBranch] :: ReadRemoteNamespace -> SyncMode -> Command m i v (Either GitError (Branch m))
+[ImportRemoteBranch] :: ReadRemoteNamespace -> SyncMode -> Preprocessing m -> Command m i v (Either GitError (Branch m))
 [SyncLocalRootBranch] :: Branch m -> Command m i v ()
 [SyncRemoteBranch] :: Branch m -> WriteRepo -> PushGitBranchOpts -> Command m i v (Either GitError ())
 [AppendToReflog] :: Text -> Branch m -> Branch m -> Command m i v ()
@@ -663,13 +669,13 @@ LoopState :: Branch m -> Branch m -> NonEmpty Absolute -> Maybe (FilePath, SkipN
 type Action' m v = Action m (Either Event Input) v
 type SkipNextUpdate = Bool
 type InputDescription = Text
-root :: forall m_a1tLq v_a1tLr. Lens' (LoopState m_a1tLq v_a1tLr) (Branch m_a1tLq)
-numberedArgs :: forall m_a1tLq v_a1tLr. Lens' (LoopState m_a1tLq v_a1tLr) NumberedArgs
-latestTypecheckedFile :: forall m_a1tLq v_a1tLr v_a1tXb. Lens (LoopState m_a1tLq v_a1tLr) (LoopState m_a1tLq v_a1tXb) (Maybe (TypecheckedUnisonFile v_a1tLr Ann)) (Maybe (TypecheckedUnisonFile v_a1tXb Ann))
-latestFile :: forall m_a1tLq v_a1tLr. Lens' (LoopState m_a1tLq v_a1tLr) (Maybe (FilePath, SkipNextUpdate))
-lastSavedRoot :: forall m_a1tLq v_a1tLr. Lens' (LoopState m_a1tLq v_a1tLr) (Branch m_a1tLq)
-lastInput :: forall m_a1tLq v_a1tLr. Lens' (LoopState m_a1tLq v_a1tLr) (Maybe Input)
-currentPathStack :: forall m_a1tLq v_a1tLr. Lens' (LoopState m_a1tLq v_a1tLr) (NonEmpty Absolute)
+root :: forall m_a1tXU v_a1tXV. Lens' (LoopState m_a1tXU v_a1tXV) (Branch m_a1tXU)
+numberedArgs :: forall m_a1tXU v_a1tXV. Lens' (LoopState m_a1tXU v_a1tXV) NumberedArgs
+latestTypecheckedFile :: forall m_a1tXU v_a1tXV v_a1u9F. Lens (LoopState m_a1tXU v_a1tXV) (LoopState m_a1tXU v_a1u9F) (Maybe (TypecheckedUnisonFile v_a1tXV Ann)) (Maybe (TypecheckedUnisonFile v_a1u9F Ann))
+latestFile :: forall m_a1tXU v_a1tXV. Lens' (LoopState m_a1tXU v_a1tXV) (Maybe (FilePath, SkipNextUpdate))
+lastSavedRoot :: forall m_a1tXU v_a1tXV. Lens' (LoopState m_a1tXU v_a1tXV) (Branch m_a1tXU)
+lastInput :: forall m_a1tXU v_a1tXV. Lens' (LoopState m_a1tXU v_a1tXV) (Maybe Input)
+currentPathStack :: forall m_a1tXU v_a1tXV. Lens' (LoopState m_a1tXU v_a1tXV) (NonEmpty Absolute)
 currentPath :: Getter (LoopState m v) Absolute
 loopState0 :: Branch m -> Absolute -> LoopState m v
 instance Unison.Codebase.Editor.HandleInput.LoopState.MonadCommand (Unison.Util.Free.Free (Unison.Codebase.Editor.Command.Command m i v)) m i v
@@ -761,7 +767,8 @@ forkLocal :: InputPattern
 resetRoot :: InputPattern
 pullSilent :: InputPattern
 pull :: InputPattern
-pullImpl :: String -> Verbosity -> InputPattern
+pullWithoutHistory :: InputPattern
+pullImpl :: String -> Verbosity -> PullMode -> Pretty ColorText -> InputPattern
 pullExhaustive :: InputPattern
 push :: InputPattern
 pushCreate :: InputPattern

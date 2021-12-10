@@ -5488,6 +5488,13 @@ builtinForeigns :: EnumMap Word64 ForeignFunc
 numberedTermLookup :: Var v => EnumMap Word64 (SuperNormal v)
 
 module Unison.Runtime.Machine
+
+-- | A ref storing every currently active thread. This is helpful for
+--   cleaning up orphaned threads when the main process completes. We track
+--   threads when running in a host process like UCM, otherwise we don't
+--   bother since forked threads are cleaned up automatically on
+--   termination.
+type ActiveThreads = Maybe (IORef (Set ThreadId))
 type Tag = Word64
 type DEnv = EnumMap Word64 Closure
 data CCache
@@ -5510,21 +5517,21 @@ refNumTy' :: CCache -> Reference -> IO (Maybe Word64)
 baseCCache :: IO CCache
 info :: Show a => String -> a -> IO ()
 infos :: String -> String -> IO ()
-eval0 :: CCache -> Section -> IO ()
+eval0 :: CCache -> ActiveThreads -> Section -> IO ()
 topDEnv :: Map Reference Word64 -> Map Reference Word64 -> (DEnv, K -> K)
-apply0 :: Maybe (Stack 'UN -> Stack 'BX -> IO ()) -> CCache -> Word64 -> IO ()
-apply1 :: (Stack 'UN -> Stack 'BX -> IO ()) -> CCache -> Closure -> IO ()
-jump0 :: (Stack 'UN -> Stack 'BX -> IO ()) -> CCache -> Closure -> IO ()
+apply0 :: Maybe (Stack 'UN -> Stack 'BX -> IO ()) -> CCache -> ActiveThreads -> Word64 -> IO ()
+apply1 :: (Stack 'UN -> Stack 'BX -> IO ()) -> CCache -> ActiveThreads -> Closure -> IO ()
+jump0 :: (Stack 'UN -> Stack 'BX -> IO ()) -> CCache -> ActiveThreads -> Closure -> IO ()
 lookupDenv :: Word64 -> DEnv -> Closure
-exec :: CCache -> DEnv -> Stack 'UN -> Stack 'BX -> K -> Instr -> IO (DEnv, Stack 'UN, Stack 'BX, K)
-eval :: CCache -> DEnv -> Stack 'UN -> Stack 'BX -> K -> Section -> IO ()
-forkEval :: CCache -> Closure -> IO ThreadId
-atomicEval :: CCache -> (Closure -> IO ()) -> Closure -> IO ()
-enter :: CCache -> DEnv -> Stack 'UN -> Stack 'BX -> K -> Bool -> Args -> Comb -> IO ()
+exec :: CCache -> DEnv -> ActiveThreads -> Stack 'UN -> Stack 'BX -> K -> Instr -> IO (DEnv, Stack 'UN, Stack 'BX, K)
+eval :: CCache -> DEnv -> ActiveThreads -> Stack 'UN -> Stack 'BX -> K -> Section -> IO ()
+forkEval :: CCache -> ActiveThreads -> Closure -> IO ThreadId
+atomicEval :: CCache -> ActiveThreads -> (Closure -> IO ()) -> Closure -> IO ()
+enter :: CCache -> DEnv -> ActiveThreads -> Stack 'UN -> Stack 'BX -> K -> Bool -> Args -> Comb -> IO ()
 name :: Stack 'UN -> Stack 'BX -> Args -> Closure -> IO (Stack 'BX)
-apply :: CCache -> DEnv -> Stack 'UN -> Stack 'BX -> K -> Bool -> Args -> Closure -> IO ()
-jump :: CCache -> DEnv -> Stack 'UN -> Stack 'BX -> K -> Args -> Closure -> IO ()
-repush :: CCache -> Stack 'UN -> Stack 'BX -> DEnv -> K -> K -> IO ()
+apply :: CCache -> DEnv -> ActiveThreads -> Stack 'UN -> Stack 'BX -> K -> Bool -> Args -> Closure -> IO ()
+jump :: CCache -> DEnv -> ActiveThreads -> Stack 'UN -> Stack 'BX -> K -> Args -> Closure -> IO ()
+repush :: CCache -> ActiveThreads -> Stack 'UN -> Stack 'BX -> DEnv -> K -> K -> IO ()
 moveArgs :: Stack 'UN -> Stack 'BX -> Args -> IO (Stack 'UN, Stack 'BX)
 closureArgs :: Stack 'BX -> Args -> IO [Closure]
 buildData :: Stack 'UN -> Stack 'BX -> Reference -> Tag -> Args -> IO Closure
@@ -5535,7 +5542,7 @@ uprim1 :: Stack 'UN -> UPrim1 -> Int -> IO (Stack 'UN)
 uprim2 :: Stack 'UN -> UPrim2 -> Int -> Int -> IO (Stack 'UN)
 bprim1 :: Stack 'UN -> Stack 'BX -> BPrim1 -> Int -> IO (Stack 'UN, Stack 'BX)
 bprim2 :: Stack 'UN -> Stack 'BX -> BPrim2 -> Int -> Int -> IO (Stack 'UN, Stack 'BX)
-yield :: CCache -> DEnv -> Stack 'UN -> Stack 'BX -> K -> IO ()
+yield :: CCache -> DEnv -> ActiveThreads -> Stack 'UN -> Stack 'BX -> K -> IO ()
 selectTextBranch :: Text -> Section -> Map Text Section -> Section
 selectBranch :: Tag -> Branch -> Section
 splitCont :: DEnv -> Stack 'UN -> Stack 'BX -> K -> Word64 -> IO (K, DEnv, Stack 'UN, Stack 'BX, Seg 'UN, Seg 'BX, K)
@@ -5565,11 +5572,17 @@ unitTag :: Word64
 universalCompare :: (Foreign -> Foreign -> Ordering) -> Closure -> Closure -> Ordering
 
 module Unison.Runtime.Interface
-startRuntime :: String -> IO (Runtime Symbol)
+startRuntime :: RuntimeHost -> String -> IO (Runtime Symbol)
 standalone :: CCache -> Word64 -> IO StoredCache
 runStandalone :: StoredCache -> Word64 -> IO ()
 data StoredCache
 decodeStandalone :: ByteString -> Either String (Text, Text, Word64, StoredCache)
+
+-- | Whether the runtime is hosted within a UCM session or as a standalone
+--   process.
+data RuntimeHost
+Standalone :: RuntimeHost
+UCM :: RuntimeHost
 instance GHC.Show.Show Unison.Runtime.Interface.StoredCache
 
 module Unison.Util.TransitiveClosure

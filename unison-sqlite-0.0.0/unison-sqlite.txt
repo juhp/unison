@@ -236,36 +236,6 @@ trySetJournalMode :: JournalMode -> Transaction ()
 withSavepoint :: (DB m, MonadUnliftIO m) => Text -> (m () -> m a) -> m a
 withStatement :: (DB m, MonadUnliftIO m, FromRow a, ToRow b) => Sql -> b -> (m (Maybe a) -> m c) -> m c
 
--- | The root exception for all exceptions thrown by this library.
---   
---   <pre>
---   SomeException (from base)
---     └── SomeSqliteException
---           └── SqliteConnectException
---           └── SqliteQueryException
---   </pre>
---   
---   A <tt>SomeSqliteException</tt> should not be inspected or used for
---   control flow when run in a trusted environment, where the database can
---   be assumed to be uncorrupt. Rather, wherever possible, the user of
---   this library should write code that is guaranteed not to throw
---   exceptions, by checking the necessary preconditions first. If that is
---   not possible, it should be considered a bug in this library.
---   
---   When actions are run on an untrusted codebase, e.g. one downloaded
---   from a remote server, it is sufficient to catch just one exception
---   type, <tt>SomeSqliteException</tt>.
-data SomeSqliteException
-SomeSqliteException :: e -> SomeSqliteException
-
--- | An exception thrown during establishing a connection.
-data SqliteConnectException
-SqliteConnectException :: ThreadId -> String -> FilePath -> SQLError -> SqliteConnectException
-[$sel:threadId:SqliteConnectException] :: SqliteConnectException -> ThreadId
-[$sel:name:SqliteConnectException] :: SqliteConnectException -> String
-[$sel:file:SqliteConnectException] :: SqliteConnectException -> FilePath
-[$sel:exception:SqliteConnectException] :: SqliteConnectException -> SQLError
-
 -- | A <tt>SqliteQueryException</tt> represents an exception thrown during
 --   processing a query, paired with some context that resulted in the
 --   exception.
@@ -282,10 +252,19 @@ SqliteConnectException :: ThreadId -> String -> FilePath -> SQLError -> SqliteCo
 --   <a>queryListRowCheck</a>, which takes a user-defined check as an
 --   argument.</li>
 --   </ul>
+--   
+--   A <tt>SqliteQueryException</tt> should not be inspected or used for
+--   control flow when run in a trusted environment, where the database can
+--   be assumed to be uncorrupt. Rather, wherever possible, the user of
+--   this library should write code that is guaranteed not to throw
+--   exceptions, by checking the necessary preconditions first. If that is
+--   not possible, it should be considered a bug in this library.
+--   
+--   When actions are run on an untrusted codebase, e.g. one downloaded
+--   from a remote server, it is sufficient to catch just one exception
+--   type, <tt>SqliteQueryException</tt>.
 data SqliteQueryException
-SqliteQueryException :: ThreadId -> String -> Sql -> String -> SomeSqliteExceptionReason -> SqliteQueryException
-[$sel:threadId:SqliteQueryException] :: SqliteQueryException -> ThreadId
-[$sel:connection:SqliteQueryException] :: SqliteQueryException -> String
+SqliteQueryException :: Sql -> String -> SomeSqliteExceptionReason -> String -> ThreadId -> SqliteQueryException
 [$sel:sql:SqliteQueryException] :: SqliteQueryException -> Sql
 [$sel:params:SqliteQueryException] :: SqliteQueryException -> String
 
@@ -293,6 +272,8 @@ SqliteQueryException :: ThreadId -> String -> Sql -> String -> SomeSqliteExcepti
 --   that calling code cannot accidentally <a>throwIO</a> domain-specific
 --   exception types, but must instead use a <tt>*Check</tt> query variant.
 [$sel:exception:SqliteQueryException] :: SqliteQueryException -> SomeSqliteExceptionReason
+[$sel:connection:SqliteQueryException] :: SqliteQueryException -> String
+[$sel:threadId:SqliteQueryException] :: SqliteQueryException -> ThreadId
 
 -- | A type that is intended to be used as additional context for a
 --   sqlite-related exception.

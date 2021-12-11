@@ -2862,6 +2862,22 @@ evaluateWatches :: forall v a. Var v => CodeLookup v IO a -> PrettyPrintEnv -> (
 evaluateTerm' :: (Var v, Monoid a) => CodeLookup v IO a -> (Id -> IO (Maybe (Term v))) -> PrettyPrintEnv -> Runtime v -> Term v a -> IO (Either Error (Term v))
 evaluateTerm :: (Var v, Monoid a) => CodeLookup v IO a -> PrettyPrintEnv -> Runtime v -> Term v a -> IO (Either Error (Term v))
 
+
+-- | Open codebase error type.
+module Unison.Codebase.Init.OpenCodebaseError
+
+-- | An error that can occur when attempting to open a codebase.
+data OpenCodebaseError
+
+-- | The codebase doesn't exist.
+OpenCodebaseDoesntExist :: OpenCodebaseError
+
+-- | The codebase exists, but its schema version is unknown to this
+--   application.
+OpenCodebaseUnknownSchemaVersion :: Word64 -> OpenCodebaseError
+OpenCodebaseOther :: Pretty ColorText -> OpenCodebaseError
+instance GHC.Show.Show Unison.Codebase.Init.OpenCodebaseError.OpenCodebaseError
+
 module Unison.Codebase.Init.CreateCodebaseError
 data CreateCodebaseError
 CreateCodebaseAlreadyExists :: CreateCodebaseError
@@ -2895,10 +2911,10 @@ putPrettyNonempty :: Pretty ColorText -> IO ()
 
 module Unison.Codebase.Init
 data Init m v a
-Init :: (forall r. DebugName -> CodebasePath -> (Codebase m v a -> m r) -> m (Either Pretty r)) -> (forall r. DebugName -> CodebasePath -> (Codebase m v a -> m r) -> m (Either CreateCodebaseError r)) -> (CodebasePath -> CodebasePath) -> Init m v a
+Init :: (forall r. DebugName -> CodebasePath -> (Codebase m v a -> m r) -> m (Either OpenCodebaseError r)) -> (forall r. DebugName -> CodebasePath -> (Codebase m v a -> m r) -> m (Either CreateCodebaseError r)) -> (CodebasePath -> CodebasePath) -> Init m v a
 
 -- | open an existing codebase
-[withOpenCodebase] :: Init m v a -> forall r. DebugName -> CodebasePath -> (Codebase m v a -> m r) -> m (Either Pretty r)
+[withOpenCodebase] :: Init m v a -> forall r. DebugName -> CodebasePath -> (Codebase m v a -> m r) -> m (Either OpenCodebaseError r)
 
 -- | create a new codebase
 [withCreatedCodebase] :: Init m v a -> forall r. DebugName -> CodebasePath -> (Codebase m v a -> m r) -> m (Either CreateCodebaseError r)
@@ -2908,9 +2924,11 @@ Init :: (forall r. DebugName -> CodebasePath -> (Codebase m v a -> m r) -> m (Ei
 --   transcript should clone.
 [codebasePath] :: Init m v a -> CodebasePath -> CodebasePath
 type DebugName = String
+
+-- | An error that occurred while initializing a codebase.
 data InitError
-NoCodebaseFoundAtSpecifiedDir :: InitError
 FoundV1Codebase :: InitError
+InitErrorOpen :: OpenCodebaseError -> InitError
 CouldntCreateCodebase :: Pretty -> InitError
 data CodebaseInitOptions
 Home :: CodebasePath -> CodebaseInitOptions
@@ -2934,7 +2952,6 @@ instance GHC.Show.Show Unison.Codebase.Init.InitResult
 
 module Unison.Codebase.SqliteCodebase
 init :: HasCallStack => MonadUnliftIO m => Init m Symbol Ann
-instance GHC.Show.Show Unison.Codebase.SqliteCodebase.CreateCodebaseError
 instance GHC.Show.Show a => GHC.Show.Show (Unison.Codebase.SqliteCodebase.BufferEntry a)
 instance GHC.Classes.Eq a => GHC.Classes.Eq (Unison.Codebase.SqliteCodebase.BufferEntry a)
 instance GHC.Show.Show (Unison.Codebase.SqliteCodebase.Entity m)
@@ -3430,9 +3447,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5IhC loc_a5IhD. Lens' (Env v_a5IhC loc_a5IhD) (TypeLookup v_a5IhC loc_a5IhD)
-termsByShortname :: forall v_a5IhC loc_a5IhD. Lens' (Env v_a5IhC loc_a5IhD) (Map Name [NamedReference v_a5IhC loc_a5IhD])
-ambientAbilities :: forall v_a5IhC loc_a5IhD. Lens' (Env v_a5IhC loc_a5IhD) [Type v_a5IhC loc_a5IhD]
+typeLookup :: forall v_a5I3J loc_a5I3K. Lens' (Env v_a5I3J loc_a5I3K) (TypeLookup v_a5I3J loc_a5I3K)
+termsByShortname :: forall v_a5I3J loc_a5I3K. Lens' (Env v_a5I3J loc_a5I3K) (Map Name [NamedReference v_a5I3J loc_a5I3K])
+ambientAbilities :: forall v_a5I3J loc_a5I3K. Lens' (Env v_a5I3J loc_a5I3K) [Type v_a5I3J loc_a5I3K]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.

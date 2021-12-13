@@ -88,6 +88,7 @@ DebugDumpNamespacesI :: Input
 DebugDumpNamespaceSimpleI :: Input
 DebugClearWatchI :: Input
 QuitI :: Input
+ApiI :: Input
 UiI :: Input
 DocsToHtmlI :: Path' -> FilePath -> Input
 GistI :: GistInput -> Input
@@ -565,6 +566,7 @@ module Unison.Codebase.Editor.Command
 data Command m i v a
 [Eval] :: m a -> Command m i v a
 [UI] :: Command m i v ()
+[API] :: Command m i v ()
 [DocsToHtml] :: Branch m -> Path -> FilePath -> Command m i v ()
 [HQNameQuery] :: Maybe Path -> Branch m -> [HashQualified Name] -> Command m i v QueryResult
 [LoadSearchResults] :: [SearchResult] -> Command m i v [SearchResult' v Ann]
@@ -669,13 +671,13 @@ LoopState :: Branch m -> Branch m -> NonEmpty Absolute -> Maybe (FilePath, SkipN
 type Action' m v = Action m (Either Event Input) v
 type SkipNextUpdate = Bool
 type InputDescription = Text
-root :: forall m_a1tY2 v_a1tY3. Lens' (LoopState m_a1tY2 v_a1tY3) (Branch m_a1tY2)
-numberedArgs :: forall m_a1tY2 v_a1tY3. Lens' (LoopState m_a1tY2 v_a1tY3) NumberedArgs
-latestTypecheckedFile :: forall m_a1tY2 v_a1tY3 v_a1u9N. Lens (LoopState m_a1tY2 v_a1tY3) (LoopState m_a1tY2 v_a1u9N) (Maybe (TypecheckedUnisonFile v_a1tY3 Ann)) (Maybe (TypecheckedUnisonFile v_a1u9N Ann))
-latestFile :: forall m_a1tY2 v_a1tY3. Lens' (LoopState m_a1tY2 v_a1tY3) (Maybe (FilePath, SkipNextUpdate))
-lastSavedRoot :: forall m_a1tY2 v_a1tY3. Lens' (LoopState m_a1tY2 v_a1tY3) (Branch m_a1tY2)
-lastInput :: forall m_a1tY2 v_a1tY3. Lens' (LoopState m_a1tY2 v_a1tY3) (Maybe Input)
-currentPathStack :: forall m_a1tY2 v_a1tY3. Lens' (LoopState m_a1tY2 v_a1tY3) (NonEmpty Absolute)
+root :: forall m_a1u0L v_a1u0M. Lens' (LoopState m_a1u0L v_a1u0M) (Branch m_a1u0L)
+numberedArgs :: forall m_a1u0L v_a1u0M. Lens' (LoopState m_a1u0L v_a1u0M) NumberedArgs
+latestTypecheckedFile :: forall m_a1u0L v_a1u0M v_a1ucw. Lens (LoopState m_a1u0L v_a1u0M) (LoopState m_a1u0L v_a1ucw) (Maybe (TypecheckedUnisonFile v_a1u0M Ann)) (Maybe (TypecheckedUnisonFile v_a1ucw Ann))
+latestFile :: forall m_a1u0L v_a1u0M. Lens' (LoopState m_a1u0L v_a1u0M) (Maybe (FilePath, SkipNextUpdate))
+lastSavedRoot :: forall m_a1u0L v_a1u0M. Lens' (LoopState m_a1u0L v_a1u0M) (Branch m_a1u0L)
+lastInput :: forall m_a1u0L v_a1u0M. Lens' (LoopState m_a1u0L v_a1u0M) (Maybe Input)
+currentPathStack :: forall m_a1u0L v_a1u0M. Lens' (LoopState m_a1u0L v_a1u0M) (NonEmpty Absolute)
 currentPath :: Getter (LoopState m v) Absolute
 loopState0 :: Branch m -> Absolute -> LoopState m v
 instance Unison.Codebase.Editor.HandleInput.LoopState.MonadCommand (Unison.Util.Free.Free (Unison.Codebase.Editor.Command.Command m i v)) m i v
@@ -729,6 +731,7 @@ view :: InputPattern
 display :: InputPattern
 displayTo :: InputPattern
 docs :: InputPattern
+api :: InputPattern
 ui :: InputPattern
 undo :: InputPattern
 viewByPrefix :: InputPattern

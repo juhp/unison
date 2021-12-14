@@ -1993,12 +1993,13 @@ deepEdits' :: Branch0 m -> Map Name (EditHash, m Patch)
 toList0 :: Branch0 m -> [(Path, Branch0 m)]
 
 -- | Run a series of updates at specific locations, aggregating all changes
---   into a single causal step.
-stepManyAt :: forall m f. (Monad m, Foldable f) => f (Path, Branch0 m -> Branch0 m) -> Branch m -> Branch m
+--   into a single causal step. History is managed according to
+--   <a>UpdateStrategy</a>.
+stepManyAt :: forall m f. (Monad m, Foldable f) => UpdateStrategy -> f (Path, Branch0 m -> Branch0 m) -> Branch m -> Branch m
 
--- | Run a series of updates at specific locations, aggregating all changes
---   into a single causal step.
-stepManyAtM :: (Monad m, Monad n, Foldable f) => f (Path, Branch0 m -> n (Branch0 m)) -> Branch m -> n (Branch m)
+-- | Run a series of updates at specific locations. History is managed
+--   according to the <a>UpdateStrategy</a>
+stepManyAtM :: (Monad m, Monad n, Foldable f) => UpdateStrategy -> f (Path, Branch0 m -> n (Branch0 m)) -> Branch m -> n (Branch m)
 stepEverywhere :: Applicative m => (Branch0 m -> Branch0 m) -> Branch0 m -> Branch0 m
 
 -- | Perform updates over many locations within a branch by batching up
@@ -2018,6 +2019,30 @@ batchUpdates :: forall f m. (Monad m, Foldable f) => f (Path, Branch0 m -> Branc
 --   changes must be performed in the updates themselves, or this batch
 --   update must be provided to 'stepManyAt(M)'.
 batchUpdatesM :: forall m n f. (Monad m, Monad n, Foldable f) => f (Path, Branch0 m -> n (Branch0 m)) -> Branch0 m -> n (Branch0 m)
+data UpdateStrategy
+
+-- | Compress all changes into a single causal cons. The resulting branch
+--   will have at most one new causal cons at each branch.
+--   
+--   Note that this does NOT allow updates to add histories at children.
+--   E.g. if the root.editme branch has history: A -&gt; B -&gt; C and you
+--   use <tt>makeSetBranch</tt> to update it to a new branch with history X
+--   -&gt; Y -&gt; Z, CompressHistory will result in a history for
+--   root.editme of: A -&gt; B -&gt; C -&gt; Z. A <tt>snapshot</tt> of the
+--   most recent state of the updated branch is appended to the existing
+--   history, if the new state is equal to the existing state, no new
+--   history nodes are appended.
+CompressHistory :: UpdateStrategy
+
+-- | Preserves any history changes made within the update.
+--   
+--   Note that this allows you to clobber the history child branches if you
+--   want. E.g. if the root.editme branch has history: A -&gt; B -&gt; C
+--   and you use <tt>makeSetBranch</tt> to update it to a new branch with
+--   history X -&gt; Y -&gt; Z, AllowRewritingHistory will result in a
+--   history for root.editme of: X -&gt; Y -&gt; Z. The history of the
+--   updated branch is replaced entirely.
+AllowRewritingHistory :: UpdateStrategy
 addTermName :: Referent -> NameSegment -> Metadata -> Branch0 m -> Branch0 m
 addTypeName :: TypeReference -> NameSegment -> Metadata -> Branch0 m -> Branch0 m
 deleteTermName :: Referent -> NameSegment -> Branch0 m -> Branch0 m
@@ -2321,6 +2346,9 @@ instance GHC.Show.Show Unison.Codebase.SqliteCodebase.Branch.Dependencies.Depend
 instance GHC.Classes.Eq Unison.Codebase.SqliteCodebase.Branch.Dependencies.Dependencies'
 
 module Unison.Codebase.BranchUtil
+
+-- | Creates a branch containing all of the given names, with a single
+--   history node.
 fromNames :: Monad m => Names -> Branch m
 getBranch :: Split -> Branch0 m -> Maybe (Branch m)
 getTerm :: HQSplit -> Branch0 m -> Set Referent
@@ -2330,7 +2358,15 @@ getTypeMetadataAt :: (Path, a) -> Reference -> Branch0 m -> Metadata
 getTermMetadataHQNamed :: (Path, HQSegment) -> Branch0 m -> R4 Referent NameSegment
 getTypeMetadataHQNamed :: (Path, HQSegment) -> Branch0 m -> R4 Reference NameSegment
 makeSetBranch :: Split -> Branch m -> (Path, Branch0 m -> Branch0 m)
-makeDeleteBranch :: Split -> (Path, Branch0 m -> Branch0 m)
+
+-- | "delete"s a branch by cons'ing an empty Branch0 onto the history at
+--   that location. See also <a>makeObliterateBranch</a>.
+makeDeleteBranch :: Applicative m => Split -> (Path, Branch0 m -> Branch0 m)
+
+-- | Erase a branch and its history See also <a>makeDeleteBranch</a>. Note
+--   that this requires a AllowRewritingHistory update strategy to behave
+--   correctly.
+makeObliterateBranch :: Split -> (Path, Branch0 m -> Branch0 m)
 makeAddTypeName :: Split -> Reference -> Metadata -> (Path, Branch0 m -> Branch0 m)
 makeDeleteTypeName :: Split -> Reference -> (Path, Branch0 m -> Branch0 m)
 makeAddTermName :: Split -> Referent -> Metadata -> (Path, Branch0 m -> Branch0 m)
@@ -3447,9 +3483,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5I3J loc_a5I3K. Lens' (Env v_a5I3J loc_a5I3K) (TypeLookup v_a5I3J loc_a5I3K)
-termsByShortname :: forall v_a5I3J loc_a5I3K. Lens' (Env v_a5I3J loc_a5I3K) (Map Name [NamedReference v_a5I3J loc_a5I3K])
-ambientAbilities :: forall v_a5I3J loc_a5I3K. Lens' (Env v_a5I3J loc_a5I3K) [Type v_a5I3J loc_a5I3K]
+typeLookup :: forall v_a5I9q loc_a5I9r. Lens' (Env v_a5I9q loc_a5I9r) (TypeLookup v_a5I9q loc_a5I9r)
+termsByShortname :: forall v_a5I9q loc_a5I9r. Lens' (Env v_a5I9q loc_a5I9r) (Map Name [NamedReference v_a5I9q loc_a5I9r])
+ambientAbilities :: forall v_a5I9q loc_a5I9r. Lens' (Env v_a5I9q loc_a5I9r) [Type v_a5I9q loc_a5I9r]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.

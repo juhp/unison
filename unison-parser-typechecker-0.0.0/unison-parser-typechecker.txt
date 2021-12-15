@@ -745,8 +745,8 @@ failConstructorReferent :: Referent
 
 -- | parse some builtin data types, and resolve their free variables using
 --   | builtinTypes' and those types defined herein
-builtinDataDecls :: Var v => [(v, Id, DataDeclaration v ())]
-builtinEffectDecls :: Var v => [(v, Id, EffectDeclaration v ())]
+builtinDataDecls :: [(Symbol, Id, DataDeclaration Symbol ())]
+builtinEffectDecls :: [(Symbol, Id, EffectDeclaration Symbol ())]
 pattern UnitRef :: Reference
 pattern PairRef :: Reference
 pattern EitherRef :: Reference
@@ -808,9 +808,9 @@ unPairRef :: Reference -> Bool
 unOptionalRef :: Reference -> Bool
 
 module Unison.Builtin.Terms
-builtinTermsSrc :: Var v => a -> [(v, Term v a, Type v a)]
+builtinTermsSrc :: a -> [(Symbol, Term Symbol a, Type Symbol a)]
 v :: Var v => Text -> v
-builtinTermsRef :: Var v => a -> Map v Id
+builtinTermsRef :: a -> Map Symbol Id
 
 module Unison.Lexer.Pos
 data Pos
@@ -1022,12 +1022,12 @@ instance GHC.Base.Monoid (Unison.Typechecker.TypeLookup.TypeLookup v a)
 instance GHC.Base.Functor (Unison.Typechecker.TypeLookup.TypeLookup v)
 
 module Unison.Builtin
-codeLookup :: (Applicative m, Var v) => CodeLookup v m Ann
+codeLookup :: Applicative m => CodeLookup Symbol m Ann
 constructorType :: Reference -> Maybe ConstructorType
 names :: NamesWithHistory
 names0 :: Names
-builtinDataDecls :: Var v => [(v, (Id, DataDeclaration v))]
-builtinEffectDecls :: Var v => [(v, (Id, EffectDeclaration v))]
+builtinDataDecls :: [(Symbol, (Id, DataDeclaration))]
+builtinEffectDecls :: [(Symbol, (Id, EffectDeclaration))]
 builtinConstructorType :: Map Reference ConstructorType
 builtinTypeDependents :: Reference -> Set Reference
 builtinTypes :: [(Name, Reference)]
@@ -1036,10 +1036,10 @@ builtinTermsByTypeMention :: Relation Reference Referent
 intrinsicTermReferences :: Set Reference
 intrinsicTypeReferences :: Set Reference
 isBuiltinType :: Reference -> Bool
-typeOf :: Var v => a -> (Type v -> a) -> Reference -> a
-typeLookup :: Var v => TypeLookup v Ann
-termRefTypes :: Var v => Map Reference (Type v)
-instance GHC.Show.Show (Unison.Builtin.BuiltinDSL v)
+typeOf :: a -> (Type -> a) -> Reference -> a
+typeLookup :: TypeLookup Symbol Ann
+termRefTypes :: Map Reference Type
+instance GHC.Show.Show Unison.Builtin.BuiltinDSL
 
 module Unison.Typechecker.TypeVar
 data TypeVar b v
@@ -2413,14 +2413,14 @@ unsafeGetTermWithType :: (HasCallStack, Monad m) => Codebase m v a -> Id -> m (T
 --   Note that it is possible to call <a>putTerm</a>, then
 --   <a>getTypeOfTerm</a>, and receive <tt>Nothing</tt>, per the semantics
 --   of <a>putTerm</a>.
-getTypeOfTerm :: (Applicative m, Var v, BuiltinAnnotation a) => Codebase m v a -> Reference -> m (Maybe (Type v a))
+getTypeOfTerm :: (Applicative m, BuiltinAnnotation a) => Codebase m Symbol a -> Reference -> m (Maybe (Type Symbol a))
 
 -- | Like <a>getTypeOfTerm</a>, but for when the term is known to exist in
 --   the codebase.
 unsafeGetTypeOfTermById :: (HasCallStack, Monad m) => Codebase m v a -> Id -> m (Type v a)
 
 -- | Check whether a reference is a term.
-isTerm :: (Applicative m, Var v, BuiltinAnnotation a) => Codebase m v a -> Reference -> m Bool
+isTerm :: (Applicative m, BuiltinAnnotation a) => Codebase m Symbol a -> Reference -> m Bool
 
 -- | Enqueue the put of a user-defined term (with its type) into the
 --   codebase, if it doesn't already exist. The implementation may choose
@@ -2429,7 +2429,7 @@ isTerm :: (Applicative m, Var v, BuiltinAnnotation a) => Codebase m v a -> Refer
 putTerm :: Codebase m v a -> Id -> Term v a -> Type v a -> m ()
 
 -- | Get the type of a referent.
-getTypeOfReferent :: (BuiltinAnnotation a, Var v, Monad m) => Codebase m v a -> Referent -> m (Maybe (Type v a))
+getTypeOfReferent :: (BuiltinAnnotation a, Monad m) => Codebase m Symbol a -> Referent -> m (Maybe (Type Symbol a))
 
 -- | Get the set of terms-or-constructors that have the given type.
 termsOfType :: (Var v, Functor m) => Codebase m v a -> Type v a -> m (Set Referent)
@@ -2617,7 +2617,7 @@ addDefsToCodebase :: forall m v a. (Monad m, Var v, Show a) => Codebase m v a ->
 --   namespace) into the codebase
 installUcmDependencies :: forall m. Monad m => Codebase m Symbol Ann -> m ()
 toCodeLookup :: Codebase m v a -> CodeLookup v m a
-typeLookupForDependencies :: (Monad m, Var v, BuiltinAnnotation a) => Codebase m v a -> Set Reference -> m (TypeLookup v a)
+typeLookupForDependencies :: (Monad m, BuiltinAnnotation a) => Codebase m Symbol a -> Set Reference -> m (TypeLookup Symbol a)
 
 module Unison.Codebase.FileCodebase
 codebaseExists :: MonadIO m => CodebasePath -> m Bool
@@ -3483,9 +3483,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5I9q loc_a5I9r. Lens' (Env v_a5I9q loc_a5I9r) (TypeLookup v_a5I9q loc_a5I9r)
-termsByShortname :: forall v_a5I9q loc_a5I9r. Lens' (Env v_a5I9q loc_a5I9r) (Map Name [NamedReference v_a5I9q loc_a5I9r])
-ambientAbilities :: forall v_a5I9q loc_a5I9r. Lens' (Env v_a5I9q loc_a5I9r) [Type v_a5I9q loc_a5I9r]
+typeLookup :: forall v_a5Cxd loc_a5Cxe. Lens' (Env v_a5Cxd loc_a5Cxe) (TypeLookup v_a5Cxd loc_a5Cxe)
+termsByShortname :: forall v_a5Cxd loc_a5Cxe. Lens' (Env v_a5Cxd loc_a5Cxe) (Map Name [NamedReference v_a5Cxd loc_a5Cxe])
+ambientAbilities :: forall v_a5Cxd loc_a5Cxe. Lens' (Env v_a5Cxd loc_a5Cxe) [Type v_a5Cxd loc_a5Cxe]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.
@@ -3553,7 +3553,7 @@ builtinTest :: Ord v => a -> Type v a
 --   This allows one to run standalone applications implemented in the
 --   Unison language.
 module Unison.Codebase.Execute
-execute :: Var v => Codebase IO v Ann -> Runtime v -> String -> IO ()
+execute :: Codebase IO Symbol Ann -> Runtime Symbol -> String -> IO ()
 
 module Unison.TermPrinter
 type SyntaxText = SyntaxText' Reference
@@ -3778,7 +3778,7 @@ synthesizeFile :: forall v. Var v => [Type v] -> TypeLookup v Ann -> TDNRMap v -
 module Unison.Runtime.IOSource
 debug :: Bool
 typecheckedFile :: TypecheckedUnisonFile Symbol Ann
-typecheckedFile' :: forall v. Var v => TypecheckedUnisonFile v Ann
+typecheckedFile' :: TypecheckedUnisonFile Symbol Ann
 typecheckedFileTerms :: Map Symbol Reference
 termNamed :: String -> Reference
 codeLookup :: CodeLookup Symbol Identity Ann
@@ -4245,7 +4245,7 @@ basicNames' :: Branch m -> NameScoping -> (Names, Names)
 basicSuffixifiedNames :: Int -> Branch m -> NameScoping -> PrettyPrintEnv
 basicPrettyPrintNames :: Branch m -> NameScoping -> Names
 basicParseNames :: Branch m -> NameScoping -> Names
-loadReferentType :: (Applicative m, Var v) => Codebase m v Ann -> Referent -> m (Maybe (Type v Ann))
+loadReferentType :: Applicative m => Codebase m Symbol Ann -> Referent -> m (Maybe (Type Symbol Ann))
 getRootBranch :: Functor m => Codebase m v Ann -> Backend m (Branch m)
 data TermEntry v a
 TermEntry :: Referent -> HQSegment -> Maybe (Type v a) -> Maybe TermTag -> TermEntry v a
@@ -4262,18 +4262,18 @@ data FoundRef
 FoundTermRef :: Referent -> FoundRef
 FoundTypeRef :: Reference -> FoundRef
 fuzzyFind :: Monad m => Path -> Branch m -> String -> [(Alignment, UnisonName, [FoundRef])]
-findShallow :: (Monad m, Var v) => Codebase m v Ann -> Absolute -> Backend m [ShallowListEntry v Ann]
-findShallowReadmeInBranchAndRender :: Var v => Width -> Runtime v -> Codebase IO v Ann -> NamesWithHistory -> Branch IO -> Backend IO (Maybe Doc)
-isDoc :: Monad m => Var v => Codebase m v Ann -> Referent -> m Bool
+findShallow :: Monad m => Codebase m Symbol Ann -> Absolute -> Backend m [ShallowListEntry Symbol Ann]
+findShallowReadmeInBranchAndRender :: Width -> Runtime Symbol -> Codebase IO Symbol Ann -> NamesWithHistory -> Branch IO -> Backend IO (Maybe Doc)
+isDoc :: Monad m => Codebase m Symbol Ann -> Referent -> m Bool
 isDoc' :: (Var v, Monoid loc) => Maybe (Type v loc) -> Bool
-termListEntry :: Monad m => Var v => Codebase m v Ann -> Branch0 m -> Referent -> HQSegment -> Backend m (TermEntry v Ann)
+termListEntry :: Monad m => Codebase m Symbol Ann -> Branch0 m -> Referent -> HQSegment -> Backend m (TermEntry Symbol Ann)
 typeListEntry :: Monad m => Var v => Codebase m v Ann -> Reference -> HQSegment -> Backend m TypeEntry
 typeDeclHeader :: forall v m. Monad m => Var v => Codebase m v Ann -> PrettyPrintEnv -> Reference -> Backend m (DisplayObject SyntaxText SyntaxText)
 formatTypeName :: PrettyPrintEnv -> Reference -> SyntaxText
 formatTypeName' :: PrettyPrintEnv -> Reference -> SyntaxText
 termEntryToNamedTerm :: Var v => PrettyPrintEnv -> Maybe Width -> TermEntry v a -> NamedTerm
 typeEntryToNamedType :: TypeEntry -> NamedType
-findShallowInBranch :: (Monad m, Var v) => Codebase m v Ann -> Branch m -> Backend m [ShallowListEntry v Ann]
+findShallowInBranch :: Monad m => Codebase m Symbol Ann -> Branch m -> Backend m [ShallowListEntry Symbol Ann]
 termReferencesByShortHash :: Monad m => Codebase m v a -> ShortHash -> m (Set Reference)
 
 -- | Look up types in the codebase by short hash, and include builtins.
@@ -4329,9 +4329,9 @@ formatType' :: Var v => PrettyPrintEnv -> Width -> Type v a -> SyntaxText
 formatType :: Var v => PrettyPrintEnv -> Width -> Type v a -> SyntaxText
 formatSuffixedType :: Var v => PrettyPrintEnvDecl -> Width -> Type v Ann -> SyntaxText
 mungeSyntaxText :: Functor g => g (Element Reference) -> g Element
-prettyDefinitionsBySuffixes :: forall v. Var v => NameScoping -> Maybe Hash -> Maybe Width -> Suffixify -> Runtime v -> Codebase IO v Ann -> [HashQualified Name] -> Backend IO DefinitionDisplayResults
-renderDoc :: forall v. Var v => PrettyPrintEnvDecl -> Width -> Runtime v -> Codebase IO v Ann -> Reference -> IO (HashQualifiedName, UnisonHash, Doc)
-docsInBranchToHtmlFiles :: Var v => Runtime v -> Codebase IO v Ann -> Branch IO -> Path -> FilePath -> IO ()
+prettyDefinitionsBySuffixes :: NameScoping -> Maybe Hash -> Maybe Width -> Suffixify -> Runtime Symbol -> Codebase IO Symbol Ann -> [HashQualified Name] -> Backend IO DefinitionDisplayResults
+renderDoc :: PrettyPrintEnvDecl -> Width -> Runtime Symbol -> Codebase IO Symbol Ann -> Reference -> IO (HashQualifiedName, UnisonHash, Doc)
+docsInBranchToHtmlFiles :: Runtime Symbol -> Codebase IO Symbol Ann -> Branch IO -> Path -> FilePath -> IO ()
 bestNameForTerm :: forall v. Var v => PrettyPrintEnv -> Width -> Referent -> Text
 bestNameForType :: forall v. Var v => PrettyPrintEnv -> Width -> Reference -> Text
 resolveBranchHash :: Monad m => Maybe Hash -> Codebase m v Ann -> Backend m (Branch m)
@@ -4342,10 +4342,10 @@ resolveRootBranchHash :: Monad m => Maybe ShortBranchHash -> Codebase m v Ann ->
 data IncludeCycles
 IncludeCycles :: IncludeCycles
 DontIncludeCycles :: IncludeCycles
-definitionsBySuffixes :: forall m v. MonadIO m => Var v => NameScoping -> Branch m -> Codebase m v Ann -> IncludeCycles -> [HashQualified Name] -> m (DefinitionResults v)
+definitionsBySuffixes :: forall m. MonadIO m => NameScoping -> Branch m -> Codebase m Symbol Ann -> IncludeCycles -> [HashQualified Name] -> m (DefinitionResults Symbol)
 termsToSyntax :: Var v => Ord a => Suffixify -> Width -> PrettyPrintEnvDecl -> Map Reference (DisplayObject (Type v a) (Term v a)) -> Map Reference (DisplayObject SyntaxText SyntaxText)
 typesToSyntax :: Var v => Ord a => Suffixify -> Width -> PrettyPrintEnvDecl -> Map Reference (DisplayObject () (Decl v a)) -> Map Reference (DisplayObject SyntaxText SyntaxText)
-loadSearchResults :: (Var v, Applicative m) => Codebase m v Ann -> [SearchResult] -> m [SearchResult' v Ann]
+loadSearchResults :: Applicative m => Codebase m Symbol Ann -> [SearchResult] -> m [SearchResult' Symbol Ann]
 loadTypeDisplayObject :: Applicative m => Codebase m v Ann -> Reference -> m (DisplayObject () (Decl v Ann))
 instance GHC.Generics.Generic (Unison.Server.Backend.TermEntry v a)
 instance GHC.Show.Show v => GHC.Show.Show (Unison.Server.Backend.TermEntry v a)
@@ -4383,9 +4383,9 @@ ProjectListing :: ProjectOwner -> Text -> UnisonHash -> ProjectListing
 [owner] :: ProjectListing -> ProjectOwner
 [name] :: ProjectListing -> Text
 [hash] :: ProjectListing -> UnisonHash
-backendListEntryToProjectListing :: Var v => ProjectOwner -> ShallowListEntry v a -> Maybe ProjectListing
-entryToOwner :: Var v => ShallowListEntry v a -> Maybe ProjectOwner
-serve :: forall v. Var v => Handler () -> Codebase IO v Ann -> Maybe ShortBranchHash -> Handler (APIHeaders [ProjectListing])
+backendListEntryToProjectListing :: ProjectOwner -> ShallowListEntry Symbol a -> Maybe ProjectListing
+entryToOwner :: ShallowListEntry Symbol a -> Maybe ProjectOwner
+serve :: Handler () -> Codebase IO Symbol Ann -> Maybe ShortBranchHash -> Handler (APIHeaders [ProjectListing])
 instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Endpoints.Projects.ProjectOwner
 instance GHC.Show.Show Unison.Server.Endpoints.Projects.ProjectOwner
 instance GHC.Generics.Generic Unison.Server.Endpoints.Projects.ProjectOwner
@@ -4420,7 +4420,7 @@ newtype KindExpression
 KindExpression :: Text -> KindExpression
 [kindExpressionText] :: KindExpression -> Text
 backendListEntryToNamespaceObject :: Var v => PrettyPrintEnv -> Maybe Width -> ShallowListEntry v a -> NamespaceObject
-serve :: Var v => Handler () -> Codebase IO v Ann -> Maybe ShortBranchHash -> Maybe NamespaceFQN -> Maybe NamespaceFQN -> Handler (APIHeaders NamespaceListing)
+serve :: Handler () -> Codebase IO Symbol Ann -> Maybe ShortBranchHash -> Maybe NamespaceFQN -> Maybe NamespaceFQN -> Handler (APIHeaders NamespaceListing)
 instance GHC.Show.Show Unison.Server.Endpoints.NamespaceListing.NamedNamespace
 instance GHC.Generics.Generic Unison.Server.Endpoints.NamespaceListing.NamedNamespace
 instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Endpoints.NamespaceListing.NamedPatch
@@ -4451,7 +4451,7 @@ NamespaceDetails :: UnisonName -> UnisonHash -> Maybe Doc -> NamespaceDetails
 [fqn] :: NamespaceDetails -> UnisonName
 [hash] :: NamespaceDetails -> UnisonHash
 [readme] :: NamespaceDetails -> Maybe Doc
-serve :: Var v => Handler () -> Runtime v -> Codebase IO v Ann -> NamespaceFQN -> Maybe ShortBranchHash -> Maybe Width -> Handler (APIHeaders NamespaceDetails)
+serve :: Handler () -> Runtime Symbol -> Codebase IO Symbol Ann -> NamespaceFQN -> Maybe ShortBranchHash -> Maybe Width -> Handler (APIHeaders NamespaceDetails)
 instance GHC.Show.Show Unison.Server.Endpoints.NamespaceDetails.NamespaceDetails
 instance GHC.Generics.Generic Unison.Server.Endpoints.NamespaceDetails.NamespaceDetails
 instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Endpoints.NamespaceDetails.NamespaceDetails
@@ -4461,7 +4461,7 @@ instance Servant.Docs.Internal.ToCapture (Servant.API.Capture.Capture "namespace
 
 module Unison.Server.Endpoints.GetDefinitions
 type DefinitionsAPI = "getDefinition" :> QueryParam "rootBranch" ShortBranchHash :> QueryParam "relativeTo" NamespaceFQN :> QueryParams "names" HashQualifiedName :> QueryParam "renderWidth" Width :> QueryParam "suffixifyBindings" Suffixify :> APIGet DefinitionDisplayResults
-serveDefinitions :: Var v => Handler () -> Runtime v -> Codebase IO v Ann -> Maybe ShortBranchHash -> Maybe NamespaceFQN -> [HashQualifiedName] -> Maybe Width -> Maybe Suffixify -> Handler (APIHeaders DefinitionDisplayResults)
+serveDefinitions :: Handler () -> Runtime Symbol -> Codebase IO Symbol Ann -> Maybe ShortBranchHash -> Maybe NamespaceFQN -> [HashQualifiedName] -> Maybe Width -> Maybe Suffixify -> Handler (APIHeaders DefinitionDisplayResults)
 instance Servant.Docs.Internal.ToParam (Servant.API.QueryParam.QueryParam "renderWidth" Unison.Util.Pretty.Width)
 instance Servant.Docs.Internal.ToParam (Servant.API.QueryParam.QueryParam "suffixifyBindings" Unison.Server.Types.Suffixify)
 instance Servant.Docs.Internal.ToParam (Servant.API.QueryParam.QueryParam "relativeTo" Unison.Server.Types.NamespaceFQN)
@@ -4483,7 +4483,7 @@ FoundType :: HashQualifiedName -> DisplayObject SyntaxText SyntaxText -> NamedTy
 data FoundResult
 FoundTermResult :: FoundTerm -> FoundResult
 FoundTypeResult :: FoundType -> FoundResult
-serveFuzzyFind :: forall v. Var v => Handler () -> Codebase IO v Ann -> Maybe ShortBranchHash -> Maybe HashQualifiedName -> Maybe Int -> Maybe Width -> Maybe String -> Handler (APIHeaders [(Alignment, FoundResult)])
+serveFuzzyFind :: Handler () -> Codebase IO Symbol Ann -> Maybe ShortBranchHash -> Maybe HashQualifiedName -> Maybe Int -> Maybe Width -> Maybe String -> Handler (APIHeaders [(Alignment, FoundResult)])
 instance GHC.Show.Show Unison.Server.Endpoints.FuzzyFind.FoundTerm
 instance GHC.Generics.Generic Unison.Server.Endpoints.FuzzyFind.FoundTerm
 instance GHC.Show.Show Unison.Server.Endpoints.FuzzyFind.FoundType
@@ -4535,7 +4535,7 @@ docsBS :: ByteString
 docAPI :: Proxy DocAPI
 api :: Proxy UnisonAPI
 serverAPI :: Proxy AuthedServerAPI
-app :: Var v => Runtime v -> Codebase IO v Ann -> FilePath -> ByteString -> Application
+app :: Runtime Symbol -> Codebase IO Symbol Ann -> FilePath -> ByteString -> Application
 genToken :: IO ByteString
 data Waiter a
 Waiter :: (a -> IO ()) -> IO a -> Waiter a
@@ -4552,10 +4552,10 @@ CodebaseServerOpts :: Maybe String -> Maybe String -> Maybe Int -> Maybe FilePat
 [host] :: CodebaseServerOpts -> Maybe String
 [port] :: CodebaseServerOpts -> Maybe Int
 [codebaseUIPath] :: CodebaseServerOpts -> Maybe FilePath
-startServer :: Var v => CodebaseServerOpts -> Runtime v -> Codebase IO v Ann -> (BaseUrl -> IO ()) -> IO ()
+startServer :: CodebaseServerOpts -> Runtime Symbol -> Codebase IO Symbol Ann -> (BaseUrl -> IO ()) -> IO ()
 serveIndex :: FilePath -> Handler RawHtml
 serveUI :: Handler () -> FilePath -> Server WebUI
-server :: Var v => Runtime v -> Codebase IO v Ann -> FilePath -> ByteString -> Server AuthedServerAPI
+server :: Runtime Symbol -> Codebase IO Symbol Ann -> FilePath -> ByteString -> Server AuthedServerAPI
 instance GHC.Classes.Eq Unison.Server.CodebaseServer.CodebaseServerOpts
 instance GHC.Show.Show Unison.Server.CodebaseServer.CodebaseServerOpts
 instance GHC.Show.Show Unison.Server.CodebaseServer.BaseUrl
@@ -5532,13 +5532,13 @@ instance Unison.Runtime.Serialize.Tag Unison.Runtime.ANF.Serialize.FnTag
 instance Unison.Runtime.Serialize.Tag Unison.Runtime.ANF.Serialize.TmTag
 
 module Unison.Runtime.Builtin
-builtinLookup :: Var v => Map Reference (SuperNormal v)
+builtinLookup :: Map Reference (SuperNormal Symbol)
 builtinTermNumbering :: Map Reference Word64
 builtinTypeNumbering :: Map Reference Word64
 builtinTermBackref :: EnumMap Word64 Reference
 builtinTypeBackref :: EnumMap Word64 Reference
 builtinForeigns :: EnumMap Word64 ForeignFunc
-numberedTermLookup :: Var v => EnumMap Word64 (SuperNormal v)
+numberedTermLookup :: EnumMap Word64 (SuperNormal Symbol)
 
 module Unison.Runtime.Machine
 

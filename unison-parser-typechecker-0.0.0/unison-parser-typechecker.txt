@@ -2813,6 +2813,8 @@ sep :: (Foldable f, IsString s) => Pretty s -> f (Pretty s) -> Pretty s
 sepNonEmpty :: (Foldable f, IsString s) => Pretty s -> f (Pretty s) -> Pretty s
 sepSpaced :: (Foldable f, IsString s) => Pretty s -> f (Pretty s) -> Pretty s
 shown :: (Show a, IsString s) => a -> Pretty s
+singleQuoted :: IsString s => Pretty s -> Pretty s
+singleQuoted' :: IsString s => Pretty s -> Pretty s -> Pretty s
 softbreak :: IsString s => Pretty s
 spaceIfBreak :: IsString s => Pretty s
 spaceIfNeeded :: Eq s => IsString s => Pretty s -> Pretty s -> Pretty s
@@ -3483,9 +3485,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5Cxd loc_a5Cxe. Lens' (Env v_a5Cxd loc_a5Cxe) (TypeLookup v_a5Cxd loc_a5Cxe)
-termsByShortname :: forall v_a5Cxd loc_a5Cxe. Lens' (Env v_a5Cxd loc_a5Cxe) (Map Name [NamedReference v_a5Cxd loc_a5Cxe])
-ambientAbilities :: forall v_a5Cxd loc_a5Cxe. Lens' (Env v_a5Cxd loc_a5Cxe) [Type v_a5Cxd loc_a5Cxe]
+typeLookup :: forall v_a5CFa loc_a5CFb. Lens' (Env v_a5CFa loc_a5CFb) (TypeLookup v_a5CFa loc_a5CFb)
+termsByShortname :: forall v_a5CFa loc_a5CFb. Lens' (Env v_a5CFa loc_a5CFb) (Map Name [NamedReference v_a5CFa loc_a5CFb])
+ambientAbilities :: forall v_a5CFa loc_a5CFb. Lens' (Env v_a5CFa loc_a5CFb) [Type v_a5CFa loc_a5CFb]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.

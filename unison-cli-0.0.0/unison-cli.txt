@@ -687,13 +687,13 @@ LoopState :: Branch m -> Branch m -> NonEmpty Absolute -> Maybe (FilePath, SkipN
 type Action' m v = Action m (Either Event Input) v
 type SkipNextUpdate = Bool
 type InputDescription = Text
-root :: forall m_a1ubp v_a1ubq. Lens' (LoopState m_a1ubp v_a1ubq) (Branch m_a1ubp)
-numberedArgs :: forall m_a1ubp v_a1ubq. Lens' (LoopState m_a1ubp v_a1ubq) NumberedArgs
-latestTypecheckedFile :: forall m_a1ubp v_a1ubq v_a1una. Lens (LoopState m_a1ubp v_a1ubq) (LoopState m_a1ubp v_a1una) (Maybe (TypecheckedUnisonFile v_a1ubq Ann)) (Maybe (TypecheckedUnisonFile v_a1una Ann))
-latestFile :: forall m_a1ubp v_a1ubq. Lens' (LoopState m_a1ubp v_a1ubq) (Maybe (FilePath, SkipNextUpdate))
-lastSavedRoot :: forall m_a1ubp v_a1ubq. Lens' (LoopState m_a1ubp v_a1ubq) (Branch m_a1ubp)
-lastInput :: forall m_a1ubp v_a1ubq. Lens' (LoopState m_a1ubp v_a1ubq) (Maybe Input)
-currentPathStack :: forall m_a1ubp v_a1ubq. Lens' (LoopState m_a1ubp v_a1ubq) (NonEmpty Absolute)
+root :: forall m_a1ubr v_a1ubs. Lens' (LoopState m_a1ubr v_a1ubs) (Branch m_a1ubr)
+numberedArgs :: forall m_a1ubr v_a1ubs. Lens' (LoopState m_a1ubr v_a1ubs) NumberedArgs
+latestTypecheckedFile :: forall m_a1ubr v_a1ubs v_a1unc. Lens (LoopState m_a1ubr v_a1ubs) (LoopState m_a1ubr v_a1unc) (Maybe (TypecheckedUnisonFile v_a1ubs Ann)) (Maybe (TypecheckedUnisonFile v_a1unc Ann))
+latestFile :: forall m_a1ubr v_a1ubs. Lens' (LoopState m_a1ubr v_a1ubs) (Maybe (FilePath, SkipNextUpdate))
+lastSavedRoot :: forall m_a1ubr v_a1ubs. Lens' (LoopState m_a1ubr v_a1ubs) (Branch m_a1ubr)
+lastInput :: forall m_a1ubr v_a1ubs. Lens' (LoopState m_a1ubr v_a1ubs) (Maybe Input)
+currentPathStack :: forall m_a1ubr v_a1ubs. Lens' (LoopState m_a1ubr v_a1ubs) (NonEmpty Absolute)
 currentPath :: Getter (LoopState m v) Absolute
 loopState0 :: Branch m -> Absolute -> LoopState m v
 instance Unison.Codebase.Editor.HandleInput.LoopState.MonadCommand (Unison.Util.Free.Free (Unison.Codebase.Editor.Command.Command m i v)) m i v
@@ -795,6 +795,7 @@ pushExhaustive :: InputPattern
 createPullRequest :: InputPattern
 loadPullRequest :: InputPattern
 parseUri :: String -> String -> Either (Pretty ColorText) ReadRemoteNamespace
+prettyPrintParseError :: String -> ParseError Char Void -> Pretty ColorText
 parseWriteRepo :: String -> String -> Either (Pretty ColorText) WriteRepo
 parsePushPath :: String -> String -> Either (Pretty ColorText) WriteRemotePath
 squashMerge :: InputPattern

@@ -2095,7 +2095,7 @@ module Unison.Codebase.Type
 
 -- | Abstract interface to a user's codebase.
 data Codebase m v a
-Codebase :: (Id -> m (Maybe (Term v a))) -> (Id -> m (Maybe (Type v a))) -> (Id -> m (Maybe (Decl v a))) -> (Id -> Term v a -> Type v a -> m ()) -> (Id -> Decl v a -> m ()) -> m (Either GetRootBranchError (Branch m)) -> (Branch m -> m ()) -> m (IO (), IO (Set Hash)) -> (Hash -> m (Maybe (Branch m))) -> (Branch m -> m ()) -> (Hash -> m Bool) -> (EditHash -> m (Maybe Patch)) -> (EditHash -> Patch -> m ()) -> (EditHash -> m Bool) -> (Reference -> m (Set Id)) -> (CodebasePath -> SyncMode -> Branch m -> m ()) -> (CodebasePath -> SyncMode -> Branch m -> m ()) -> (forall r. ReadRemoteNamespace -> ((Branch m, CodebasePath) -> m r) -> m (Either GitError r)) -> (Branch m -> WriteRepo -> PushGitBranchOpts -> m (Either GitError ())) -> (WatchKind -> m [Id]) -> (WatchKind -> Id -> m (Maybe (Term v a))) -> (WatchKind -> Id -> Term v a -> m ()) -> m () -> m [Entry Hash] -> (Text -> Branch m -> Branch m -> m ()) -> (Reference -> m (Set Id)) -> (Reference -> m (Set Id)) -> m Int -> (ShortHash -> m (Set Id)) -> (ShortHash -> m (Set Id)) -> (ShortHash -> m (Set Id)) -> m Int -> (ShortBranchHash -> m (Set Hash)) -> Maybe (Hash -> Hash -> m (Maybe Hash)) -> Maybe (Hash -> Hash -> m Bool) -> Codebase m v a
+Codebase :: (Id -> m (Maybe (Term v a))) -> (Id -> m (Maybe (Type v a))) -> (Id -> m (Maybe (Decl v a))) -> (Id -> Term v a -> Type v a -> m ()) -> (Id -> Decl v a -> m ()) -> m (Either GetRootBranchError (Branch m)) -> m Bool -> (Branch m -> m ()) -> m (IO (), IO (Set Hash)) -> (Hash -> m (Maybe (Branch m))) -> (Branch m -> m ()) -> (Hash -> m Bool) -> (EditHash -> m (Maybe Patch)) -> (EditHash -> Patch -> m ()) -> (EditHash -> m Bool) -> (Reference -> m (Set Id)) -> (CodebasePath -> SyncMode -> Branch m -> m ()) -> (CodebasePath -> SyncMode -> Branch m -> m ()) -> (forall r. ReadRemoteNamespace -> ((Branch m, CodebasePath) -> m r) -> m (Either GitError r)) -> (Branch m -> WriteRepo -> PushGitBranchOpts -> m (Either GitError ())) -> (WatchKind -> m [Id]) -> (WatchKind -> Id -> m (Maybe (Term v a))) -> (WatchKind -> Id -> Term v a -> m ()) -> m () -> m [Entry Hash] -> (Text -> Branch m -> Branch m -> m ()) -> (Reference -> m (Set Id)) -> (Reference -> m (Set Id)) -> m Int -> (ShortHash -> m (Set Id)) -> (ShortHash -> m (Set Id)) -> (ShortHash -> m (Set Id)) -> m Int -> (ShortBranchHash -> m (Set Hash)) -> Maybe (Hash -> Hash -> m (Maybe Hash)) -> Maybe (Hash -> Hash -> m Bool) -> Codebase m v a
 
 -- | Get a user-defined term from the codebase.
 --   
@@ -2130,6 +2130,9 @@ Codebase :: (Id -> m (Maybe (Term v a))) -> (Id -> m (Maybe (Type v a))) -> (Id 
 
 -- | Get the root branch.
 [getRootBranch] :: Codebase m v a -> m (Either GetRootBranchError (Branch m))
+
+-- | Get whether the root branch exists.
+[getRootBranchExists] :: Codebase m v a -> m Bool
 
 -- | Like <a>putBranch</a>, but also adjusts the root branch pointer
 --   afterwards.
@@ -2488,13 +2491,13 @@ beforeImpl :: Codebase m v a -> Maybe (Hash -> Hash -> m Bool)
 
 -- | Get the root branch.
 getRootBranch :: Codebase m v a -> m (Either GetRootBranchError (Branch m))
+
+-- | Get whether the root branch exists.
+getRootBranchExists :: Codebase m v a -> m Bool
 data GetRootBranchError
 NoRootBranch :: GetRootBranchError
 CouldntParseRootBranch :: String -> GetRootBranchError
 CouldntLoadRootBranch :: Hash -> GetRootBranchError
-
--- | Return whether the root branch is empty.
-isBlank :: Applicative m => Codebase m v a -> m Bool
 
 -- | Like <a>putBranch</a>, but also adjusts the root branch pointer
 --   afterwards.
@@ -3485,9 +3488,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5CFa loc_a5CFb. Lens' (Env v_a5CFa loc_a5CFb) (TypeLookup v_a5CFa loc_a5CFb)
-termsByShortname :: forall v_a5CFa loc_a5CFb. Lens' (Env v_a5CFa loc_a5CFb) (Map Name [NamedReference v_a5CFa loc_a5CFb])
-ambientAbilities :: forall v_a5CFa loc_a5CFb. Lens' (Env v_a5CFa loc_a5CFb) [Type v_a5CFa loc_a5CFb]
+typeLookup :: forall v_a5CNq loc_a5CNr. Lens' (Env v_a5CNq loc_a5CNr) (TypeLookup v_a5CNq loc_a5CNr)
+termsByShortname :: forall v_a5CNq loc_a5CNr. Lens' (Env v_a5CNq loc_a5CNr) (Map Name [NamedReference v_a5CNq loc_a5CNr])
+ambientAbilities :: forall v_a5CNq loc_a5CNr. Lens' (Env v_a5CNq loc_a5CNr) [Type v_a5CNq loc_a5CNr]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.

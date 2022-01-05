@@ -511,6 +511,12 @@ release :: DB m => String -> m ()
 
 -- | low-level transaction stuff
 rollbackRelease :: DB m => String -> m ()
+withSavepoint :: (MonadUnliftIO m, DB m) => String -> (m () -> m r) -> m r
+withSavepoint_ :: (MonadUnliftIO m, DB m) => String -> m r -> m r
+
+-- | Copy the database into the specified location, performing a VACUUM in
+--   the process.
+vacuumInto :: DB m => FilePath -> m ()
 setJournalMode :: DB m => JournalMode -> m ()
 
 -- | print the active database filename
@@ -763,3 +769,4 @@ branchHashesByPrefix :: EDB m => ShortBranchHash -> m (Set BranchHash)
 derivedDependencies :: EDB m => Id -> m (Set Id)
 instance GHC.Show.Show U.Codebase.Sqlite.Operations.DecodeError
 instance GHC.Show.Show U.Codebase.Sqlite.Operations.Error
+instance GHC.Exception.Type.Exception U.Codebase.Sqlite.Operations.Error

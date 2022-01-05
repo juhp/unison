@@ -678,6 +678,21 @@ Right :: b -> Either a b
 --   Jones and Stephanie Weirich.
 class a ~R# b => Coercible (a :: k) (b :: k)
 
+-- | <a>forM_</a> is <a>mapM_</a> with its arguments flipped. For a version
+--   that doesn't ignore the results see <a>forM</a>.
+--   
+--   As of base 4.8.0.0, <a>forM_</a> is just <a>for_</a>, specialized to
+--   <a>Monad</a>.
+forM_ :: (Foldable t, Monad m) => t a -> (a -> m b) -> m ()
+
+-- | Map each element of a structure to a monadic action, evaluate these
+--   actions from left to right, and ignore the results. For a version that
+--   doesn't ignore the results see <a>mapM</a>.
+--   
+--   As of base 4.8.0.0, <a>mapM_</a> is just <a>traverse_</a>, specialized
+--   to <a>Monad</a>.
+mapM_ :: (Foldable t, Monad m) => (a -> m b) -> t a -> m ()
+
 -- | Monads in which <a>IO</a> computations may be embedded. Any monad
 --   built by applying a sequence of monad transformers to the <a>IO</a>
 --   monad will be an instance of this class.
@@ -1135,21 +1150,6 @@ asum :: (Foldable t, Alternative f) => t (f a) -> f a
 --   As of base 4.8.0.0, <a>sequence_</a> is just <a>sequenceA_</a>,
 --   specialized to <a>Monad</a>.
 sequence_ :: (Foldable t, Monad m) => t (m a) -> m ()
-
--- | <a>forM_</a> is <a>mapM_</a> with its arguments flipped. For a version
---   that doesn't ignore the results see <a>forM</a>.
---   
---   As of base 4.8.0.0, <a>forM_</a> is just <a>for_</a>, specialized to
---   <a>Monad</a>.
-forM_ :: (Foldable t, Monad m) => t a -> (a -> m b) -> m ()
-
--- | Map each element of a structure to a monadic action, evaluate these
---   actions from left to right, and ignore the results. For a version that
---   doesn't ignore the results see <a>mapM</a>.
---   
---   As of base 4.8.0.0, <a>mapM_</a> is just <a>traverse_</a>, specialized
---   to <a>Monad</a>.
-mapM_ :: (Foldable t, Monad m) => (a -> m b) -> t a -> m ()
 
 -- | <a>for_</a> is <a>traverse_</a> with its arguments flipped. For a
 --   version that doesn't ignore the results see <a>for</a>.
@@ -2135,6 +2135,10 @@ reportBug :: String -> String -> String
 tShow :: Show a => a -> Text
 onNothing :: Applicative m => m a -> Maybe a -> m a
 whenLeft :: Applicative m => Either a b -> (a -> m b) -> m b
+throwEitherM :: (MonadIO m, Exception e) => m (Either e a) -> m a
+throwEitherMWith :: (MonadIO m, Exception e') => (e -> e') -> m (Either e a) -> m a
+throwExceptT :: (MonadIO m, Exception e) => ExceptT e m a -> m a
+throwExceptTWith :: (MonadIO m, Exception e') => (e -> e') -> ExceptT e m a -> m a
 
 
 -- | <tt>Map</tt> utilities.

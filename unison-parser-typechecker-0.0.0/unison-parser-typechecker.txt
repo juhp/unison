@@ -284,6 +284,7 @@ data GitProtocolError
 NoGit :: GitProtocolError
 UnrecognizableCacheDir :: ReadRepo -> CodebasePath -> GitProtocolError
 UnrecognizableCheckoutDir :: ReadRepo -> CodebasePath -> GitProtocolError
+CopyException :: FilePath -> FilePath -> String -> GitProtocolError
 CloneException :: ReadRepo -> String -> GitProtocolError
 PushException :: WriteRepo -> String -> GitProtocolError
 PushNoOp :: WriteRepo -> GitProtocolError
@@ -1236,11 +1237,15 @@ gitTextIn :: MonadIO m => FilePath -> [Text] -> m Text
 
 -- | Given a remote git repo url, and branch/commit hash (currently not
 --   allowed): checks for git, clones or updates a cached copy of the repo
-pullBranch :: (MonadIO m, MonadError GitProtocolError m) => ReadRepo -> m CodebasePath
+pullRepo :: (MonadIO m, MonadError GitProtocolError m) => ReadRepo -> m CodebasePath
 
 -- | Perform an IO action, passing any IO exception to <tt>handler</tt>
 withIOError :: MonadIO m => IO a -> (IOException -> m a) -> m a
 withStatus :: MonadIO m => String -> m a -> m a
+
+-- | Run an action on an isolated copy of the provided repo. The repo is
+--   deleted when the action exits or fails.
+withIsolatedRepo :: forall m r. MonadUnliftIO m => FilePath -> (FilePath -> m r) -> m (Either GitProtocolError r)
 
 module Unison.Util.Free
 data Free f a
@@ -3488,9 +3493,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5CNq loc_a5CNr. Lens' (Env v_a5CNq loc_a5CNr) (TypeLookup v_a5CNq loc_a5CNr)
-termsByShortname :: forall v_a5CNq loc_a5CNr. Lens' (Env v_a5CNq loc_a5CNr) (Map Name [NamedReference v_a5CNq loc_a5CNr])
-ambientAbilities :: forall v_a5CNq loc_a5CNr. Lens' (Env v_a5CNq loc_a5CNr) [Type v_a5CNq loc_a5CNr]
+typeLookup :: forall v_a5DLR loc_a5DLS. Lens' (Env v_a5DLR loc_a5DLS) (TypeLookup v_a5DLR loc_a5DLS)
+termsByShortname :: forall v_a5DLR loc_a5DLS. Lens' (Env v_a5DLR loc_a5DLS) (Map Name [NamedReference v_a5DLR loc_a5DLS])
+ambientAbilities :: forall v_a5DLR loc_a5DLS. Lens' (Env v_a5DLR loc_a5DLS) [Type v_a5DLR loc_a5DLS]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.

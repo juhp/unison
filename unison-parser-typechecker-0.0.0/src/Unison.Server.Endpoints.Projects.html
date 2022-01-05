@@ -37,7 +37,7 @@
 </span><span id="line-37"></span><span>    </span><span class="annot"><span class="hs-operator hs-type">:&gt;</span></span><span> </span><span class="annot"><a href="Unison.Server.Types.html#APIGet"><span class="hs-identifier hs-type">APIGet</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Unison.Server.Endpoints.Projects.html#ProjectListing"><span class="hs-identifier hs-type">ProjectListing</span></a></span><span class="hs-special">]</span><span>
 </span><span id="line-38"></span><span>
 </span><span id="line-39"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ToSample</span></span><span> </span><span class="annot"><a href="Unison.Server.Endpoints.Projects.html#ProjectListing"><span class="hs-identifier hs-type">ProjectListing</span></a></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-40"></span><span>  </span><span id="local-6989586621680839002"><span class="annot"><span class="annottext">toSamples :: Proxy ProjectListing -&gt; [(Text, ProjectListing)]
+</span><span id="line-40"></span><span>  </span><span id="local-6989586621680842292"><span class="annot"><span class="annottext">toSamples :: Proxy ProjectListing -&gt; [(Text, ProjectListing)]
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var">toSamples</span></span></span><span> </span><span class="annot"><span class="annottext">Proxy ProjectListing
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-41"></span><span>    </span><span class="hs-special">[</span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="annottext">Text
@@ -54,7 +54,7 @@
 </span><span id="line-46"></span><span>      </span><span class="hs-special">)</span><span>
 </span><span id="line-47"></span><span>    </span><span class="hs-special">]</span><span>
 </span><span id="line-48"></span><span>
-</span><span id="line-49"></span><span id="local-6989586621680838997"><span id="local-6989586621680838998"></span></span><span class="hs-keyword">newtype</span><span> </span><span id="ProjectOwner"><span class="annot"><a href="Unison.Server.Endpoints.Projects.html#ProjectOwner"><span class="hs-identifier hs-var">ProjectOwner</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ProjectOwner"><span class="annot"><a href="Unison.Server.Endpoints.Projects.html#ProjectOwner"><span class="hs-identifier hs-var">ProjectOwner</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-49"></span><span id="local-6989586621680842287"><span id="local-6989586621680842288"></span></span><span class="hs-keyword">newtype</span><span> </span><span id="ProjectOwner"><span class="annot"><a href="Unison.Server.Endpoints.Projects.html#ProjectOwner"><span class="hs-identifier hs-var">ProjectOwner</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ProjectOwner"><span class="annot"><a href="Unison.Server.Endpoints.Projects.html#ProjectOwner"><span class="hs-identifier hs-var">ProjectOwner</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
 </span><span id="line-50"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(forall x. ProjectOwner -&gt; Rep ProjectOwner x)
 -&gt; (forall x. Rep ProjectOwner x -&gt; ProjectOwner)
 -&gt; Generic ProjectOwner
@@ -64,7 +64,7 @@ forall a.
 (forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
 $cto :: forall x. Rep ProjectOwner x -&gt; ProjectOwner
 $cfrom :: forall x. ProjectOwner -&gt; Rep ProjectOwner x
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680838988"><span id="local-6989586621680838990"><span id="local-6989586621680838992"><span class="annot"><span class="annottext">Int -&gt; ProjectOwner -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680842278"><span id="local-6989586621680842280"><span id="local-6989586621680842282"><span class="annot"><span class="annottext">Int -&gt; ProjectOwner -&gt; ShowS
 [ProjectOwner] -&gt; ShowS
 ProjectOwner -&gt; String
 (Int -&gt; ProjectOwner -&gt; ShowS)
@@ -80,7 +80,7 @@ $cshow :: ProjectOwner -&gt; String
 showsPrec :: Int -&gt; ProjectOwner -&gt; ShowS
 $cshowsPrec :: Int -&gt; ProjectOwner -&gt; ShowS
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
-</span><span id="line-51"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621680838984"><span class="annot"><span class="annottext">Typeable ProjectOwner
+</span><span id="line-51"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621680842274"><span class="annot"><span class="annottext">Typeable ProjectOwner
 Typeable ProjectOwner
 -&gt; (Proxy ProjectOwner -&gt; Declare (Definitions Schema) NamedSchema)
 -&gt; ToSchema ProjectOwner
@@ -94,8 +94,8 @@ $cdeclareNamedSchema :: Proxy ProjectOwner -&gt; Declare (Definitions Schema) Na
 $cp1ToSchema :: Typeable ProjectOwner
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var">ToSchema</span></span></span><span class="hs-special">)</span><span>
 </span><span id="line-52"></span><span>
-</span><span id="line-53"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680838976"><span id="local-6989586621680838978"><span id="local-6989586621680838981"><span class="annot"><span class="hs-identifier hs-type">ToJSON</span></span><span> </span><span class="annot"><a href="Unison.Server.Endpoints.Projects.html#ProjectOwner"><span class="hs-identifier hs-type">ProjectOwner</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-54"></span><span>  </span><span id="local-6989586621680838974"><span class="annot"><span class="annottext">toEncoding :: ProjectOwner -&gt; Encoding
+</span><span id="line-53"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680842266"><span id="local-6989586621680842268"><span id="local-6989586621680842271"><span class="annot"><span class="hs-identifier hs-type">ToJSON</span></span><span> </span><span class="annot"><a href="Unison.Server.Endpoints.Projects.html#ProjectOwner"><span class="hs-identifier hs-type">ProjectOwner</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-54"></span><span>  </span><span id="local-6989586621680842264"><span class="annot"><span class="annottext">toEncoding :: ProjectOwner -&gt; Encoding
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var">toEncoding</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Options -&gt; ProjectOwner -&gt; Encoding
 forall a.
 (Generic a, GToJSON' Encoding Zero (Rep a)) =&gt;
@@ -103,7 +103,7 @@ Options -&gt; a -&gt; Encoding
 </span><span class="hs-identifier hs-var">genericToEncoding</span></span><span> </span><span class="annot"><span class="annottext">Options
 </span><span class="hs-identifier hs-var">defaultOptions</span></span><span>
 </span><span id="line-55"></span><span>
-</span><span id="line-56"></span><span id="local-6989586621680838969"><span id="local-6989586621680838970"></span></span><span class="hs-keyword">data</span><span> </span><span id="ProjectListing"><span class="annot"><a href="Unison.Server.Endpoints.Projects.html#ProjectListing"><span class="hs-identifier hs-var">ProjectListing</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ProjectListing"><span class="annot"><a href="Unison.Server.Endpoints.Projects.html#ProjectListing"><span class="hs-identifier hs-var">ProjectListing</span></a></span></span><span>
+</span><span id="line-56"></span><span id="local-6989586621680842259"><span id="local-6989586621680842260"></span></span><span class="hs-keyword">data</span><span> </span><span id="ProjectListing"><span class="annot"><a href="Unison.Server.Endpoints.Projects.html#ProjectListing"><span class="hs-identifier hs-var">ProjectListing</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ProjectListing"><span class="annot"><a href="Unison.Server.Endpoints.Projects.html#ProjectListing"><span class="hs-identifier hs-var">ProjectListing</span></a></span></span><span>
 </span><span id="line-57"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="owner"><span class="annot"><span class="annottext">ProjectListing -&gt; ProjectOwner
 </span><a href="Unison.Server.Endpoints.Projects.html#owner"><span class="hs-identifier hs-var hs-var">owner</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Server.Endpoints.Projects.html#ProjectOwner"><span class="hs-identifier hs-type">ProjectOwner</span></a></span><span class="hs-special">,</span><span>
 </span><span id="line-58"></span><span>    </span><span id="name"><span class="annot"><span class="annottext">ProjectListing -&gt; Text
@@ -120,7 +120,7 @@ forall a.
 (forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
 $cto :: forall x. Rep ProjectListing x -&gt; ProjectListing
 $cfrom :: forall x. ProjectListing -&gt; Rep ProjectListing x
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680838958"><span id="local-6989586621680838960"><span id="local-6989586621680838962"><span class="annot"><span class="annottext">Int -&gt; ProjectListing -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680842248"><span id="local-6989586621680842250"><span id="local-6989586621680842252"><span class="annot"><span class="annottext">Int -&gt; ProjectListing -&gt; ShowS
 [ProjectListing] -&gt; ShowS
 ProjectListing -&gt; String
 (Int -&gt; ProjectListing -&gt; ShowS)
@@ -136,7 +136,7 @@ $cshow :: ProjectListing -&gt; String
 showsPrec :: Int -&gt; ProjectListing -&gt; ShowS
 $cshowsPrec :: Int -&gt; ProjectListing -&gt; ShowS
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
-</span><span id="line-62"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621680838955"><span class="annot"><span class="annottext">Typeable ProjectListing
+</span><span id="line-62"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621680842245"><span class="annot"><span class="annottext">Typeable ProjectListing
 Typeable ProjectListing
 -&gt; (Proxy ProjectListing
     -&gt; Declare (Definitions Schema) NamedSchema)
@@ -149,27 +149,27 @@ Typeable a
 declareNamedSchema :: Proxy ProjectListing -&gt; Declare (Definitions Schema) NamedSchema
 $cdeclareNamedSchema :: Proxy ProjectListing -&gt; Declare (Definitions Schema) NamedSchema
 $cp1ToSchema :: Typeable ProjectListing
-</span><a href="#local-6989586621680838955"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var">ToSchema</span></a></span></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621680842245"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var">ToSchema</span></a></span></span><span class="hs-special">)</span><span>
 </span><span id="line-63"></span><span>
-</span><span id="line-64"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680838948"><span id="local-6989586621680838950"><span id="local-6989586621680838953"><span class="annot"><span class="hs-identifier hs-type">ToJSON</span></span><span> </span><span class="annot"><a href="Unison.Server.Endpoints.Projects.html#ProjectListing"><span class="hs-identifier hs-type">ProjectListing</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-65"></span><span>  </span><span id="local-6989586621680838947"><span class="annot"><span class="annottext">toEncoding :: ProjectListing -&gt; Encoding
-</span><a href="#local-6989586621680838947"><span class="hs-identifier hs-var hs-var hs-var hs-var">toEncoding</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Options -&gt; ProjectListing -&gt; Encoding
+</span><span id="line-64"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680842238"><span id="local-6989586621680842240"><span id="local-6989586621680842243"><span class="annot"><span class="hs-identifier hs-type">ToJSON</span></span><span> </span><span class="annot"><a href="Unison.Server.Endpoints.Projects.html#ProjectListing"><span class="hs-identifier hs-type">ProjectListing</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-65"></span><span>  </span><span id="local-6989586621680842237"><span class="annot"><span class="annottext">toEncoding :: ProjectListing -&gt; Encoding
+</span><a href="#local-6989586621680842237"><span class="hs-identifier hs-var hs-var hs-var hs-var">toEncoding</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Options -&gt; ProjectListing -&gt; Encoding
 forall a.
 (Generic a, GToJSON' Encoding Zero (Rep a)) =&gt;
 Options -&gt; a -&gt; Encoding
 </span><span class="hs-identifier hs-var">genericToEncoding</span></span><span> </span><span class="annot"><span class="annottext">Options
 </span><span class="hs-identifier hs-var">defaultOptions</span></span><span>
 </span><span id="line-66"></span><span>
-</span><span id="line-67"></span><span id="local-6989586621680839031"><span class="annot"><a href="Unison.Server.Endpoints.Projects.html#backendListEntryToProjectListing"><span class="hs-identifier hs-type">backendListEntryToProjectListing</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-67"></span><span id="local-6989586621680842321"><span class="annot"><a href="Unison.Server.Endpoints.Projects.html#backendListEntryToProjectListing"><span class="hs-identifier hs-type">backendListEntryToProjectListing</span></a></span><span> </span><span class="hs-glyph">::</span><span>
 </span><span id="line-68"></span><span>  </span><span class="annot"><a href="Unison.Server.Endpoints.Projects.html#ProjectOwner"><span class="hs-identifier hs-type">ProjectOwner</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
-</span><span id="line-69"></span><span>  </span><span class="annot"><a href="Unison.Server.Backend.html#ShallowListEntry"><span class="hs-identifier hs-type">Backend.ShallowListEntry</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Symbol</span></span><span> </span><span class="annot"><a href="#local-6989586621680839031"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-69"></span><span>  </span><span class="annot"><a href="Unison.Server.Backend.html#ShallowListEntry"><span class="hs-identifier hs-type">Backend.ShallowListEntry</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Symbol</span></span><span> </span><span class="annot"><a href="#local-6989586621680842321"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
 </span><span id="line-70"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Unison.Server.Endpoints.Projects.html#ProjectListing"><span class="hs-identifier hs-type">ProjectListing</span></a></span></span><span>
 </span><span id="line-71"></span><span id="backendListEntryToProjectListing"><span class="annot"><span class="annottext">backendListEntryToProjectListing :: ProjectOwner -&gt; ShallowListEntry Symbol a -&gt; Maybe ProjectListing
-</span><a href="Unison.Server.Endpoints.Projects.html#backendListEntryToProjectListing"><span class="hs-identifier hs-var hs-var">backendListEntryToProjectListing</span></a></span></span><span> </span><span id="local-6989586621680838945"><span class="annot"><span class="annottext">ProjectOwner
-</span><a href="#local-6989586621680838945"><span class="hs-identifier hs-var">owner</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
-</span><span id="line-72"></span><span>  </span><span class="annot"><a href="Unison.Server.Backend.html#ShallowBranchEntry"><span class="hs-identifier hs-type">Backend.ShallowBranchEntry</span></a></span><span> </span><span id="local-6989586621680838943"><span class="annot"><span class="annottext">NameSegment
-</span><a href="#local-6989586621680838943"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span id="local-6989586621680838942"><span class="annot"><span class="annottext">ShortBranchHash
-</span><a href="#local-6989586621680838942"><span class="hs-identifier hs-var">hash</span></a></span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="Unison.Server.Endpoints.Projects.html#backendListEntryToProjectListing"><span class="hs-identifier hs-var hs-var">backendListEntryToProjectListing</span></a></span></span><span> </span><span id="local-6989586621680842235"><span class="annot"><span class="annottext">ProjectOwner
+</span><a href="#local-6989586621680842235"><span class="hs-identifier hs-var">owner</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-72"></span><span>  </span><span class="annot"><a href="Unison.Server.Backend.html#ShallowBranchEntry"><span class="hs-identifier hs-type">Backend.ShallowBranchEntry</span></a></span><span> </span><span id="local-6989586621680842233"><span class="annot"><span class="annottext">NameSegment
+</span><a href="#local-6989586621680842233"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span id="local-6989586621680842232"><span class="annot"><span class="annottext">ShortBranchHash
+</span><a href="#local-6989586621680842232"><span class="hs-identifier hs-var">hash</span></a></span></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
 </span><span id="line-73"></span><span>    </span><span class="annot"><span class="annottext">ProjectListing -&gt; Maybe ProjectListing
 forall a. a -&gt; Maybe a
@@ -181,31 +181,31 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><a href="Unison.Server.Endpoints.Projects.html#ProjectListing"><span class="hs-identifier hs-type">ProjectListing</span></a></span><span>
 </span><span id="line-75"></span><span>        </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">owner :: ProjectOwner
 </span><a href="Unison.Server.Endpoints.Projects.html#owner"><span class="hs-identifier hs-var">owner</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ProjectOwner
-</span><a href="#local-6989586621680838945"><span class="hs-identifier hs-var">owner</span></a></span><span class="hs-special">,</span><span>
+</span><a href="#local-6989586621680842235"><span class="hs-identifier hs-var">owner</span></a></span><span class="hs-special">,</span><span>
 </span><span id="line-76"></span><span>          </span><span class="annot"><span class="annottext">name :: Text
 </span><a href="Unison.Server.Endpoints.Projects.html#name"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">NameSegment -&gt; Text
 </span><span class="hs-identifier hs-var hs-var">NameSegment.toText</span></span><span> </span><span class="annot"><span class="annottext">NameSegment
-</span><a href="#local-6989586621680838943"><span class="hs-identifier hs-var">name</span></a></span><span class="hs-special">,</span><span>
+</span><a href="#local-6989586621680842233"><span class="hs-identifier hs-var">name</span></a></span><span class="hs-special">,</span><span>
 </span><span id="line-77"></span><span>          </span><span class="annot"><span class="annottext">hash :: Text
 </span><a href="Unison.Server.Endpoints.Projects.html#hash"><span class="hs-identifier hs-var">hash</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text
 </span><span class="hs-string">&quot;#&quot;</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">ShortBranchHash -&gt; Text
 </span><a href="Unison.Codebase.ShortBranchHash.html#toText"><span class="hs-identifier hs-var hs-var">SBH.toText</span></a></span><span> </span><span class="annot"><span class="annottext">ShortBranchHash
-</span><a href="#local-6989586621680838942"><span class="hs-identifier hs-var">hash</span></a></span><span>
+</span><a href="#local-6989586621680842232"><span class="hs-identifier hs-var">hash</span></a></span><span>
 </span><span id="line-78"></span><span>        </span><span class="hs-special">}</span><span>
 </span><span id="line-79"></span><span>  </span><span class="annot"><span class="annottext">ShallowListEntry Symbol a
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe ProjectListing
 forall a. Maybe a
 </span><span class="hs-identifier hs-var">Nothing</span></span><span>
 </span><span id="line-80"></span><span>
-</span><span id="line-81"></span><span id="local-6989586621680839039"><span class="annot"><a href="Unison.Server.Endpoints.Projects.html#entryToOwner"><span class="hs-identifier hs-type">entryToOwner</span></a></span><span> </span><span class="hs-glyph">::</span><span>
-</span><span id="line-82"></span><span>  </span><span class="annot"><a href="Unison.Server.Backend.html#ShallowListEntry"><span class="hs-identifier hs-type">Backend.ShallowListEntry</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Symbol</span></span><span> </span><span class="annot"><a href="#local-6989586621680839039"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-81"></span><span id="local-6989586621680842329"><span class="annot"><a href="Unison.Server.Endpoints.Projects.html#entryToOwner"><span class="hs-identifier hs-type">entryToOwner</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-82"></span><span>  </span><span class="annot"><a href="Unison.Server.Backend.html#ShallowListEntry"><span class="hs-identifier hs-type">Backend.ShallowListEntry</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Symbol</span></span><span> </span><span class="annot"><a href="#local-6989586621680842329"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
 </span><span id="line-83"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Unison.Server.Endpoints.Projects.html#ProjectOwner"><span class="hs-identifier hs-type">ProjectOwner</span></a></span></span><span>
 </span><span id="line-84"></span><span id="entryToOwner"><span class="annot"><span class="annottext">entryToOwner :: ShallowListEntry Symbol a -&gt; Maybe ProjectOwner
 </span><a href="Unison.Server.Endpoints.Projects.html#entryToOwner"><span class="hs-identifier hs-var hs-var">entryToOwner</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
-</span><span id="line-85"></span><span>  </span><span class="annot"><a href="Unison.Server.Backend.html#ShallowBranchEntry"><span class="hs-identifier hs-type">Backend.ShallowBranchEntry</span></a></span><span> </span><span id="local-6989586621680838938"><span class="annot"><span class="annottext">NameSegment
-</span><a href="#local-6989586621680838938"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span class="annot"><span class="annottext">ShortBranchHash
+</span><span id="line-85"></span><span>  </span><span class="annot"><a href="Unison.Server.Backend.html#ShallowBranchEntry"><span class="hs-identifier hs-type">Backend.ShallowBranchEntry</span></a></span><span> </span><span id="local-6989586621680842228"><span class="annot"><span class="annottext">NameSegment
+</span><a href="#local-6989586621680842228"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span class="annot"><span class="annottext">ShortBranchHash
 </span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
 </span><span id="line-86"></span><span>    </span><span class="annot"><span class="annottext">ProjectOwner -&gt; Maybe ProjectOwner
@@ -218,7 +218,7 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">NameSegment -&gt; Text
 </span><span class="hs-identifier hs-var hs-var">NameSegment.toText</span></span><span> </span><span class="annot"><span class="annottext">NameSegment
-</span><a href="#local-6989586621680838938"><span class="hs-identifier hs-var">name</span></a></span><span>
+</span><a href="#local-6989586621680842228"><span class="hs-identifier hs-var">name</span></a></span><span>
 </span><span id="line-87"></span><span>  </span><span class="annot"><span class="annottext">ShallowListEntry Symbol a
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe ProjectOwner
 forall a. Maybe a
@@ -233,31 +233,31 @@ forall a. Maybe a
 -&gt; Codebase IO Symbol Ann
 -&gt; Maybe ShortBranchHash
 -&gt; Handler (APIHeaders [ProjectListing])
-</span><a href="Unison.Server.Endpoints.Projects.html#serve"><span class="hs-identifier hs-var hs-var">serve</span></a></span></span><span> </span><span id="local-6989586621680838936"><span class="annot"><span class="annottext">Handler ()
-</span><a href="#local-6989586621680838936"><span class="hs-identifier hs-var">tryAuth</span></a></span></span><span> </span><span id="local-6989586621680838935"><span class="annot"><span class="annottext">Codebase IO Symbol Ann
-</span><a href="#local-6989586621680838935"><span class="hs-identifier hs-var">codebase</span></a></span></span><span> </span><span id="local-6989586621680838934"><span class="annot"><span class="annottext">Maybe ShortBranchHash
-</span><a href="#local-6989586621680838934"><span class="hs-identifier hs-var">mayRoot</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[ProjectListing] -&gt; APIHeaders [ProjectListing]
+</span><a href="Unison.Server.Endpoints.Projects.html#serve"><span class="hs-identifier hs-var hs-var">serve</span></a></span></span><span> </span><span id="local-6989586621680842226"><span class="annot"><span class="annottext">Handler ()
+</span><a href="#local-6989586621680842226"><span class="hs-identifier hs-var">tryAuth</span></a></span></span><span> </span><span id="local-6989586621680842225"><span class="annot"><span class="annottext">Codebase IO Symbol Ann
+</span><a href="#local-6989586621680842225"><span class="hs-identifier hs-var">codebase</span></a></span></span><span> </span><span id="local-6989586621680842224"><span class="annot"><span class="annottext">Maybe ShortBranchHash
+</span><a href="#local-6989586621680842224"><span class="hs-identifier hs-var">mayRoot</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[ProjectListing] -&gt; APIHeaders [ProjectListing]
 forall v. v -&gt; APIHeaders v
 </span><a href="Unison.Server.Types.html#addHeaders"><span class="hs-identifier hs-var">addHeaders</span></a></span><span> </span><span class="annot"><span class="annottext">([ProjectListing] -&gt; APIHeaders [ProjectListing])
 -&gt; Handler [ProjectListing]
 -&gt; Handler (APIHeaders [ProjectListing])
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Handler ()
-</span><a href="#local-6989586621680838936"><span class="hs-identifier hs-var">tryAuth</span></a></span><span> </span><span class="annot"><span class="annottext">Handler () -&gt; Handler [ProjectListing] -&gt; Handler [ProjectListing]
+</span><a href="#local-6989586621680842226"><span class="hs-identifier hs-var">tryAuth</span></a></span><span> </span><span class="annot"><span class="annottext">Handler () -&gt; Handler [ProjectListing] -&gt; Handler [ProjectListing]
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
 </span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Handler [ProjectListing]
-</span><a href="#local-6989586621680838932"><span class="hs-identifier hs-var">projects</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621680842222"><span class="hs-identifier hs-var">projects</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-95"></span><span>  </span><span class="hs-keyword">where</span><span>
-</span><span id="line-96"></span><span>    </span><span class="annot"><a href="#local-6989586621680838932"><span class="hs-identifier hs-type">projects</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handler</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Unison.Server.Endpoints.Projects.html#ProjectListing"><span class="hs-identifier hs-type">ProjectListing</span></a></span><span class="hs-special">]</span><span>
-</span><span id="line-97"></span><span>    </span><span id="local-6989586621680838932"><span class="annot"><span class="annottext">projects :: Handler [ProjectListing]
-</span><a href="#local-6989586621680838932"><span class="hs-identifier hs-var hs-var">projects</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-98"></span><span>      </span><span id="local-6989586621680838931"><span class="annot"><span class="annottext">Branch IO
-</span><a href="#local-6989586621680838931"><span class="hs-identifier hs-var">root</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Maybe ShortBranchHash
-</span><a href="#local-6989586621680838934"><span class="hs-identifier hs-var">mayRoot</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-96"></span><span>    </span><span class="annot"><a href="#local-6989586621680842222"><span class="hs-identifier hs-type">projects</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handler</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Unison.Server.Endpoints.Projects.html#ProjectListing"><span class="hs-identifier hs-type">ProjectListing</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-97"></span><span>    </span><span id="local-6989586621680842222"><span class="annot"><span class="annottext">projects :: Handler [ProjectListing]
+</span><a href="#local-6989586621680842222"><span class="hs-identifier hs-var hs-var">projects</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-98"></span><span>      </span><span id="local-6989586621680842221"><span class="annot"><span class="annottext">Branch IO
+</span><a href="#local-6989586621680842221"><span class="hs-identifier hs-var">root</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Maybe ShortBranchHash
+</span><a href="#local-6989586621680842224"><span class="hs-identifier hs-var">mayRoot</span></a></span><span> </span><span class="hs-keyword">of</span><span>
 </span><span id="line-99"></span><span>        </span><span class="annot"><span class="annottext">Maybe ShortBranchHash
 </span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-100"></span><span>          </span><span id="local-6989586621680838930"><span class="annot"><span class="annottext">Either GetRootBranchError (Branch IO)
-</span><a href="#local-6989586621680838930"><span class="hs-identifier hs-var">gotRoot</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO (Either GetRootBranchError (Branch IO))
+</span><span id="line-100"></span><span>          </span><span id="local-6989586621680842220"><span class="annot"><span class="annottext">Either GetRootBranchError (Branch IO)
+</span><a href="#local-6989586621680842220"><span class="hs-identifier hs-var">gotRoot</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO (Either GetRootBranchError (Branch IO))
 -&gt; Handler (Either GetRootBranchError (Branch IO))
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 </span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">(IO (Either GetRootBranchError (Branch IO))
@@ -270,17 +270,17 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 forall (m :: * -&gt; *) v a.
 Codebase m v a -&gt; m (Either GetRootBranchError (Branch m))
 </span><a href="Unison.Codebase.Type.html#getRootBranch"><span class="hs-identifier hs-var hs-var">Codebase.getRootBranch</span></a></span><span> </span><span class="annot"><span class="annottext">Codebase IO Symbol Ann
-</span><a href="#local-6989586621680838935"><span class="hs-identifier hs-var">codebase</span></a></span><span>
+</span><a href="#local-6989586621680842225"><span class="hs-identifier hs-var">codebase</span></a></span><span>
 </span><span id="line-101"></span><span>          </span><span class="annot"><span class="annottext">(GetRootBranchError -&gt; ServerError)
 -&gt; Either GetRootBranchError (Branch IO) -&gt; Handler (Branch IO)
 forall a a1. (a -&gt; ServerError) -&gt; Either a a1 -&gt; Handler a1
-</span><a href="#local-6989586621680838927"><span class="hs-identifier hs-var">errFromEither</span></a></span><span> </span><span class="annot"><span class="annottext">GetRootBranchError -&gt; ServerError
+</span><a href="#local-6989586621680842217"><span class="hs-identifier hs-var">errFromEither</span></a></span><span> </span><span class="annot"><span class="annottext">GetRootBranchError -&gt; ServerError
 </span><a href="Unison.Server.Errors.html#rootBranchError"><span class="hs-identifier hs-var">rootBranchError</span></a></span><span> </span><span class="annot"><span class="annottext">Either GetRootBranchError (Branch IO)
-</span><a href="#local-6989586621680838930"><span class="hs-identifier hs-var">gotRoot</span></a></span><span>
-</span><span id="line-102"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621680838926"><span class="annot"><span class="annottext">ShortBranchHash
-</span><a href="#local-6989586621680838926"><span class="hs-identifier hs-var">sbh</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-103"></span><span>          </span><span id="local-6989586621680838925"><span class="annot"><span class="annottext">Either BackendError (Branch IO)
-</span><a href="#local-6989586621680838925"><span class="hs-identifier hs-var">ea</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO (Either BackendError (Branch IO))
+</span><a href="#local-6989586621680842220"><span class="hs-identifier hs-var">gotRoot</span></a></span><span>
+</span><span id="line-102"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621680842216"><span class="annot"><span class="annottext">ShortBranchHash
+</span><a href="#local-6989586621680842216"><span class="hs-identifier hs-var">sbh</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-103"></span><span>          </span><span id="local-6989586621680842215"><span class="annot"><span class="annottext">Either BackendError (Branch IO)
+</span><a href="#local-6989586621680842215"><span class="hs-identifier hs-var">ea</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO (Either BackendError (Branch IO))
 -&gt; Handler (Either BackendError (Branch IO))
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 </span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">(IO (Either BackendError (Branch IO))
@@ -299,16 +299,16 @@ forall e (m :: * -&gt; *) a. ExceptT e m a -&gt; m (Either e a)
 -&gt; Handler (Either BackendError (Branch IO))
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-104"></span><span>            </span><span id="local-6989586621680838923"><span class="annot"><span class="annottext">Hash
-</span><a href="#local-6989586621680838923"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Codebase IO Symbol Ann -&gt; ShortBranchHash -&gt; Backend IO Hash
+</span><span id="line-104"></span><span>            </span><span id="local-6989586621680842213"><span class="annot"><span class="annottext">Hash
+</span><a href="#local-6989586621680842213"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Codebase IO Symbol Ann -&gt; ShortBranchHash -&gt; Backend IO Hash
 forall (m :: * -&gt; *) v a.
 Monad m =&gt;
 Codebase m v a -&gt; ShortBranchHash -&gt; Backend m Hash
 </span><a href="Unison.Server.Backend.html#expandShortBranchHash"><span class="hs-identifier hs-var">Backend.expandShortBranchHash</span></a></span><span> </span><span class="annot"><span class="annottext">Codebase IO Symbol Ann
-</span><a href="#local-6989586621680838935"><span class="hs-identifier hs-var">codebase</span></a></span><span> </span><span class="annot"><span class="annottext">ShortBranchHash
-</span><a href="#local-6989586621680838926"><span class="hs-identifier hs-var">sbh</span></a></span><span>
-</span><span id="line-105"></span><span>            </span><span id="local-6989586621680838921"><span class="annot"><span class="annottext">Maybe (Branch IO)
-</span><a href="#local-6989586621680838921"><span class="hs-identifier hs-var">mayBranch</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO (Maybe (Branch IO))
+</span><a href="#local-6989586621680842225"><span class="hs-identifier hs-var">codebase</span></a></span><span> </span><span class="annot"><span class="annottext">ShortBranchHash
+</span><a href="#local-6989586621680842216"><span class="hs-identifier hs-var">sbh</span></a></span><span>
+</span><span id="line-105"></span><span>            </span><span id="local-6989586621680842211"><span class="annot"><span class="annottext">Maybe (Branch IO)
+</span><a href="#local-6989586621680842211"><span class="hs-identifier hs-var">mayBranch</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO (Maybe (Branch IO))
 -&gt; ExceptT BackendError IO (Maybe (Branch IO))
 forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
 (MonadTrans t, Monad m) =&gt;
@@ -323,76 +323,76 @@ forall (m :: * -&gt; *) v a.
 Monad m =&gt;
 Codebase m v a -&gt; Hash -&gt; m (Maybe (Branch m))
 </span><a href="Unison.Codebase.html#getBranchForHash"><span class="hs-identifier hs-var">Codebase.getBranchForHash</span></a></span><span> </span><span class="annot"><span class="annottext">Codebase IO Symbol Ann
-</span><a href="#local-6989586621680838935"><span class="hs-identifier hs-var">codebase</span></a></span><span> </span><span class="annot"><span class="annottext">Hash
-</span><a href="#local-6989586621680838923"><span class="hs-identifier hs-var">h</span></a></span><span>
+</span><a href="#local-6989586621680842225"><span class="hs-identifier hs-var">codebase</span></a></span><span> </span><span class="annot"><span class="annottext">Hash
+</span><a href="#local-6989586621680842213"><span class="hs-identifier hs-var">h</span></a></span><span>
 </span><span id="line-106"></span><span>            </span><span class="annot"><span class="annottext">Maybe (Branch IO)
-</span><a href="#local-6989586621680838921"><span class="hs-identifier hs-var">mayBranch</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe (Branch IO)
+</span><a href="#local-6989586621680842211"><span class="hs-identifier hs-var">mayBranch</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe (Branch IO)
 -&gt; BackendError -&gt; ExceptT BackendError IO (Branch IO)
 forall (m :: * -&gt; *) a e.
 Applicative m =&gt;
 Maybe a -&gt; e -&gt; ExceptT e m a
 </span><span class="hs-operator hs-var">??</span></span><span> </span><span class="annot"><span class="annottext">Hash -&gt; BackendError
 </span><a href="Unison.Server.Backend.html#CouldntLoadBranch"><span class="hs-identifier hs-var">Backend.CouldntLoadBranch</span></a></span><span> </span><span class="annot"><span class="annottext">Hash
-</span><a href="#local-6989586621680838923"><span class="hs-identifier hs-var">h</span></a></span><span>
+</span><a href="#local-6989586621680842213"><span class="hs-identifier hs-var">h</span></a></span><span>
 </span><span id="line-107"></span><span>          </span><span class="annot"><span class="annottext">(BackendError -&gt; ServerError)
 -&gt; Either BackendError (Branch IO) -&gt; Handler (Branch IO)
 forall a a1. (a -&gt; ServerError) -&gt; Either a a1 -&gt; Handler a1
-</span><a href="#local-6989586621680838927"><span class="hs-identifier hs-var">errFromEither</span></a></span><span> </span><span class="annot"><span class="annottext">BackendError -&gt; ServerError
+</span><a href="#local-6989586621680842217"><span class="hs-identifier hs-var">errFromEither</span></a></span><span> </span><span class="annot"><span class="annottext">BackendError -&gt; ServerError
 </span><a href="Unison.Server.Errors.html#backendError"><span class="hs-identifier hs-var">backendError</span></a></span><span> </span><span class="annot"><span class="annottext">Either BackendError (Branch IO)
-</span><a href="#local-6989586621680838925"><span class="hs-identifier hs-var">ea</span></a></span><span>
+</span><a href="#local-6989586621680842215"><span class="hs-identifier hs-var">ea</span></a></span><span>
 </span><span id="line-108"></span><span>
-</span><span id="line-109"></span><span>      </span><span id="local-6989586621680838917"><span class="annot"><span class="annottext">[ShallowListEntry Symbol Ann]
-</span><a href="#local-6989586621680838917"><span class="hs-identifier hs-var">ownerEntries</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Branch IO -&gt; Handler [ShallowListEntry Symbol Ann]
-</span><a href="#local-6989586621680838916"><span class="hs-identifier hs-var">findShallow</span></a></span><span> </span><span class="annot"><span class="annottext">Branch IO
-</span><a href="#local-6989586621680838931"><span class="hs-identifier hs-var">root</span></a></span><span>
-</span><span id="line-110"></span><span>      </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621680838915"><span class="annot"><span class="annottext">owners :: [ProjectOwner]
-</span><a href="#local-6989586621680838915"><span class="hs-identifier hs-var hs-var">owners</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(ShallowListEntry Symbol Ann -&gt; Maybe ProjectOwner)
+</span><span id="line-109"></span><span>      </span><span id="local-6989586621680842207"><span class="annot"><span class="annottext">[ShallowListEntry Symbol Ann]
+</span><a href="#local-6989586621680842207"><span class="hs-identifier hs-var">ownerEntries</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Branch IO -&gt; Handler [ShallowListEntry Symbol Ann]
+</span><a href="#local-6989586621680842206"><span class="hs-identifier hs-var">findShallow</span></a></span><span> </span><span class="annot"><span class="annottext">Branch IO
+</span><a href="#local-6989586621680842221"><span class="hs-identifier hs-var">root</span></a></span><span>
+</span><span id="line-110"></span><span>      </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621680842205"><span class="annot"><span class="annottext">owners :: [ProjectOwner]
+</span><a href="#local-6989586621680842205"><span class="hs-identifier hs-var hs-var">owners</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(ShallowListEntry Symbol Ann -&gt; Maybe ProjectOwner)
 -&gt; [ShallowListEntry Symbol Ann] -&gt; [ProjectOwner]
 forall a b. (a -&gt; Maybe b) -&gt; [a] -&gt; [b]
 </span><span class="hs-identifier hs-var">mapMaybe</span></span><span> </span><span class="annot"><span class="annottext">ShallowListEntry Symbol Ann -&gt; Maybe ProjectOwner
 forall a. ShallowListEntry Symbol a -&gt; Maybe ProjectOwner
 </span><a href="Unison.Server.Endpoints.Projects.html#entryToOwner"><span class="hs-identifier hs-var">entryToOwner</span></a></span><span> </span><span class="annot"><span class="annottext">[ShallowListEntry Symbol Ann]
-</span><a href="#local-6989586621680838917"><span class="hs-identifier hs-var">ownerEntries</span></a></span><span>
+</span><a href="#local-6989586621680842207"><span class="hs-identifier hs-var">ownerEntries</span></a></span><span>
 </span><span id="line-111"></span><span>      </span><span class="annot"><span class="annottext">(ProjectOwner -&gt; Handler [ProjectListing])
 -&gt; [ProjectOwner] -&gt; Handler [ProjectListing]
 forall (m :: * -&gt; *) (f :: * -&gt; *) b a.
 (Monad m, Foldable f, Monoid b) =&gt;
 (a -&gt; m b) -&gt; f a -&gt; m b
 </span><span class="hs-identifier hs-var">foldMapM</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Branch IO -&gt; ProjectOwner -&gt; Handler [ProjectListing]
-</span><a href="#local-6989586621680838913"><span class="hs-identifier hs-var">ownerToProjectListings</span></a></span><span> </span><span class="annot"><span class="annottext">Branch IO
-</span><a href="#local-6989586621680838931"><span class="hs-identifier hs-var">root</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[ProjectOwner]
-</span><a href="#local-6989586621680838915"><span class="hs-identifier hs-var">owners</span></a></span><span>
+</span><a href="#local-6989586621680842203"><span class="hs-identifier hs-var">ownerToProjectListings</span></a></span><span> </span><span class="annot"><span class="annottext">Branch IO
+</span><a href="#local-6989586621680842221"><span class="hs-identifier hs-var">root</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[ProjectOwner]
+</span><a href="#local-6989586621680842205"><span class="hs-identifier hs-var">owners</span></a></span><span>
 </span><span id="line-112"></span><span>
-</span><span id="line-113"></span><span>    </span><span class="annot"><a href="#local-6989586621680838913"><span class="hs-identifier hs-type">ownerToProjectListings</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Codebase.Branch.html#Branch"><span class="hs-identifier hs-type">Branch.Branch</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Server.Endpoints.Projects.html#ProjectOwner"><span class="hs-identifier hs-type">ProjectOwner</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handler</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Unison.Server.Endpoints.Projects.html#ProjectListing"><span class="hs-identifier hs-type">ProjectListing</span></a></span><span class="hs-special">]</span><span>
-</span><span id="line-114"></span><span>    </span><span id="local-6989586621680838913"><span class="annot"><span class="annottext">ownerToProjectListings :: Branch IO -&gt; ProjectOwner -&gt; Handler [ProjectListing]
-</span><a href="#local-6989586621680838913"><span class="hs-identifier hs-var hs-var">ownerToProjectListings</span></a></span></span><span> </span><span id="local-6989586621680838912"><span class="annot"><span class="annottext">Branch IO
-</span><a href="#local-6989586621680838912"><span class="hs-identifier hs-var">root</span></a></span></span><span> </span><span id="local-6989586621680838911"><span class="annot"><span class="annottext">ProjectOwner
-</span><a href="#local-6989586621680838911"><span class="hs-identifier hs-var">owner</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-115"></span><span>      </span><span class="hs-keyword">let</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Server.Endpoints.Projects.html#ProjectOwner"><span class="hs-identifier hs-type">ProjectOwner</span></a></span><span> </span><span id="local-6989586621680838910"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680838910"><span class="hs-identifier hs-var">ownerName</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ProjectOwner
-</span><a href="#local-6989586621680838911"><span class="hs-identifier hs-var">owner</span></a></span><span>
-</span><span id="line-116"></span><span>      </span><span id="local-6989586621680838909"><span class="annot"><span class="annottext">Path'
-</span><a href="#local-6989586621680838909"><span class="hs-identifier hs-var">ownerPath'</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Handler Path'
-</span><a href="#local-6989586621680838908"><span class="hs-identifier hs-var">parsePath</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Handler Path')
+</span><span id="line-113"></span><span>    </span><span class="annot"><a href="#local-6989586621680842203"><span class="hs-identifier hs-type">ownerToProjectListings</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Codebase.Branch.html#Branch"><span class="hs-identifier hs-type">Branch.Branch</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Server.Endpoints.Projects.html#ProjectOwner"><span class="hs-identifier hs-type">ProjectOwner</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handler</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Unison.Server.Endpoints.Projects.html#ProjectListing"><span class="hs-identifier hs-type">ProjectListing</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-114"></span><span>    </span><span id="local-6989586621680842203"><span class="annot"><span class="annottext">ownerToProjectListings :: Branch IO -&gt; ProjectOwner -&gt; Handler [ProjectListing]
+</span><a href="#local-6989586621680842203"><span class="hs-identifier hs-var hs-var">ownerToProjectListings</span></a></span></span><span> </span><span id="local-6989586621680842202"><span class="annot"><span class="annottext">Branch IO
+</span><a href="#local-6989586621680842202"><span class="hs-identifier hs-var">root</span></a></span></span><span> </span><span id="local-6989586621680842201"><span class="annot"><span class="annottext">ProjectOwner
+</span><a href="#local-6989586621680842201"><span class="hs-identifier hs-var">owner</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-115"></span><span>      </span><span class="hs-keyword">let</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Server.Endpoints.Projects.html#ProjectOwner"><span class="hs-identifier hs-type">ProjectOwner</span></a></span><span> </span><span id="local-6989586621680842200"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680842200"><span class="hs-identifier hs-var">ownerName</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ProjectOwner
+</span><a href="#local-6989586621680842201"><span class="hs-identifier hs-var">owner</span></a></span><span>
+</span><span id="line-116"></span><span>      </span><span id="local-6989586621680842199"><span class="annot"><span class="annottext">Path'
+</span><a href="#local-6989586621680842199"><span class="hs-identifier hs-var">ownerPath'</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Handler Path'
+</span><a href="#local-6989586621680842198"><span class="hs-identifier hs-var">parsePath</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Handler Path')
 -&gt; (Text -&gt; String) -&gt; Text -&gt; Handler Path'
 forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
 </span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; String
 </span><span class="hs-identifier hs-var">Text.unpack</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680838910"><span class="hs-identifier hs-var">ownerName</span></a></span><span>
-</span><span id="line-117"></span><span>      </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621680838906"><span class="annot"><span class="annottext">path :: Path
-</span><a href="#local-6989586621680838906"><span class="hs-identifier hs-var hs-var">path</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Path' -&gt; Path
+</span><a href="#local-6989586621680842200"><span class="hs-identifier hs-var">ownerName</span></a></span><span>
+</span><span id="line-117"></span><span>      </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621680842196"><span class="annot"><span class="annottext">path :: Path
+</span><a href="#local-6989586621680842196"><span class="hs-identifier hs-var hs-var">path</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Path' -&gt; Path
 </span><a href="Unison.Codebase.Path.html#fromPath%27"><span class="hs-identifier hs-var">Path.fromPath'</span></a></span><span> </span><span class="annot"><span class="annottext">Path'
-</span><a href="#local-6989586621680838909"><span class="hs-identifier hs-var">ownerPath'</span></a></span><span>
-</span><span id="line-118"></span><span>      </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621680838904"><span class="annot"><span class="annottext">ownerBranch :: Branch IO
-</span><a href="#local-6989586621680838904"><span class="hs-identifier hs-var hs-var">ownerBranch</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Path -&gt; Branch IO -&gt; Branch IO
+</span><a href="#local-6989586621680842199"><span class="hs-identifier hs-var">ownerPath'</span></a></span><span>
+</span><span id="line-118"></span><span>      </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621680842194"><span class="annot"><span class="annottext">ownerBranch :: Branch IO
+</span><a href="#local-6989586621680842194"><span class="hs-identifier hs-var hs-var">ownerBranch</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Path -&gt; Branch IO -&gt; Branch IO
 forall (m :: * -&gt; *). Path -&gt; Branch m -&gt; Branch m
 </span><a href="Unison.Codebase.Branch.html#getAt%27"><span class="hs-identifier hs-var">Branch.getAt'</span></a></span><span> </span><span class="annot"><span class="annottext">Path
-</span><a href="#local-6989586621680838906"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">Branch IO
-</span><a href="#local-6989586621680838912"><span class="hs-identifier hs-var">root</span></a></span><span>
-</span><span id="line-119"></span><span>      </span><span id="local-6989586621680838902"><span class="annot"><span class="annottext">[ShallowListEntry Symbol Ann]
-</span><a href="#local-6989586621680838902"><span class="hs-identifier hs-var">entries</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Branch IO -&gt; Handler [ShallowListEntry Symbol Ann]
-</span><a href="#local-6989586621680838916"><span class="hs-identifier hs-var">findShallow</span></a></span><span> </span><span class="annot"><span class="annottext">Branch IO
-</span><a href="#local-6989586621680838904"><span class="hs-identifier hs-var">ownerBranch</span></a></span><span>
+</span><a href="#local-6989586621680842196"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">Branch IO
+</span><a href="#local-6989586621680842202"><span class="hs-identifier hs-var">root</span></a></span><span>
+</span><span id="line-119"></span><span>      </span><span id="local-6989586621680842192"><span class="annot"><span class="annottext">[ShallowListEntry Symbol Ann]
+</span><a href="#local-6989586621680842192"><span class="hs-identifier hs-var">entries</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Branch IO -&gt; Handler [ShallowListEntry Symbol Ann]
+</span><a href="#local-6989586621680842206"><span class="hs-identifier hs-var">findShallow</span></a></span><span> </span><span class="annot"><span class="annottext">Branch IO
+</span><a href="#local-6989586621680842194"><span class="hs-identifier hs-var">ownerBranch</span></a></span><span>
 </span><span id="line-120"></span><span>      </span><span class="hs-identifier">pure</span><span> </span><span class="hs-operator">$</span><span> </span><span class="annot"><span class="annottext">(ShallowListEntry Symbol Ann -&gt; Maybe ProjectListing)
 -&gt; [ShallowListEntry Symbol Ann] -&gt; [ProjectListing]
 forall a b. (a -&gt; Maybe b) -&gt; [a] -&gt; [b]
@@ -400,19 +400,19 @@ forall a b. (a -&gt; Maybe b) -&gt; [a] -&gt; [b]
 forall a.
 ProjectOwner -&gt; ShallowListEntry Symbol a -&gt; Maybe ProjectListing
 </span><a href="Unison.Server.Endpoints.Projects.html#backendListEntryToProjectListing"><span class="hs-identifier hs-var">backendListEntryToProjectListing</span></a></span><span> </span><span class="annot"><span class="annottext">ProjectOwner
-</span><a href="#local-6989586621680838911"><span class="hs-identifier hs-var">owner</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[ShallowListEntry Symbol Ann]
-</span><a href="#local-6989586621680838902"><span class="hs-identifier hs-var">entries</span></a></span><span>
+</span><a href="#local-6989586621680842201"><span class="hs-identifier hs-var">owner</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[ShallowListEntry Symbol Ann]
+</span><a href="#local-6989586621680842192"><span class="hs-identifier hs-var">entries</span></a></span><span>
 </span><span id="line-121"></span><span>
 </span><span id="line-122"></span><span>    </span><span class="hs-comment">-- Minor helpers</span><span>
 </span><span id="line-123"></span><span>
-</span><span id="line-124"></span><span>    </span><span class="annot"><a href="#local-6989586621680838916"><span class="hs-identifier hs-type">findShallow</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Codebase.Branch.html#Branch"><span class="hs-identifier hs-type">Branch.Branch</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handler</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Unison.Server.Backend.html#ShallowListEntry"><span class="hs-identifier hs-type">Backend.ShallowListEntry</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Symbol</span></span><span> </span><span class="annot"><a href="Unison.Parser.Ann.html#Ann"><span class="hs-identifier hs-type">Ann</span></a></span><span class="hs-special">]</span><span>
-</span><span id="line-125"></span><span>    </span><span id="local-6989586621680838916"><span class="annot"><span class="annottext">findShallow :: Branch IO -&gt; Handler [ShallowListEntry Symbol Ann]
-</span><a href="#local-6989586621680838916"><span class="hs-identifier hs-var hs-var">findShallow</span></a></span></span><span> </span><span id="local-6989586621680838901"><span class="annot"><span class="annottext">Branch IO
-</span><a href="#local-6989586621680838901"><span class="hs-identifier hs-var">branch</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-124"></span><span>    </span><span class="annot"><a href="#local-6989586621680842206"><span class="hs-identifier hs-type">findShallow</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Codebase.Branch.html#Branch"><span class="hs-identifier hs-type">Branch.Branch</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handler</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Unison.Server.Backend.html#ShallowListEntry"><span class="hs-identifier hs-type">Backend.ShallowListEntry</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Symbol</span></span><span> </span><span class="annot"><a href="Unison.Parser.Ann.html#Ann"><span class="hs-identifier hs-type">Ann</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-125"></span><span>    </span><span id="local-6989586621680842206"><span class="annot"><span class="annottext">findShallow :: Branch IO -&gt; Handler [ShallowListEntry Symbol Ann]
+</span><a href="#local-6989586621680842206"><span class="hs-identifier hs-var hs-var">findShallow</span></a></span></span><span> </span><span id="local-6989586621680842191"><span class="annot"><span class="annottext">Branch IO
+</span><a href="#local-6989586621680842191"><span class="hs-identifier hs-var">branch</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-126"></span><span>      </span><span class="annot"><span class="annottext">ExceptT BackendError IO [ShallowListEntry Symbol Ann]
 -&gt; Handler [ShallowListEntry Symbol Ann]
 forall b. ExceptT BackendError IO b -&gt; Handler b
-</span><a href="#local-6989586621680838900"><span class="hs-identifier hs-var">doBackend</span></a></span><span> </span><span class="annot"><span class="annottext">(ExceptT BackendError IO [ShallowListEntry Symbol Ann]
+</span><a href="#local-6989586621680842190"><span class="hs-identifier hs-var">doBackend</span></a></span><span> </span><span class="annot"><span class="annottext">(ExceptT BackendError IO [ShallowListEntry Symbol Ann]
  -&gt; Handler [ShallowListEntry Symbol Ann])
 -&gt; ExceptT BackendError IO [ShallowListEntry Symbol Ann]
 -&gt; Handler [ShallowListEntry Symbol Ann]
@@ -425,28 +425,28 @@ Monad m =&gt;
 Codebase m Symbol Ann
 -&gt; Branch m -&gt; Backend m [ShallowListEntry Symbol Ann]
 </span><a href="Unison.Server.Backend.html#findShallowInBranch"><span class="hs-identifier hs-var">Backend.findShallowInBranch</span></a></span><span> </span><span class="annot"><span class="annottext">Codebase IO Symbol Ann
-</span><a href="#local-6989586621680838935"><span class="hs-identifier hs-var">codebase</span></a></span><span> </span><span class="annot"><span class="annottext">Branch IO
-</span><a href="#local-6989586621680838901"><span class="hs-identifier hs-var">branch</span></a></span><span>
+</span><a href="#local-6989586621680842225"><span class="hs-identifier hs-var">codebase</span></a></span><span> </span><span class="annot"><span class="annottext">Branch IO
+</span><a href="#local-6989586621680842191"><span class="hs-identifier hs-var">branch</span></a></span><span>
 </span><span id="line-127"></span><span>
-</span><span id="line-128"></span><span>    </span><span class="annot"><a href="#local-6989586621680838908"><span class="hs-identifier hs-type">parsePath</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handler</span></span><span> </span><span class="annot"><a href="Unison.Codebase.Path.html#Path%27"><span class="hs-identifier hs-type">Path.Path'</span></a></span><span>
-</span><span id="line-129"></span><span>    </span><span id="local-6989586621680838908"><span class="annot"><span class="annottext">parsePath :: String -&gt; Handler Path'
-</span><a href="#local-6989586621680838908"><span class="hs-identifier hs-var hs-var">parsePath</span></a></span></span><span> </span><span id="local-6989586621680838898"><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621680838898"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-128"></span><span>    </span><span class="annot"><a href="#local-6989586621680842198"><span class="hs-identifier hs-type">parsePath</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handler</span></span><span> </span><span class="annot"><a href="Unison.Codebase.Path.html#Path%27"><span class="hs-identifier hs-type">Path.Path'</span></a></span><span>
+</span><span id="line-129"></span><span>    </span><span id="local-6989586621680842198"><span class="annot"><span class="annottext">parsePath :: String -&gt; Handler Path'
+</span><a href="#local-6989586621680842198"><span class="hs-identifier hs-var hs-var">parsePath</span></a></span></span><span> </span><span id="local-6989586621680842188"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621680842188"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-130"></span><span>      </span><span class="annot"><span class="annottext">(String -&gt; ServerError) -&gt; Either String Path' -&gt; Handler Path'
 forall a a1. (a -&gt; ServerError) -&gt; Either a a1 -&gt; Handler a1
-</span><a href="#local-6989586621680838927"><span class="hs-identifier hs-var">errFromEither</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; String -&gt; ServerError
+</span><a href="#local-6989586621680842217"><span class="hs-identifier hs-var">errFromEither</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; String -&gt; ServerError
 </span><a href="Unison.Server.Errors.html#badNamespace"><span class="hs-operator hs-var">`badNamespace`</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621680838898"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Either String Path' -&gt; Handler Path')
+</span><a href="#local-6989586621680842188"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Either String Path' -&gt; Handler Path')
 -&gt; Either String Path' -&gt; Handler Path'
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String Path'
 </span><a href="Unison.Codebase.Path.Parse.html#parsePath%27"><span class="hs-identifier hs-var">Path.parsePath'</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621680838898"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><a href="#local-6989586621680842188"><span class="hs-identifier hs-var">p</span></a></span><span>
 </span><span id="line-131"></span><span>
-</span><span id="line-132"></span><span>    </span><span id="local-6989586621680839065"><span id="local-6989586621680839066"><span class="annot"><a href="#local-6989586621680838927"><span class="hs-identifier hs-type">errFromEither</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621680839066"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ServerError</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="#local-6989586621680839066"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680839065"><span class="hs-identifier hs-type">a1</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handler</span></span><span> </span><span class="annot"><a href="#local-6989586621680839065"><span class="hs-identifier hs-type">a1</span></a></span></span></span><span>
-</span><span id="line-133"></span><span>    </span><span id="local-6989586621680838927"><span class="annot"><span class="annottext">errFromEither :: (a -&gt; ServerError) -&gt; Either a a1 -&gt; Handler a1
-</span><a href="#local-6989586621680838927"><span class="hs-identifier hs-var hs-var">errFromEither</span></a></span></span><span> </span><span id="local-6989586621680838896"><span class="annot"><span class="annottext">a -&gt; ServerError
-</span><a href="#local-6989586621680838896"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-132"></span><span>    </span><span id="local-6989586621680842355"><span id="local-6989586621680842356"><span class="annot"><a href="#local-6989586621680842217"><span class="hs-identifier hs-type">errFromEither</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621680842356"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ServerError</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="#local-6989586621680842356"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680842355"><span class="hs-identifier hs-type">a1</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handler</span></span><span> </span><span class="annot"><a href="#local-6989586621680842355"><span class="hs-identifier hs-type">a1</span></a></span></span></span><span>
+</span><span id="line-133"></span><span>    </span><span id="local-6989586621680842217"><span class="annot"><span class="annottext">errFromEither :: (a -&gt; ServerError) -&gt; Either a a1 -&gt; Handler a1
+</span><a href="#local-6989586621680842217"><span class="hs-identifier hs-var hs-var">errFromEither</span></a></span></span><span> </span><span id="local-6989586621680842186"><span class="annot"><span class="annottext">a -&gt; ServerError
+</span><a href="#local-6989586621680842186"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-134"></span><span>      </span><span class="annot"><span class="annottext">(a -&gt; Handler a1)
 -&gt; (a1 -&gt; Handler a1) -&gt; Either a a1 -&gt; Handler a1
 forall a c b. (a -&gt; c) -&gt; (b -&gt; c) -&gt; Either a b -&gt; c
@@ -456,16 +456,16 @@ forall e (m :: * -&gt; *) a. MonadError e m =&gt; e -&gt; m a
 -&gt; (a -&gt; ServerError) -&gt; a -&gt; Handler a1
 forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
 </span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; ServerError
-</span><a href="#local-6989586621680838896"><span class="hs-identifier hs-var">f</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">a1 -&gt; Handler a1
+</span><a href="#local-6989586621680842186"><span class="hs-identifier hs-var">f</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">a1 -&gt; Handler a1
 forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
 </span><span class="hs-identifier hs-var">pure</span></span><span>
 </span><span id="line-135"></span><span>
-</span><span id="line-136"></span><span>    </span><span id="local-6989586621680839030"><span class="annot"><a href="#local-6989586621680838900"><span class="hs-identifier hs-type">doBackend</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ExceptT</span></span><span> </span><span class="annot"><a href="Unison.Server.Backend.html#BackendError"><span class="hs-identifier hs-type">Backend.BackendError</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621680839030"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handler</span></span><span> </span><span class="annot"><a href="#local-6989586621680839030"><span class="hs-identifier hs-type">b</span></a></span></span><span>
-</span><span id="line-137"></span><span>    </span><span id="local-6989586621680838900"><span class="annot"><span class="annottext">doBackend :: ExceptT BackendError IO b -&gt; Handler b
-</span><a href="#local-6989586621680838900"><span class="hs-identifier hs-var hs-var">doBackend</span></a></span></span><span> </span><span id="local-6989586621680838894"><span class="annot"><span class="annottext">ExceptT BackendError IO b
-</span><a href="#local-6989586621680838894"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-138"></span><span>      </span><span id="local-6989586621680838893"><span class="annot"><span class="annottext">Either BackendError b
-</span><a href="#local-6989586621680838893"><span class="hs-identifier hs-var">ea</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO (Either BackendError b) -&gt; Handler (Either BackendError b)
+</span><span id="line-136"></span><span>    </span><span id="local-6989586621680842320"><span class="annot"><a href="#local-6989586621680842190"><span class="hs-identifier hs-type">doBackend</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ExceptT</span></span><span> </span><span class="annot"><a href="Unison.Server.Backend.html#BackendError"><span class="hs-identifier hs-type">Backend.BackendError</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621680842320"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handler</span></span><span> </span><span class="annot"><a href="#local-6989586621680842320"><span class="hs-identifier hs-type">b</span></a></span></span><span>
+</span><span id="line-137"></span><span>    </span><span id="local-6989586621680842190"><span class="annot"><span class="annottext">doBackend :: ExceptT BackendError IO b -&gt; Handler b
+</span><a href="#local-6989586621680842190"><span class="hs-identifier hs-var hs-var">doBackend</span></a></span></span><span> </span><span id="local-6989586621680842184"><span class="annot"><span class="annottext">ExceptT BackendError IO b
+</span><a href="#local-6989586621680842184"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-138"></span><span>      </span><span id="local-6989586621680842183"><span class="annot"><span class="annottext">Either BackendError b
+</span><a href="#local-6989586621680842183"><span class="hs-identifier hs-var">ea</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO (Either BackendError b) -&gt; Handler (Either BackendError b)
 forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
 </span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">(IO (Either BackendError b) -&gt; Handler (Either BackendError b))
 -&gt; IO (Either BackendError b) -&gt; Handler (Either BackendError b)
@@ -473,10 +473,10 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">ExceptT BackendError IO b -&gt; IO (Either BackendError b)
 forall e (m :: * -&gt; *) a. ExceptT e m a -&gt; m (Either e a)
 </span><span class="hs-identifier hs-var">runExceptT</span></span><span> </span><span class="annot"><span class="annottext">ExceptT BackendError IO b
-</span><a href="#local-6989586621680838894"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><a href="#local-6989586621680842184"><span class="hs-identifier hs-var">a</span></a></span><span>
 </span><span id="line-139"></span><span>      </span><span class="annot"><span class="annottext">(BackendError -&gt; ServerError) -&gt; Either BackendError b -&gt; Handler b
 forall a a1. (a -&gt; ServerError) -&gt; Either a a1 -&gt; Handler a1
-</span><a href="#local-6989586621680838927"><span class="hs-identifier hs-var">errFromEither</span></a></span><span> </span><span class="annot"><span class="annottext">BackendError -&gt; ServerError
+</span><a href="#local-6989586621680842217"><span class="hs-identifier hs-var">errFromEither</span></a></span><span> </span><span class="annot"><span class="annottext">BackendError -&gt; ServerError
 </span><a href="Unison.Server.Errors.html#backendError"><span class="hs-identifier hs-var">backendError</span></a></span><span> </span><span class="annot"><span class="annottext">Either BackendError b
-</span><a href="#local-6989586621680838893"><span class="hs-identifier hs-var">ea</span></a></span><span>
+</span><a href="#local-6989586621680842183"><span class="hs-identifier hs-var">ea</span></a></span><span>
 </span><span id="line-140"></span></pre></body></html>

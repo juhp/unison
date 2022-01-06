@@ -2,7 +2,7 @@
 </span><span id="line-2"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Unison.Codebase.Verbosity</span><span> </span><span>
 </span><span id="line-3"></span><span class="hs-keyword">where</span><span> </span><span>
 </span><span id="line-4"></span><span>
-</span><span id="line-5"></span><span class="hs-keyword">data</span><span> </span><span id="Verbosity"><span class="annot"><a href="Unison.Codebase.Verbosity.html#Verbosity"><span class="hs-identifier hs-var">Verbosity</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Default"><span class="annot"><a href="Unison.Codebase.Verbosity.html#Default"><span class="hs-identifier hs-var">Default</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="Silent"><span class="annot"><a href="Unison.Codebase.Verbosity.html#Silent"><span class="hs-identifier hs-var">Silent</span></a></span></span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680803572"><span id="local-6989586621680803574"><span class="annot"><span class="annottext">Verbosity -&gt; Verbosity -&gt; Bool
+</span><span id="line-5"></span><span class="hs-keyword">data</span><span> </span><span id="Verbosity"><span class="annot"><a href="Unison.Codebase.Verbosity.html#Verbosity"><span class="hs-identifier hs-var">Verbosity</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Default"><span class="annot"><a href="Unison.Codebase.Verbosity.html#Default"><span class="hs-identifier hs-var">Default</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="Silent"><span class="annot"><a href="Unison.Codebase.Verbosity.html#Silent"><span class="hs-identifier hs-var">Silent</span></a></span></span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680803789"><span id="local-6989586621680803791"><span class="annot"><span class="annottext">Verbosity -&gt; Verbosity -&gt; Bool
 (Verbosity -&gt; Verbosity -&gt; Bool)
 -&gt; (Verbosity -&gt; Verbosity -&gt; Bool) -&gt; Eq Verbosity
 forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
@@ -10,7 +10,7 @@ forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
 $c/= :: Verbosity -&gt; Verbosity -&gt; Bool
 == :: Verbosity -&gt; Verbosity -&gt; Bool
 $c== :: Verbosity -&gt; Verbosity -&gt; Bool
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680803565"><span id="local-6989586621680803567"><span id="local-6989586621680803569"><span class="annot"><span class="annottext">Int -&gt; Verbosity -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680803782"><span id="local-6989586621680803784"><span id="local-6989586621680803786"><span class="annot"><span class="annottext">Int -&gt; Verbosity -&gt; ShowS
 [Verbosity] -&gt; ShowS
 Verbosity -&gt; String
 (Int -&gt; Verbosity -&gt; ShowS)
@@ -29,9 +29,9 @@ $cshowsPrec :: Int -&gt; Verbosity -&gt; ShowS
 </span><span id="line-6"></span><span>
 </span><span id="line-7"></span><span class="annot"><a href="Unison.Codebase.Verbosity.html#isSilent"><span class="hs-identifier hs-type">isSilent</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Codebase.Verbosity.html#Verbosity"><span class="hs-identifier hs-type">Verbosity</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span>
 </span><span id="line-8"></span><span id="isSilent"><span class="annot"><span class="annottext">isSilent :: Verbosity -&gt; Bool
-</span><a href="Unison.Codebase.Verbosity.html#isSilent"><span class="hs-identifier hs-var hs-var">isSilent</span></a></span></span><span> </span><span id="local-6989586621680803562"><span class="annot"><span class="annottext">Verbosity
-</span><a href="#local-6989586621680803562"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Verbosity
-</span><a href="#local-6989586621680803562"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="hs-keyword">of</span><span> </span><span>
+</span><a href="Unison.Codebase.Verbosity.html#isSilent"><span class="hs-identifier hs-var hs-var">isSilent</span></a></span></span><span> </span><span id="local-6989586621680803779"><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621680803779"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621680803779"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="hs-keyword">of</span><span> </span><span>
 </span><span id="line-9"></span><span>  </span><span class="annot"><span class="annottext">Verbosity
 </span><a href="Unison.Codebase.Verbosity.html#Default"><span class="hs-identifier hs-var">Default</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">False</span></span><span>

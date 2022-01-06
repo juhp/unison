@@ -1880,6 +1880,11 @@ insert :: (Ord fact, Ord d1, Ord d2, Ord d3) => (fact, d1, d2, d3) -> Star3 fact
 insertD23 :: (Ord fact, Ord d1, Ord d2, Ord d3) => (fact, d2, d3) -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
 deleteD3 :: (Ord fact, Ord d1, Ord d2, Ord d3) => (fact, d3) -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
 deleteD2 :: (Ord fact, Ord d1, Ord d2, Ord d3) => (fact, d2) -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
+
+-- | Given a possibly-invalid Star3, which may contain the given fact in
+--   its fact set that are not related to any d1, d2, or d3, return a valid
+--   Star3, with this fact possibly removed.
+garbageCollect :: Ord fact => fact -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
 deleteFact :: (Ord fact, Ord d1, Ord d2, Ord d3) => Set fact -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
 replaceFacts :: (Ord fact, Ord d1, Ord d2, Ord d3) => (fact -> fact -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3) -> Map fact fact -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
 replaceFact :: (Ord fact, Ord d1, Ord d2, Ord d3) => fact -> fact -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
@@ -3493,9 +3498,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5DPn loc_a5DPo. Lens' (Env v_a5DPn loc_a5DPo) (TypeLookup v_a5DPn loc_a5DPo)
-termsByShortname :: forall v_a5DPn loc_a5DPo. Lens' (Env v_a5DPn loc_a5DPo) (Map Name [NamedReference v_a5DPn loc_a5DPo])
-ambientAbilities :: forall v_a5DPn loc_a5DPo. Lens' (Env v_a5DPn loc_a5DPo) [Type v_a5DPn loc_a5DPo]
+typeLookup :: forall v_a5DWD loc_a5DWE. Lens' (Env v_a5DWD loc_a5DWE) (TypeLookup v_a5DWD loc_a5DWE)
+termsByShortname :: forall v_a5DWD loc_a5DWE. Lens' (Env v_a5DWD loc_a5DWE) (Map Name [NamedReference v_a5DWD loc_a5DWE])
+ambientAbilities :: forall v_a5DWD loc_a5DWE. Lens' (Env v_a5DWD loc_a5DWE) [Type v_a5DWD loc_a5DWE]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.

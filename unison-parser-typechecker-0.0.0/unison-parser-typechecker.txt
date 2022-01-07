@@ -1698,7 +1698,6 @@ hqPrefixId :: Ord v => P v (Token (HashQualified Name))
 hqInfixId :: Ord v => P v (Token (HashQualified Name))
 hqWordyId_ :: Ord v => P v (Token (HashQualified Name))
 hqSymbolyId_ :: Ord v => P v (Token (HashQualified Name))
-hqBacktickedId_ :: Ord v => P v (Token (HashQualified Name))
 reserved :: Ord v => String -> P v (Token String)
 blank :: Ord v => P v (Token String)
 numeric :: Ord v => P v (Token String)
@@ -3498,9 +3497,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5DCL loc_a5DCM. Lens' (Env v_a5DCL loc_a5DCM) (TypeLookup v_a5DCL loc_a5DCM)
-termsByShortname :: forall v_a5DCL loc_a5DCM. Lens' (Env v_a5DCL loc_a5DCM) (Map Name [NamedReference v_a5DCL loc_a5DCM])
-ambientAbilities :: forall v_a5DCL loc_a5DCM. Lens' (Env v_a5DCL loc_a5DCM) [Type v_a5DCL loc_a5DCM]
+typeLookup :: forall v_a5DhT loc_a5DhU. Lens' (Env v_a5DhT loc_a5DhU) (TypeLookup v_a5DhT loc_a5DhU)
+termsByShortname :: forall v_a5DhT loc_a5DhU. Lens' (Env v_a5DhT loc_a5DhU) (Map Name [NamedReference v_a5DhT loc_a5DhU])
+ambientAbilities :: forall v_a5DhT loc_a5DhU. Lens' (Env v_a5DhT loc_a5DhU) [Type v_a5DhT loc_a5DhU]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.

@@ -3249,11 +3249,11 @@ instance (Unison.Var.Var v, GHC.Show.Show loc, GHC.Classes.Ord loc) => GHC.Show.
 instance (Unison.Var.Var v, GHC.Show.Show loc, GHC.Classes.Ord loc) => GHC.Show.Show (Unison.Typechecker.Context.ErrorNote v loc)
 instance (GHC.Show.Show loc, Unison.Var.Var v, GHC.Classes.Ord loc) => GHC.Show.Show (Unison.Typechecker.Context.CompilerBug v loc)
 instance GHC.Base.Functor (Unison.Typechecker.Context.Result v loc)
+instance GHC.Base.Functor f => GHC.Base.Functor (Unison.Typechecker.Context.MT v loc f)
 instance GHC.Base.Monad f => GHC.Base.Monad (Unison.Typechecker.Context.MT v loc f)
 instance GHC.Base.Monad f => Control.Monad.Fail.MonadFail (Unison.Typechecker.Context.MT v loc f)
 instance GHC.Base.Monad f => GHC.Base.Applicative (Unison.Typechecker.Context.MT v loc f)
-instance GHC.Base.Functor f => GHC.Base.Functor (Unison.Typechecker.Context.MT v loc f)
-instance GHC.Base.Monad f => Control.Monad.Reader.Class.MonadReader (Unison.Typechecker.Context.MEnv v loc) (Unison.Typechecker.Context.MT v loc f)
+instance GHC.Base.Monad f => Control.Monad.State.Class.MonadState (Unison.Typechecker.Context.Env v loc) (Unison.Typechecker.Context.MT v loc f)
 instance GHC.Base.Applicative (Unison.Typechecker.Context.Result v loc)
 instance GHC.Base.Monad (Unison.Typechecker.Context.Result v loc)
 instance (GHC.Classes.Ord loc, Unison.Var.Var v) => GHC.Show.Show (Unison.Typechecker.Context.Context v loc)
@@ -3498,9 +3498,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5DWD loc_a5DWE. Lens' (Env v_a5DWD loc_a5DWE) (TypeLookup v_a5DWD loc_a5DWE)
-termsByShortname :: forall v_a5DWD loc_a5DWE. Lens' (Env v_a5DWD loc_a5DWE) (Map Name [NamedReference v_a5DWD loc_a5DWE])
-ambientAbilities :: forall v_a5DWD loc_a5DWE. Lens' (Env v_a5DWD loc_a5DWE) [Type v_a5DWD loc_a5DWE]
+typeLookup :: forall v_a5DCL loc_a5DCM. Lens' (Env v_a5DCL loc_a5DCM) (TypeLookup v_a5DCL loc_a5DCM)
+termsByShortname :: forall v_a5DCL loc_a5DCM. Lens' (Env v_a5DCL loc_a5DCM) (Map Name [NamedReference v_a5DCL loc_a5DCM])
+ambientAbilities :: forall v_a5DCL loc_a5DCM. Lens' (Env v_a5DCL loc_a5DCM) [Type v_a5DCL loc_a5DCM]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.

@@ -15,14 +15,14 @@
 </span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Unison.Util.Rope.html"><span class="hs-identifier">Unison.Util.Rope</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">R</span></span><span>
 </span><span id="line-16"></span><span>
 </span><span id="line-17"></span><span class="hs-comment">-- Text type represented as a `Rope` of chunks</span><span>
-</span><span id="line-18"></span><span class="hs-keyword">newtype</span><span> </span><span id="Text"><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-var">Text</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Text"><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-var">Text</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Rope.html#Rope"><span class="hs-identifier hs-type">R.Rope</span></a></span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680844446"><span id="local-6989586621680844448"><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Bool
+</span><span id="line-18"></span><span class="hs-keyword">newtype</span><span> </span><span id="Text"><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-var">Text</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Text"><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-var">Text</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Rope.html#Rope"><span class="hs-identifier hs-type">R.Rope</span></a></span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680844746"><span id="local-6989586621680844748"><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Bool
 (Text -&gt; Text -&gt; Bool) -&gt; (Text -&gt; Text -&gt; Bool) -&gt; Eq Text
 forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
 /= :: Text -&gt; Text -&gt; Bool
 $c/= :: Text -&gt; Text -&gt; Bool
 == :: Text -&gt; Text -&gt; Bool
 $c== :: Text -&gt; Text -&gt; Bool
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680844430"><span id="local-6989586621680844432"><span id="local-6989586621680844434"><span id="local-6989586621680844436"><span id="local-6989586621680844438"><span id="local-6989586621680844440"><span id="local-6989586621680844442"><span class="annot"><span class="annottext">Eq Text
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680844730"><span id="local-6989586621680844732"><span id="local-6989586621680844734"><span id="local-6989586621680844736"><span id="local-6989586621680844738"><span id="local-6989586621680844740"><span id="local-6989586621680844742"><span class="annot"><span class="annottext">Eq Text
 Eq Text
 -&gt; (Text -&gt; Text -&gt; Ordering)
 -&gt; (Text -&gt; Text -&gt; Bool)
@@ -60,7 +60,7 @@ $c&lt; :: Text -&gt; Text -&gt; Bool
 compare :: Text -&gt; Text -&gt; Ordering
 $ccompare :: Text -&gt; Text -&gt; Ordering
 $cp1Ord :: Eq Text
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680844423"><span id="local-6989586621680844425"><span id="local-6989586621680844427"><span class="annot"><span class="annottext">b -&gt; Text -&gt; Text
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680844723"><span id="local-6989586621680844725"><span id="local-6989586621680844727"><span class="annot"><span class="annottext">b -&gt; Text -&gt; Text
 NonEmpty Text -&gt; Text
 Text -&gt; Text -&gt; Text
 (Text -&gt; Text -&gt; Text)
@@ -79,7 +79,7 @@ sconcat :: NonEmpty Text -&gt; Text
 $csconcat :: NonEmpty Text -&gt; Text
 &lt;&gt; :: Text -&gt; Text -&gt; Text
 $c&lt;&gt; :: Text -&gt; Text -&gt; Text
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Semigroup</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680844415"><span id="local-6989586621680844417"><span id="local-6989586621680844419"><span class="annot"><span class="annottext">Semigroup Text
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Semigroup</span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621680844715"><span id="local-6989586621680844717"><span id="local-6989586621680844719"><span class="annot"><span class="annottext">Semigroup Text
 Text
 Semigroup Text
 -&gt; Text
@@ -110,14 +110,14 @@ forall a. Monoid a =&gt; a
 </span><span id="line-24"></span><span>
 </span><span id="line-25"></span><span class="annot"><a href="Unison.Util.Text.html#one"><span class="hs-identifier hs-type">one</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Util.Text.html#singleton"><span class="hs-identifier hs-type">singleton</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span>
 </span><span id="line-26"></span><span id="one"><span class="annot"><span class="annottext">one :: Char -&gt; Text
-</span><a href="Unison.Util.Text.html#one"><span class="hs-identifier hs-var hs-var">one</span></a></span></span><span> </span><span id="local-6989586621680844409"><span class="annot"><span class="annottext">Char
-</span><a href="#local-6989586621680844409"><span class="hs-identifier hs-var">ch</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rope Chunk -&gt; Text
+</span><a href="Unison.Util.Text.html#one"><span class="hs-identifier hs-var hs-var">one</span></a></span></span><span> </span><span id="local-6989586621680844709"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621680844709"><span class="hs-identifier hs-var">ch</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rope Chunk -&gt; Text
 </span><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-var">Text</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Chunk -&gt; Rope Chunk
 forall a. Sized a =&gt; a -&gt; Rope a
 </span><a href="Unison.Util.Rope.html#one"><span class="hs-identifier hs-var">R.one</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text -&gt; Chunk
 </span><a href="Unison.Util.Text.html#chunk"><span class="hs-identifier hs-var">chunk</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; Text
 </span><span class="hs-identifier hs-var">T.singleton</span></span><span> </span><span class="annot"><span class="annottext">Char
-</span><a href="#local-6989586621680844409"><span class="hs-identifier hs-var">ch</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span>  </span><span>
+</span><a href="#local-6989586621680844709"><span class="hs-identifier hs-var">ch</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span>  </span><span>
 </span><span id="line-27"></span><span id="singleton"><span class="annot"><span class="annottext">singleton :: Char -&gt; Text
 </span><a href="Unison.Util.Text.html#singleton"><span class="hs-identifier hs-var hs-var">singleton</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Char -&gt; Text
 </span><a href="Unison.Util.Text.html#one"><span class="hs-identifier hs-var">one</span></a></span><span>
@@ -129,14 +129,14 @@ forall a. Sized a =&gt; a -&gt; Rope a
 </span><span id="line-31"></span><span>
 </span><span id="line-32"></span><span class="annot"><a href="Unison.Util.Text.html#replicate"><span class="hs-identifier hs-type">replicate</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span>
 </span><span id="line-33"></span><span id="replicate"><span class="annot"><span class="annottext">replicate :: Int -&gt; Text -&gt; Text
-</span><a href="Unison.Util.Text.html#replicate"><span class="hs-identifier hs-var hs-var">replicate</span></a></span></span><span> </span><span id="local-6989586621680844403"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844403"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621680844402"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844402"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Int
+</span><a href="Unison.Util.Text.html#replicate"><span class="hs-identifier hs-var hs-var">replicate</span></a></span></span><span> </span><span id="local-6989586621680844703"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680844703"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621680844702"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680844702"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Int
 </span><a href="Unison.Util.Text.html#size"><span class="hs-identifier hs-var">size</span></a></span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844402"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+</span><a href="#local-6989586621680844702"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">*</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844403"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+</span><a href="#local-6989586621680844703"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
 forall a. Ord a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">&lt;</span></span><span> </span><span class="annot"><span class="annottext">Int
 </span><a href="Unison.Util.Text.html#threshold"><span class="hs-identifier hs-var">threshold</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rope Chunk -&gt; Text
@@ -145,183 +145,183 @@ forall a. Sized a =&gt; a -&gt; Rope a
 </span><a href="Unison.Util.Rope.html#one"><span class="hs-identifier hs-var">R.one</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text -&gt; Chunk
 </span><a href="Unison.Util.Text.html#chunk"><span class="hs-identifier hs-var">chunk</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Text
 </span><span class="hs-identifier hs-var">T.replicate</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844403"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text -&gt; Text
+</span><a href="#local-6989586621680844703"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text -&gt; Text
 </span><a href="Unison.Util.Text.html#toText"><span class="hs-identifier hs-var">toText</span></a></span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844402"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span>
+</span><a href="#local-6989586621680844702"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span>
 </span><span id="line-34"></span><span class="annot"><a href="Unison.Util.Text.html#replicate"><span class="hs-identifier hs-var">replicate</span></a></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">Text
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text
 forall a. Monoid a =&gt; a
 </span><span class="hs-identifier hs-var">mempty</span></span><span> </span><span>
 </span><span id="line-35"></span><span class="annot"><a href="Unison.Util.Text.html#replicate"><span class="hs-identifier hs-var">replicate</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><span class="hs-number">1</span></span><span> </span><span id="local-6989586621680844396"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844396"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844396"><span class="hs-identifier hs-var">t</span></a></span><span>
-</span><span id="line-36"></span><span class="annot"><a href="Unison.Util.Text.html#replicate"><span class="hs-identifier hs-var">replicate</span></a></span><span> </span><span id="local-6989586621680844395"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844395"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621680844394"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844394"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span>
+</span><span class="hs-number">1</span></span><span> </span><span id="local-6989586621680844696"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680844696"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680844696"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><span id="line-36"></span><span class="annot"><a href="Unison.Util.Text.html#replicate"><span class="hs-identifier hs-var">replicate</span></a></span><span> </span><span id="local-6989586621680844695"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680844695"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621680844694"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680844694"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span>
 </span><span id="line-37"></span><span>  </span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Text
 </span><a href="Unison.Util.Text.html#replicate"><span class="hs-identifier hs-var">replicate</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844395"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+</span><a href="#local-6989586621680844695"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
 forall a. Integral a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">`div`</span></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">2</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844394"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+</span><a href="#local-6989586621680844694"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Text
 </span><a href="Unison.Util.Text.html#replicate"><span class="hs-identifier hs-var">replicate</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844395"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+</span><a href="#local-6989586621680844695"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844395"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+</span><a href="#local-6989586621680844695"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
 forall a. Integral a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">`div`</span></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">2</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844394"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><a href="#local-6989586621680844694"><span class="hs-identifier hs-var">t</span></a></span><span>
 </span><span id="line-38"></span><span>
 </span><span id="line-39"></span><span class="annot"><a href="Unison.Util.Text.html#chunkToText"><span class="hs-identifier hs-type">chunkToText</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">T.Text</span></span><span>
 </span><span id="line-40"></span><span id="chunkToText"><span class="annot"><span class="annottext">chunkToText :: Chunk -&gt; Text
 </span><a href="Unison.Util.Text.html#chunkToText"><span class="hs-identifier hs-var hs-var">chunkToText</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621680844391"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844391"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844391"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621680844691"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680844691"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680844691"><span class="hs-identifier hs-var">t</span></a></span><span>
 </span><span id="line-41"></span><span>
 </span><span id="line-42"></span><span class="annot"><a href="Unison.Util.Text.html#chunk"><span class="hs-identifier hs-type">chunk</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">T.Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span><span>
 </span><span id="line-43"></span><span id="chunk"><span class="annot"><span class="annottext">chunk :: Text -&gt; Chunk
-</span><a href="Unison.Util.Text.html#chunk"><span class="hs-identifier hs-var hs-var">chunk</span></a></span></span><span> </span><span id="local-6989586621680844390"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844390"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Chunk
+</span><a href="Unison.Util.Text.html#chunk"><span class="hs-identifier hs-var hs-var">chunk</span></a></span></span><span> </span><span id="local-6989586621680844690"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680844690"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Chunk
 </span><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-var">Chunk</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text -&gt; Int
 </span><span class="hs-identifier hs-var">T.length</span></span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844390"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844390"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span>
+</span><a href="#local-6989586621680844690"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680844690"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span>
 </span><span id="line-44"></span><span>
 </span><span id="line-45"></span><span class="annot"><a href="Unison.Util.Text.html#take"><span class="hs-identifier hs-type">take</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span>
 </span><span id="line-46"></span><span id="take"><span class="annot"><span class="annottext">take :: Int -&gt; Text -&gt; Text
-</span><a href="Unison.Util.Text.html#take"><span class="hs-identifier hs-var hs-var">take</span></a></span></span><span> </span><span id="local-6989586621680844387"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844387"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span id="local-6989586621680844386"><span class="annot"><span class="annottext">Rope Chunk
-</span><a href="#local-6989586621680844386"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rope Chunk -&gt; Text
+</span><a href="Unison.Util.Text.html#take"><span class="hs-identifier hs-var hs-var">take</span></a></span></span><span> </span><span id="local-6989586621680844687"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680844687"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span id="local-6989586621680844686"><span class="annot"><span class="annottext">Rope Chunk
+</span><a href="#local-6989586621680844686"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rope Chunk -&gt; Text
 </span><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-var">Text</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; Rope Chunk -&gt; Rope Chunk
 forall a. Take a =&gt; Int -&gt; a -&gt; a
 </span><a href="Unison.Util.Rope.html#take"><span class="hs-identifier hs-var">R.take</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844387"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Rope Chunk
-</span><a href="#local-6989586621680844386"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621680844687"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Rope Chunk
+</span><a href="#local-6989586621680844686"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-47"></span><span>
 </span><span id="line-48"></span><span class="annot"><a href="Unison.Util.Text.html#drop"><span class="hs-identifier hs-type">drop</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span>
 </span><span id="line-49"></span><span id="drop"><span class="annot"><span class="annottext">drop :: Int -&gt; Text -&gt; Text
-</span><a href="Unison.Util.Text.html#drop"><span class="hs-identifier hs-var hs-var">drop</span></a></span></span><span> </span><span id="local-6989586621680844383"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844383"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span id="local-6989586621680844382"><span class="annot"><span class="annottext">Rope Chunk
-</span><a href="#local-6989586621680844382"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rope Chunk -&gt; Text
+</span><a href="Unison.Util.Text.html#drop"><span class="hs-identifier hs-var hs-var">drop</span></a></span></span><span> </span><span id="local-6989586621680844683"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680844683"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span id="local-6989586621680844682"><span class="annot"><span class="annottext">Rope Chunk
+</span><a href="#local-6989586621680844682"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rope Chunk -&gt; Text
 </span><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-var">Text</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; Rope Chunk -&gt; Rope Chunk
 forall a. Drop a =&gt; Int -&gt; a -&gt; a
 </span><a href="Unison.Util.Rope.html#drop"><span class="hs-identifier hs-var">R.drop</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844383"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Rope Chunk
-</span><a href="#local-6989586621680844382"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621680844683"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Rope Chunk
+</span><a href="#local-6989586621680844682"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-50"></span><span>
 </span><span id="line-51"></span><span class="annot"><a href="Unison.Util.Text.html#uncons"><span class="hs-identifier hs-type">uncons</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-52"></span><span id="uncons"><span class="annot"><span class="annottext">uncons :: Text -&gt; Maybe (Char, Text)
-</span><a href="Unison.Util.Text.html#uncons"><span class="hs-identifier hs-var hs-var">uncons</span></a></span></span><span> </span><span id="local-6989586621680844379"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844379"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Int
+</span><a href="Unison.Util.Text.html#uncons"><span class="hs-identifier hs-var hs-var">uncons</span></a></span></span><span> </span><span id="local-6989586621680844679"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680844679"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Int
 </span><a href="Unison.Util.Text.html#size"><span class="hs-identifier hs-var">size</span></a></span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844379"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+</span><a href="#local-6989586621680844679"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">0</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe (Char, Text)
 forall a. Maybe a
 </span><span class="hs-identifier hs-var">Nothing</span></span><span>
-</span><span id="line-53"></span><span class="annot"><a href="Unison.Util.Text.html#uncons"><span class="hs-identifier hs-var">uncons</span></a></span><span> </span><span id="local-6989586621680844378"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844378"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-special">,</span></span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Text
+</span><span id="line-53"></span><span class="annot"><a href="Unison.Util.Text.html#uncons"><span class="hs-identifier hs-var">uncons</span></a></span><span> </span><span id="local-6989586621680844678"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680844678"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-special">,</span></span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Text
 </span><a href="Unison.Util.Text.html#drop"><span class="hs-identifier hs-var">drop</span></a></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">1</span></span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844378"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; (Char, Text)) -&gt; Maybe Char -&gt; Maybe (Char, Text)
+</span><a href="#local-6989586621680844678"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; (Char, Text)) -&gt; Maybe Char -&gt; Maybe (Char, Text)
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Maybe Char
 </span><a href="Unison.Util.Text.html#at"><span class="hs-identifier hs-var">at</span></a></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844378"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><a href="#local-6989586621680844678"><span class="hs-identifier hs-var">t</span></a></span><span>
 </span><span id="line-54"></span><span>
 </span><span id="line-55"></span><span class="annot"><a href="Unison.Util.Text.html#unsnoc"><span class="hs-identifier hs-type">unsnoc</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span class="hs-special">)</span><span>
 </span><span id="line-56"></span><span id="unsnoc"><span class="annot"><span class="annottext">unsnoc :: Text -&gt; Maybe (Text, Char)
-</span><a href="Unison.Util.Text.html#unsnoc"><span class="hs-identifier hs-var hs-var">unsnoc</span></a></span></span><span> </span><span id="local-6989586621680844374"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844374"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Int
+</span><a href="Unison.Util.Text.html#unsnoc"><span class="hs-identifier hs-var hs-var">unsnoc</span></a></span></span><span> </span><span id="local-6989586621680844674"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680844674"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Int
 </span><a href="Unison.Util.Text.html#size"><span class="hs-identifier hs-var">size</span></a></span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844374"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+</span><a href="#local-6989586621680844674"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">0</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe (Text, Char)
 forall a. Maybe a
 </span><span class="hs-identifier hs-var">Nothing</span></span><span>
-</span><span id="line-57"></span><span class="annot"><a href="Unison.Util.Text.html#unsnoc"><span class="hs-identifier hs-var">unsnoc</span></a></span><span> </span><span id="local-6989586621680844373"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844373"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Text
+</span><span id="line-57"></span><span class="annot"><a href="Unison.Util.Text.html#unsnoc"><span class="hs-identifier hs-var">unsnoc</span></a></span><span> </span><span id="local-6989586621680844673"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680844673"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Text
 </span><a href="Unison.Util.Text.html#take"><span class="hs-identifier hs-var">take</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text -&gt; Int
 </span><a href="Unison.Util.Text.html#size"><span class="hs-identifier hs-var">size</span></a></span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844373"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+</span><a href="#local-6989586621680844673"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844373"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">,</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; (Text, Char)) -&gt; Maybe Char -&gt; Maybe (Text, Char)
+</span><a href="#local-6989586621680844673"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">,</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; (Text, Char)) -&gt; Maybe Char -&gt; Maybe (Text, Char)
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Maybe Char
 </span><a href="Unison.Util.Text.html#at"><span class="hs-identifier hs-var">at</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text -&gt; Int
 </span><a href="Unison.Util.Text.html#size"><span class="hs-identifier hs-var">size</span></a></span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844373"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+</span><a href="#local-6989586621680844673"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844373"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><a href="#local-6989586621680844673"><span class="hs-identifier hs-var">t</span></a></span><span>
 </span><span id="line-58"></span><span>
 </span><span id="line-59"></span><span class="annot"><a href="Unison.Util.Text.html#at"><span class="hs-identifier hs-type">at</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span>
 </span><span id="line-60"></span><span id="at"><span class="annot"><span class="annottext">at :: Int -&gt; Text -&gt; Maybe Char
-</span><a href="Unison.Util.Text.html#at"><span class="hs-identifier hs-var hs-var">at</span></a></span></span><span> </span><span id="local-6989586621680844372"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844372"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span id="local-6989586621680844371"><span class="annot"><span class="annottext">Rope Chunk
-</span><a href="#local-6989586621680844371"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Rope Chunk -&gt; Maybe Char
+</span><a href="Unison.Util.Text.html#at"><span class="hs-identifier hs-var hs-var">at</span></a></span></span><span> </span><span id="local-6989586621680844672"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680844672"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span id="local-6989586621680844671"><span class="annot"><span class="annottext">Rope Chunk
+</span><a href="#local-6989586621680844671"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Rope Chunk -&gt; Maybe Char
 forall a ch. (Sized a, Index a ch) =&gt; Int -&gt; Rope a -&gt; Maybe ch
 </span><a href="Unison.Util.Rope.html#index"><span class="hs-identifier hs-var">R.index</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844372"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Rope Chunk
-</span><a href="#local-6989586621680844371"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><a href="#local-6989586621680844672"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Rope Chunk
+</span><a href="#local-6989586621680844671"><span class="hs-identifier hs-var">t</span></a></span><span>
 </span><span id="line-61"></span><span>
 </span><span id="line-62"></span><span class="annot"><a href="Unison.Util.Text.html#size"><span class="hs-identifier hs-type">size</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
 </span><span id="line-63"></span><span id="size"><span class="annot"><span class="annottext">size :: Text -&gt; Int
-</span><a href="Unison.Util.Text.html#size"><span class="hs-identifier hs-var hs-var">size</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span id="local-6989586621680844369"><span class="annot"><span class="annottext">Rope Chunk
-</span><a href="#local-6989586621680844369"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rope Chunk -&gt; Int
+</span><a href="Unison.Util.Text.html#size"><span class="hs-identifier hs-var hs-var">size</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span id="local-6989586621680844669"><span class="annot"><span class="annottext">Rope Chunk
+</span><a href="#local-6989586621680844669"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rope Chunk -&gt; Int
 forall a. Sized a =&gt; a -&gt; Int
 </span><a href="Unison.Util.Rope.html#size"><span class="hs-identifier hs-var">R.size</span></a></span><span> </span><span class="annot"><span class="annottext">Rope Chunk
-</span><a href="#local-6989586621680844369"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><a href="#local-6989586621680844669"><span class="hs-identifier hs-var">t</span></a></span><span>
 </span><span id="line-64"></span><span>
 </span><span id="line-65"></span><span class="annot"><a href="Unison.Util.Text.html#reverse"><span class="hs-identifier hs-type">reverse</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span>
 </span><span id="line-66"></span><span id="reverse"><span class="annot"><span class="annottext">reverse :: Text -&gt; Text
-</span><a href="Unison.Util.Text.html#reverse"><span class="hs-identifier hs-var hs-var">reverse</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span id="local-6989586621680844366"><span class="annot"><span class="annottext">Rope Chunk
-</span><a href="#local-6989586621680844366"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rope Chunk -&gt; Text
+</span><a href="Unison.Util.Text.html#reverse"><span class="hs-identifier hs-var hs-var">reverse</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span id="local-6989586621680844666"><span class="annot"><span class="annottext">Rope Chunk
+</span><a href="#local-6989586621680844666"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rope Chunk -&gt; Text
 </span><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-var">Text</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Rope Chunk -&gt; Rope Chunk
 forall a. Reverse a =&gt; a -&gt; a
 </span><a href="Unison.Util.Rope.html#reverse"><span class="hs-identifier hs-var">R.reverse</span></a></span><span> </span><span class="annot"><span class="annottext">Rope Chunk
-</span><a href="#local-6989586621680844366"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621680844666"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-67"></span><span>
 </span><span id="line-68"></span><span class="annot"><a href="Unison.Util.Text.html#fromUtf8"><span class="hs-identifier hs-type">fromUtf8</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Util.Bytes.html#Bytes"><span class="hs-identifier hs-type">B.Bytes</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span>
 </span><span id="line-69"></span><span id="fromUtf8"><span class="annot"><span class="annottext">fromUtf8 :: Bytes -&gt; Either String Text
-</span><a href="Unison.Util.Text.html#fromUtf8"><span class="hs-identifier hs-var hs-var">fromUtf8</span></a></span></span><span> </span><span id="local-6989586621680844363"><span class="annot"><span class="annottext">Bytes
-</span><a href="#local-6989586621680844363"><span class="hs-identifier hs-var">bs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span>
+</span><a href="Unison.Util.Text.html#fromUtf8"><span class="hs-identifier hs-var hs-var">fromUtf8</span></a></span></span><span> </span><span id="local-6989586621680844663"><span class="annot"><span class="annottext">Bytes
+</span><a href="#local-6989586621680844663"><span class="hs-identifier hs-var">bs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span>
 </span><span id="line-70"></span><span>  </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Either UnicodeException Text
 </span><span class="hs-identifier hs-var">T.decodeUtf8'</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bytes -&gt; ByteString
 </span><a href="Unison.Util.Bytes.html#toByteString"><span class="hs-identifier hs-var">B.toByteString</span></a></span><span> </span><span class="annot"><span class="annottext">Bytes
-</span><a href="#local-6989586621680844363"><span class="hs-identifier hs-var">bs</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-71"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621680844360"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844360"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Either String Text
+</span><a href="#local-6989586621680844663"><span class="hs-identifier hs-var">bs</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-71"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621680844660"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680844660"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Either String Text
 forall a b. b -&gt; Either a b
 </span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text -&gt; Text
 </span><a href="Unison.Util.Text.html#fromText"><span class="hs-identifier hs-var">fromText</span></a></span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844360"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-72"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621680844358"><span class="annot"><span class="annottext">UnicodeException
-</span><a href="#local-6989586621680844358"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String Text
+</span><a href="#local-6989586621680844660"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-72"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621680844658"><span class="annot"><span class="annottext">UnicodeException
+</span><a href="#local-6989586621680844658"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String Text
 forall a b. a -&gt; Either a b
 </span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">UnicodeException -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">UnicodeException
-</span><a href="#local-6989586621680844358"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621680844658"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-73"></span><span>
 </span><span id="line-74"></span><span class="annot"><a href="Unison.Util.Text.html#toUtf8"><span class="hs-identifier hs-type">toUtf8</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.Bytes.html#Bytes"><span class="hs-identifier hs-type">B.Bytes</span></a></span><span>
 </span><span id="line-75"></span><span id="toUtf8"><span class="annot"><span class="annottext">toUtf8 :: Text -&gt; Bytes
-</span><a href="Unison.Util.Text.html#toUtf8"><span class="hs-identifier hs-var hs-var">toUtf8</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span id="local-6989586621680844355"><span class="annot"><span class="annottext">Rope Chunk
-</span><a href="#local-6989586621680844355"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rope Chunk -&gt; Bytes
+</span><a href="Unison.Util.Text.html#toUtf8"><span class="hs-identifier hs-var hs-var">toUtf8</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span id="local-6989586621680844655"><span class="annot"><span class="annottext">Rope Chunk
+</span><a href="#local-6989586621680844655"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rope Chunk -&gt; Bytes
 </span><a href="Unison.Util.Bytes.html#Bytes"><span class="hs-identifier hs-var">B.Bytes</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Chunk -&gt; Chunk) -&gt; Rope Chunk -&gt; Rope Chunk
 forall b a. Sized b =&gt; (a -&gt; b) -&gt; Rope a -&gt; Rope b
 </span><a href="Unison.Util.Rope.html#map"><span class="hs-identifier hs-var">R.map</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ByteString -&gt; Chunk
@@ -332,29 +332,29 @@ forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
 forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
 </span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Chunk -&gt; Text
 </span><a href="Unison.Util.Text.html#chunkToText"><span class="hs-identifier hs-var">chunkToText</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Rope Chunk
-</span><a href="#local-6989586621680844355"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621680844655"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-76"></span><span>
 </span><span id="line-77"></span><span class="annot"><a href="Unison.Util.Text.html#fromText"><span class="hs-identifier hs-type">fromText</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">T.Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span>
 </span><span id="line-78"></span><span id="fromText"><span class="annot"><span class="annottext">fromText :: Text -&gt; Text
-</span><a href="Unison.Util.Text.html#fromText"><span class="hs-identifier hs-var hs-var">fromText</span></a></span></span><span> </span><span id="local-6989586621680844349"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844349"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Bool
+</span><a href="Unison.Util.Text.html#fromText"><span class="hs-identifier hs-var hs-var">fromText</span></a></span></span><span> </span><span id="local-6989586621680844649"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680844649"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Bool
 </span><span class="hs-identifier hs-var">T.null</span></span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844349"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680844649"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text
 forall a. Monoid a =&gt; a
 </span><span class="hs-identifier hs-var">mempty</span></span><span>
-</span><span id="line-79"></span><span class="annot"><a href="Unison.Util.Text.html#fromText"><span class="hs-identifier hs-var">fromText</span></a></span><span> </span><span id="local-6989586621680844347"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844347"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rope Chunk -&gt; Text
+</span><span id="line-79"></span><span class="annot"><a href="Unison.Util.Text.html#fromText"><span class="hs-identifier hs-var">fromText</span></a></span><span> </span><span id="local-6989586621680844647"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680844647"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rope Chunk -&gt; Text
 </span><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-var">Text</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Chunk] -&gt; Rope Chunk
-</span><a href="#local-6989586621680844346"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text -&gt; Chunk
+</span><a href="#local-6989586621680844646"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text -&gt; Chunk
 </span><a href="Unison.Util.Text.html#chunk"><span class="hs-identifier hs-var">chunk</span></a></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; Chunk) -&gt; [Text] -&gt; [Chunk]
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; [Text]
 </span><span class="hs-identifier hs-var">T.chunksOf</span></span><span> </span><span class="annot"><span class="annottext">Int
 </span><a href="Unison.Util.Text.html#threshold"><span class="hs-identifier hs-var">threshold</span></a></span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844347"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621680844647"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
 </span><span id="line-80"></span><span>  </span><span class="hs-keyword">where</span><span>
-</span><span id="line-81"></span><span>  </span><span id="local-6989586621680844346"><span class="annot"><span class="annottext">go :: [Chunk] -&gt; Rope Chunk
-</span><a href="#local-6989586621680844346"><span class="hs-identifier hs-var hs-var">go</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Rope Chunk -&gt; Chunk -&gt; Rope Chunk)
+</span><span id="line-81"></span><span>  </span><span id="local-6989586621680844646"><span class="annot"><span class="annottext">go :: [Chunk] -&gt; Rope Chunk
+</span><a href="#local-6989586621680844646"><span class="hs-identifier hs-var hs-var">go</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Rope Chunk -&gt; Chunk -&gt; Rope Chunk)
 -&gt; Rope Chunk -&gt; [Chunk] -&gt; Rope Chunk
 forall (t :: * -&gt; *) b a.
 Foldable t =&gt;
@@ -376,11 +376,11 @@ forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
 </span><span id="line-86"></span><span>
 </span><span id="line-87"></span><span class="annot"><a href="Unison.Util.Text.html#toString"><span class="hs-identifier hs-type">toString</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Util.Text.html#unpack"><span class="hs-identifier hs-type">unpack</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
 </span><span id="line-88"></span><span id="toString"><span class="annot"><span class="annottext">toString :: Text -&gt; String
-</span><a href="Unison.Util.Text.html#toString"><span class="hs-identifier hs-var hs-var">toString</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span id="local-6989586621680844339"><span class="annot"><span class="annottext">Rope Chunk
-</span><a href="#local-6989586621680844339"><span class="hs-identifier hs-var">bs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rope Chunk -&gt; [Chunk]
+</span><a href="Unison.Util.Text.html#toString"><span class="hs-identifier hs-var hs-var">toString</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span id="local-6989586621680844639"><span class="annot"><span class="annottext">Rope Chunk
+</span><a href="#local-6989586621680844639"><span class="hs-identifier hs-var">bs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rope Chunk -&gt; [Chunk]
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; [a]
 </span><span class="hs-identifier hs-var">toList</span></span><span> </span><span class="annot"><span class="annottext">Rope Chunk
-</span><a href="#local-6989586621680844339"><span class="hs-identifier hs-var">bs</span></a></span><span> </span><span class="annot"><span class="annottext">[Chunk] -&gt; (Chunk -&gt; String) -&gt; String
+</span><a href="#local-6989586621680844639"><span class="hs-identifier hs-var">bs</span></a></span><span> </span><span class="annot"><span class="annottext">[Chunk] -&gt; (Chunk -&gt; String) -&gt; String
 forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
 </span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text -&gt; String
 </span><span class="hs-identifier hs-var">T.unpack</span></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; String) -&gt; (Chunk -&gt; Text) -&gt; Chunk -&gt; String
@@ -396,8 +396,8 @@ forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
 </span><span id="line-93"></span><span>
 </span><span id="line-94"></span><span class="annot"><a href="Unison.Util.Text.html#toText"><span class="hs-identifier hs-type">toText</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">T.Text</span></span><span>
 </span><span id="line-95"></span><span id="toText"><span class="annot"><span class="annottext">toText :: Text -&gt; Text
-</span><a href="Unison.Util.Text.html#toText"><span class="hs-identifier hs-var hs-var">toText</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span id="local-6989586621680844337"><span class="annot"><span class="annottext">Rope Chunk
-</span><a href="#local-6989586621680844337"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Text] -&gt; Text
+</span><a href="Unison.Util.Text.html#toText"><span class="hs-identifier hs-var hs-var">toText</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span id="local-6989586621680844637"><span class="annot"><span class="annottext">Rope Chunk
+</span><a href="#local-6989586621680844637"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Text] -&gt; Text
 </span><span class="hs-identifier hs-var">T.concat</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Chunk -&gt; Text
 </span><a href="Unison.Util.Text.html#chunkToText"><span class="hs-identifier hs-var">chunkToText</span></a></span><span> </span><span class="annot"><span class="annottext">(Chunk -&gt; Text) -&gt; [Chunk] -&gt; [Text]
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
@@ -406,117 +406,117 @@ forall b a. (b -&gt; Maybe (a, b)) -&gt; b -&gt; [a]
 </span><span class="hs-identifier hs-var">unfoldr</span></span><span> </span><span class="annot"><span class="annottext">Rope Chunk -&gt; Maybe (Chunk, Rope Chunk)
 forall a. Sized a =&gt; Rope a -&gt; Maybe (a, Rope a)
 </span><a href="Unison.Util.Rope.html#uncons"><span class="hs-identifier hs-var">R.uncons</span></a></span><span> </span><span class="annot"><span class="annottext">Rope Chunk
-</span><a href="#local-6989586621680844337"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621680844637"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-96"></span><span class="hs-pragma">{-# inline</span><span> </span><span class="annot"><a href="Unison.Util.Text.html#toText"><span class="hs-pragma hs-type">toText</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
 </span><span id="line-97"></span><span>
-</span><span id="line-98"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680844332"><span class="annot"><span class="hs-identifier hs-type">Eq</span></span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span></span><span> </span><span class="hs-keyword">where</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span><span> </span><span id="local-6989586621680844331"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844331"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621680844330"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844330"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621680844329"><span class="annot"><span class="annottext">== :: Chunk -&gt; Chunk -&gt; Bool
-</span><span class="hs-operator hs-var hs-var hs-var hs-var">==</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span><span> </span><span id="local-6989586621680844328"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844328"><span class="hs-identifier hs-var">n2</span></a></span></span><span> </span><span id="local-6989586621680844327"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844327"><span class="hs-identifier hs-var">a2</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844331"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+</span><span id="line-98"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680844632"><span class="annot"><span class="hs-identifier hs-type">Eq</span></span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span></span><span> </span><span class="hs-keyword">where</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span><span> </span><span id="local-6989586621680844631"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680844631"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621680844630"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680844630"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621680844629"><span class="annot"><span class="annottext">== :: Chunk -&gt; Chunk -&gt; Bool
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">==</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span><span> </span><span id="local-6989586621680844628"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680844628"><span class="hs-identifier hs-var">n2</span></a></span></span><span> </span><span id="local-6989586621680844627"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680844627"><span class="hs-identifier hs-var">a2</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680844631"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844328"><span class="hs-identifier hs-var">n2</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><a href="#local-6989586621680844628"><span class="hs-identifier hs-var">n2</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
 </span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844330"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Bool
+</span><a href="#local-6989586621680844630"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844327"><span class="hs-identifier hs-var">a2</span></a></span><span>
-</span><span id="line-99"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680844312"><span id="local-6989586621680844314"><span id="local-6989586621680844316"><span id="local-6989586621680844318"><span id="local-6989586621680844320"><span id="local-6989586621680844322"><span class="annot"><span class="hs-identifier hs-type">Ord</span></span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span></span></span></span></span></span></span><span> </span><span class="hs-keyword">where</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621680844311"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844311"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621680844310"><span class="annot"><span class="annottext">compare :: Chunk -&gt; Chunk -&gt; Ordering
+</span><a href="#local-6989586621680844627"><span class="hs-identifier hs-var">a2</span></a></span><span>
+</span><span id="line-99"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680844612"><span id="local-6989586621680844614"><span id="local-6989586621680844616"><span id="local-6989586621680844618"><span id="local-6989586621680844620"><span id="local-6989586621680844622"><span class="annot"><span class="hs-identifier hs-type">Ord</span></span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span></span></span></span></span></span></span><span> </span><span class="hs-keyword">where</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621680844611"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680844611"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621680844610"><span class="annot"><span class="annottext">compare :: Chunk -&gt; Chunk -&gt; Ordering
 </span><span class="hs-operator hs-var hs-var hs-var hs-var">`compare`</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621680844308"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844308"><span class="hs-identifier hs-var">a2</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Ordering
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621680844608"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680844608"><span class="hs-identifier hs-var">a2</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Ordering
 forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
 </span><span class="hs-identifier hs-var">compare</span></span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844311"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844308"><span class="hs-identifier hs-var">a2</span></a></span><span>
-</span><span id="line-100"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680844303"><span id="local-6989586621680844305"><span class="annot"><span class="hs-identifier hs-type">Semigroup</span></span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621680844302"><span class="annot"><span class="annottext">&lt;&gt; :: Chunk -&gt; Chunk -&gt; Chunk
+</span><a href="#local-6989586621680844611"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680844608"><span class="hs-identifier hs-var">a2</span></a></span><span>
+</span><span id="line-100"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680844603"><span id="local-6989586621680844605"><span class="annot"><span class="hs-identifier hs-type">Semigroup</span></span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621680844602"><span class="annot"><span class="annottext">&lt;&gt; :: Chunk -&gt; Chunk -&gt; Chunk
 </span><span class="hs-operator hs-var hs-var hs-var hs-var">(&lt;&gt;)</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Chunk -&gt; Chunk -&gt; Chunk
 forall a. Monoid a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-identifier hs-var">mappend</span></span><span>
-</span><span id="line-101"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680844297"><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-102"></span><span>  </span><span id="local-6989586621680844296"><span class="annot"><span class="annottext">mempty :: Chunk
+</span><span id="line-101"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680844597"><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-102"></span><span>  </span><span id="local-6989586621680844596"><span class="annot"><span class="annottext">mempty :: Chunk
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var">mempty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Chunk
 </span><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-var">Chunk</span></a></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">Text
 forall a. Monoid a =&gt; a
 </span><span class="hs-identifier hs-var">mempty</span></span><span>
-</span><span id="line-103"></span><span>  </span><span id="local-6989586621680844295"><span class="annot"><span class="annottext">mappend :: Chunk -&gt; Chunk -&gt; Chunk
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var">mappend</span></span></span><span> </span><span id="local-6989586621680844294"><span class="annot"><span class="annottext">Chunk
-</span><a href="#local-6989586621680844294"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span id="local-6989586621680844293"><span class="annot"><span class="annottext">Chunk
-</span><a href="#local-6989586621680844293"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Chunk
+</span><span id="line-103"></span><span>  </span><span id="local-6989586621680844595"><span class="annot"><span class="annottext">mappend :: Chunk -&gt; Chunk -&gt; Chunk
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">mappend</span></span></span><span> </span><span id="local-6989586621680844594"><span class="annot"><span class="annottext">Chunk
+</span><a href="#local-6989586621680844594"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span id="local-6989586621680844593"><span class="annot"><span class="annottext">Chunk
+</span><a href="#local-6989586621680844593"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Chunk
 </span><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-var">Chunk</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Chunk -&gt; Int
 forall a. Sized a =&gt; a -&gt; Int
 </span><a href="Unison.Util.Rope.html#size"><span class="hs-identifier hs-var">R.size</span></a></span><span> </span><span class="annot"><span class="annottext">Chunk
-</span><a href="#local-6989586621680844294"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+</span><a href="#local-6989586621680844594"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Chunk -&gt; Int
 forall a. Sized a =&gt; a -&gt; Int
 </span><a href="Unison.Util.Rope.html#size"><span class="hs-identifier hs-var">R.size</span></a></span><span> </span><span class="annot"><span class="annottext">Chunk
-</span><a href="#local-6989586621680844293"><span class="hs-identifier hs-var">r</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Chunk -&gt; Text
+</span><a href="#local-6989586621680844593"><span class="hs-identifier hs-var">r</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Chunk -&gt; Text
 </span><a href="Unison.Util.Text.html#chunkToText"><span class="hs-identifier hs-var">chunkToText</span></a></span><span> </span><span class="annot"><span class="annottext">Chunk
-</span><a href="#local-6989586621680844294"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+</span><a href="#local-6989586621680844594"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Chunk -&gt; Text
 </span><a href="Unison.Util.Text.html#chunkToText"><span class="hs-identifier hs-var">chunkToText</span></a></span><span> </span><span class="annot"><span class="annottext">Chunk
-</span><a href="#local-6989586621680844293"><span class="hs-identifier hs-var">r</span></a></span><span class="hs-special">)</span><span> </span><span>
+</span><a href="#local-6989586621680844593"><span class="hs-identifier hs-var">r</span></a></span><span class="hs-special">)</span><span> </span><span>
 </span><span id="line-104"></span><span>
-</span><span id="line-105"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Unison.Util.Rope.html#Sized"><span class="hs-identifier hs-type">R.Sized</span></a></span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span><span> </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621680844289"><span class="annot"><span class="annottext">size :: Chunk -&gt; Int
-</span><a href="#local-6989586621680844289"><span class="hs-identifier hs-var hs-var hs-var hs-var">size</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span><span> </span><span id="local-6989586621680844288"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844288"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span id="line-105"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Unison.Util.Rope.html#Sized"><span class="hs-identifier hs-type">R.Sized</span></a></span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span><span> </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621680844589"><span class="annot"><span class="annottext">size :: Chunk -&gt; Int
+</span><a href="#local-6989586621680844589"><span class="hs-identifier hs-var hs-var hs-var hs-var">size</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span><span> </span><span id="local-6989586621680844588"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680844588"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="annot"><span class="annottext">Text
 </span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844288"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span>
+</span><a href="#local-6989586621680844588"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span>
 </span><span id="line-106"></span><span>
 </span><span id="line-107"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Unison.Util.Rope.html#Drop"><span class="hs-identifier hs-type">R.Drop</span></a></span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span><span> </span><span class="hs-keyword">where</span><span> </span><span>
-</span><span id="line-108"></span><span>  </span><span id="local-6989586621680844285"><span class="annot"><span class="annottext">drop :: Int -&gt; Chunk -&gt; Chunk
-</span><a href="#local-6989586621680844285"><span class="hs-identifier hs-var hs-var hs-var hs-var">drop</span></a></span></span><span> </span><span id="local-6989586621680844284"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844284"><span class="hs-identifier hs-var">k</span></a></span></span><span> </span><span id="local-6989586621680844283"><span class="annot"><span class="annottext">c :: Chunk
-</span><a href="#local-6989586621680844283"><span class="hs-identifier hs-var">c</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span><span> </span><span id="local-6989586621680844282"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844282"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621680844281"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844281"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span>
+</span><span id="line-108"></span><span>  </span><span id="local-6989586621680844585"><span class="annot"><span class="annottext">drop :: Int -&gt; Chunk -&gt; Chunk
+</span><a href="#local-6989586621680844585"><span class="hs-identifier hs-var hs-var hs-var hs-var">drop</span></a></span></span><span> </span><span id="local-6989586621680844584"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680844584"><span class="hs-identifier hs-var">k</span></a></span></span><span> </span><span id="local-6989586621680844583"><span class="annot"><span class="annottext">c :: Chunk
+</span><a href="#local-6989586621680844583"><span class="hs-identifier hs-var">c</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span><span> </span><span id="local-6989586621680844582"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680844582"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621680844581"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680844581"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span>
 </span><span id="line-109"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844284"><span class="hs-identifier hs-var">k</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+</span><a href="#local-6989586621680844584"><span class="hs-identifier hs-var">k</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
 forall a. Ord a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">&gt;=</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844282"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Chunk
+</span><a href="#local-6989586621680844582"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Chunk
 forall a. Monoid a =&gt; a
 </span><span class="hs-identifier hs-var">mempty</span></span><span>
 </span><span id="line-110"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844284"><span class="hs-identifier hs-var">k</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+</span><a href="#local-6989586621680844584"><span class="hs-identifier hs-var">k</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
 forall a. Ord a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">&lt;=</span></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">0</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Chunk
-</span><a href="#local-6989586621680844283"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span>
+</span><a href="#local-6989586621680844583"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span>
 </span><span id="line-111"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Chunk
 </span><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-var">Chunk</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844282"><span class="hs-identifier hs-var">n</span></a></span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+</span><a href="#local-6989586621680844582"><span class="hs-identifier hs-var">n</span></a></span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-glyph hs-var">-</span></span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844284"><span class="hs-identifier hs-var">k</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Text
+</span><a href="#local-6989586621680844584"><span class="hs-identifier hs-var">k</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Text
 </span><span class="hs-identifier hs-var">T.drop</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844284"><span class="hs-identifier hs-var">k</span></a></span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844281"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621680844584"><span class="hs-identifier hs-var">k</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680844581"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-112"></span><span>
 </span><span id="line-113"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Unison.Util.Rope.html#Take"><span class="hs-identifier hs-type">R.Take</span></a></span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span><span> </span><span class="hs-keyword">where</span><span> </span><span>
-</span><span id="line-114"></span><span>  </span><span id="local-6989586621680844276"><span class="annot"><span class="annottext">take :: Int -&gt; Chunk -&gt; Chunk
-</span><a href="#local-6989586621680844276"><span class="hs-identifier hs-var hs-var hs-var hs-var">take</span></a></span></span><span> </span><span id="local-6989586621680844275"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844275"><span class="hs-identifier hs-var">k</span></a></span></span><span> </span><span id="local-6989586621680844274"><span class="annot"><span class="annottext">c :: Chunk
-</span><a href="#local-6989586621680844274"><span class="hs-identifier hs-var">c</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span><span> </span><span id="local-6989586621680844273"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844273"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621680844272"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844272"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-114"></span><span>  </span><span id="local-6989586621680844576"><span class="annot"><span class="annottext">take :: Int -&gt; Chunk -&gt; Chunk
+</span><a href="#local-6989586621680844576"><span class="hs-identifier hs-var hs-var hs-var hs-var">take</span></a></span></span><span> </span><span id="local-6989586621680844575"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680844575"><span class="hs-identifier hs-var">k</span></a></span></span><span> </span><span id="local-6989586621680844574"><span class="annot"><span class="annottext">c :: Chunk
+</span><a href="#local-6989586621680844574"><span class="hs-identifier hs-var">c</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span><span> </span><span id="local-6989586621680844573"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680844573"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621680844572"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680844572"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span>
 </span><span id="line-115"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844275"><span class="hs-identifier hs-var">k</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+</span><a href="#local-6989586621680844575"><span class="hs-identifier hs-var">k</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
 forall a. Ord a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">&gt;=</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844273"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Chunk
-</span><a href="#local-6989586621680844274"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span>
+</span><a href="#local-6989586621680844573"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Chunk
+</span><a href="#local-6989586621680844574"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span>
 </span><span id="line-116"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844275"><span class="hs-identifier hs-var">k</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+</span><a href="#local-6989586621680844575"><span class="hs-identifier hs-var">k</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
 forall a. Ord a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">&lt;=</span></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">0</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Chunk
@@ -525,48 +525,48 @@ forall a. Monoid a =&gt; a
 </span><span id="line-117"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Chunk
 </span><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-var">Chunk</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844275"><span class="hs-identifier hs-var">k</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Text
+</span><a href="#local-6989586621680844575"><span class="hs-identifier hs-var">k</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Text
 </span><span class="hs-identifier hs-var">T.take</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844275"><span class="hs-identifier hs-var">k</span></a></span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844272"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621680844575"><span class="hs-identifier hs-var">k</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680844572"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-118"></span><span>
 </span><span id="line-119"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Unison.Util.Rope.html#Index"><span class="hs-identifier hs-type">R.Index</span></a></span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-120"></span><span>  </span><span id="local-6989586621680844268"><span class="annot"><span class="annottext">unsafeIndex :: Int -&gt; Chunk -&gt; Char
-</span><a href="Unison.Util.Rope.html#unsafeIndex"><span class="hs-identifier hs-var hs-var hs-var hs-var">unsafeIndex</span></a></span></span><span> </span><span id="local-6989586621680844266"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844266"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621680844265"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844265"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Int -&gt; Char
+</span><span id="line-120"></span><span>  </span><span id="local-6989586621680844568"><span class="annot"><span class="annottext">unsafeIndex :: Int -&gt; Chunk -&gt; Char
+</span><a href="Unison.Util.Rope.html#unsafeIndex"><span class="hs-identifier hs-var hs-var hs-var hs-var">unsafeIndex</span></a></span></span><span> </span><span id="local-6989586621680844566"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680844566"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621680844565"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680844565"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Int -&gt; Char
 </span><span class="hs-identifier hs-var">T.index</span></span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844265"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844266"><span class="hs-identifier hs-var">i</span></a></span><span>
+</span><a href="#local-6989586621680844565"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680844566"><span class="hs-identifier hs-var">i</span></a></span><span>
 </span><span id="line-121"></span><span>
 </span><span id="line-122"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Unison.Util.Rope.html#Reverse"><span class="hs-identifier hs-type">R.Reverse</span></a></span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span><span> </span><span class="hs-keyword">where</span><span> </span><span>
-</span><span id="line-123"></span><span>  </span><span id="local-6989586621680844261"><span class="annot"><span class="annottext">reverse :: Chunk -&gt; Chunk
-</span><a href="#local-6989586621680844261"><span class="hs-identifier hs-var hs-var hs-var hs-var">reverse</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span><span> </span><span id="local-6989586621680844260"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844260"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621680844259"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844259"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Chunk
+</span><span id="line-123"></span><span>  </span><span id="local-6989586621680844561"><span class="annot"><span class="annottext">reverse :: Chunk -&gt; Chunk
+</span><a href="#local-6989586621680844561"><span class="hs-identifier hs-var hs-var hs-var hs-var">reverse</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-type">Chunk</span></a></span><span> </span><span id="local-6989586621680844560"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621680844560"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621680844559"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680844559"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Text -&gt; Chunk
 </span><a href="Unison.Util.Text.html#Chunk"><span class="hs-identifier hs-var">Chunk</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621680844260"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text -&gt; Text
+</span><a href="#local-6989586621680844560"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text -&gt; Text
 </span><span class="hs-identifier hs-var">T.reverse</span></span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844259"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621680844559"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-124"></span><span>
-</span><span id="line-125"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Unison.Util.Rope.html#Sized"><span class="hs-identifier hs-type">R.Sized</span></a></span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621680844256"><span class="annot"><span class="annottext">size :: Text -&gt; Int
-</span><a href="#local-6989586621680844256"><span class="hs-identifier hs-var hs-var hs-var hs-var">size</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span id="local-6989586621680844255"><span class="annot"><span class="annottext">Rope Chunk
-</span><a href="#local-6989586621680844255"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rope Chunk -&gt; Int
+</span><span id="line-125"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Unison.Util.Rope.html#Sized"><span class="hs-identifier hs-type">R.Sized</span></a></span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621680844556"><span class="annot"><span class="annottext">size :: Text -&gt; Int
+</span><a href="#local-6989586621680844556"><span class="hs-identifier hs-var hs-var hs-var hs-var">size</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span id="local-6989586621680844555"><span class="annot"><span class="annottext">Rope Chunk
+</span><a href="#local-6989586621680844555"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rope Chunk -&gt; Int
 forall a. Sized a =&gt; a -&gt; Int
 </span><a href="Unison.Util.Rope.html#size"><span class="hs-identifier hs-var">R.size</span></a></span><span> </span><span class="annot"><span class="annottext">Rope Chunk
-</span><a href="#local-6989586621680844255"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><a href="#local-6989586621680844555"><span class="hs-identifier hs-var">t</span></a></span><span>
 </span><span id="line-126"></span><span>
-</span><span id="line-127"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680844250"><span id="local-6989586621680844253"><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-128"></span><span>  </span><span id="local-6989586621680844248"><span class="annot"><span class="annottext">show :: Text -&gt; String
-</span><a href="#local-6989586621680844248"><span class="hs-identifier hs-var hs-var hs-var hs-var">show</span></a></span></span><span> </span><span id="local-6989586621680844247"><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844247"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; String
+</span><span id="line-127"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621680844550"><span id="local-6989586621680844553"><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-128"></span><span>  </span><span id="local-6989586621680844548"><span class="annot"><span class="annottext">show :: Text -&gt; String
+</span><a href="#local-6989586621680844548"><span class="hs-identifier hs-var hs-var hs-var hs-var">show</span></a></span></span><span> </span><span id="local-6989586621680844547"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621680844547"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text -&gt; Text
 </span><a href="Unison.Util.Text.html#toText"><span class="hs-identifier hs-var">toText</span></a></span><span> </span><span class="annot"><span class="annottext">Text
-</span><a href="#local-6989586621680844247"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621680844547"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-129"></span><span>
 </span><span id="line-130"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IsString</span></span><span> </span><span class="annot"><a href="Unison.Util.Text.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-131"></span><span>   </span><span id="local-6989586621680844244"><span class="annot"><span class="annottext">fromString :: String -&gt; Text
+</span><span id="line-131"></span><span>   </span><span id="local-6989586621680844544"><span class="annot"><span class="annottext">fromString :: String -&gt; Text
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var">fromString</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Text
 </span><a href="Unison.Util.Text.html#pack"><span class="hs-identifier hs-var">pack</span></a></span></pre></body></html>

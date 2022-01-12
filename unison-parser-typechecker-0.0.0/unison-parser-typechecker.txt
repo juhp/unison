@@ -1820,6 +1820,16 @@ instance GHC.Show.Show v => GHC.Show.Show (Unison.TermParser.BlockElement v)
 module Unison.FileParser
 resolutionFailures :: Ord v => [ResolutionFailure v Ann] -> P v x
 file :: forall v. Var v => P v (UnisonFile v Ann)
+
+-- | Final validations and sanity checks to perform before finishing
+--   parsing.
+validateUnisonFile :: forall v. Var v => UnisonFile v Ann -> P v ()
+
+-- | Because types and abilities can introduce their own constructors and
+--   fields it's difficult to detect all duplicate terms during parsing
+--   itself. Here we collect all terms and constructors and verify that no
+--   duplicates exist in the file, triggering an error if needed.
+checkForDuplicateTermsAndConstructors :: forall v. Ord v => UnisonFile v Ann -> P v ()
 data Stanza v term
 WatchBinding :: WatchKind -> Ann -> ((Ann, v), term) -> Stanza v term
 WatchExpression :: WatchKind -> Text -> Ann -> term -> Stanza v term
@@ -3497,9 +3507,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5DJa loc_a5DJb. Lens' (Env v_a5DJa loc_a5DJb) (TypeLookup v_a5DJa loc_a5DJb)
-termsByShortname :: forall v_a5DJa loc_a5DJb. Lens' (Env v_a5DJa loc_a5DJb) (Map Name [NamedReference v_a5DJa loc_a5DJb])
-ambientAbilities :: forall v_a5DJa loc_a5DJb. Lens' (Env v_a5DJa loc_a5DJb) [Type v_a5DJa loc_a5DJb]
+typeLookup :: forall v_a5EbZ loc_a5Ec0. Lens' (Env v_a5EbZ loc_a5Ec0) (TypeLookup v_a5EbZ loc_a5Ec0)
+termsByShortname :: forall v_a5EbZ loc_a5Ec0. Lens' (Env v_a5EbZ loc_a5Ec0) (Map Name [NamedReference v_a5EbZ loc_a5Ec0])
+ambientAbilities :: forall v_a5EbZ loc_a5Ec0. Lens' (Env v_a5EbZ loc_a5Ec0) [Type v_a5EbZ loc_a5Ec0]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.

@@ -961,7 +961,7 @@ main :: FilePath -> Welcome -> Absolute -> (Config, IO ()) -> [Either Event Inpu
 
 module Unison.Codebase.TranscriptParser
 data Stanza
-Ucm :: Hidden -> ExpectingError -> [UcmCommand] -> Stanza
+Ucm :: Hidden -> ExpectingError -> [UcmLine] -> Stanza
 Unison :: Hidden -> ExpectingError -> Maybe ScratchFileName -> Text -> Stanza
 UnprocessedFence :: FenceType -> Text -> Stanza
 Unfenced :: Text -> Stanza
@@ -969,12 +969,13 @@ type FenceType = Text
 type ExpectingError = Bool
 data Hidden
 type Err = String
-data UcmCommand
-UcmCommand :: Absolute -> Text -> UcmCommand
+data UcmLine
+UcmCommand :: Absolute -> Text -> UcmLine
+UcmComment :: Text -> UcmLine
 run :: String -> FilePath -> FilePath -> [Stanza] -> Codebase IO Symbol Ann -> IO Text
 parse :: String -> Text -> Either Err [Stanza]
 parseFile :: FilePath -> IO (Either Err [Stanza])
 instance GHC.Show.Show Unison.Codebase.TranscriptParser.Hidden
 instance GHC.Classes.Eq Unison.Codebase.TranscriptParser.Hidden
 instance GHC.Show.Show Unison.Codebase.TranscriptParser.Stanza
-instance GHC.Show.Show Unison.Codebase.TranscriptParser.UcmCommand
+instance GHC.Show.Show Unison.Codebase.TranscriptParser.UcmLine

@@ -1,5 +1,6 @@
 module Unison.Util.Set
-  ( difference1,
+  ( catMaybes,
+    difference1,
     mapMaybe,
     symmetricDifference,
     Unison.Util.Set.traverse,
@@ -19,6 +20,9 @@ difference1 xs ys =
 
 symmetricDifference :: Ord a => Set a -> Set a -> Set a
 symmetricDifference a b = (a `Set.difference` b) `Set.union` (b `Set.difference` a)
+
+catMaybes :: Ord a => Set (Maybe a) -> Set a
+catMaybes = mapMaybe id
 
 mapMaybe :: Ord b => (a -> Maybe b) -> Set a -> Set b
 mapMaybe f = Set.fromList . Maybe.mapMaybe f . Set.toList

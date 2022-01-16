@@ -181,30 +181,19 @@ mapErrors f r = case r of
   CompilerBug bug es is -> CompilerBug bug (f <$> es) is
   s@(Success _ _) -> s
 
-newtype MT v loc f a = MT {
+-- | Typechecking monad
+newtype M v loc a = M {
   runM ::
     -- Data declarations in scope
     DataDeclarations v loc ->
     -- Effect declarations in scope
     EffectDeclarations v loc ->
     Env v loc ->
-    f (a, Env v loc)
+    Result v loc (a, Env v loc)
 } deriving stock (Functor)
 
--- | Typechecking monad
-type M v loc = MT v loc (Result v loc)
-
--- | Typechecking computation that, unless it crashes
--- with a compiler bug, always produces a value.
-type TotalM v loc = MT v loc (Either (CompilerBug v loc))
-
 liftResult :: Result v loc a -> M v loc a
-liftResult r = MT (\_ _ env -> (, env) <$> r)
-
-liftTotalM :: TotalM v loc a -> M v loc a
-liftTotalM (MT m) = MT $ \datas effects env -> case m datas effects env of
-  Left bug -> CompilerBug bug mempty mempty
-  Right a  -> Success mempty a
+liftResult r = M (\_ _ env -> (, env) <$> r)
 
 -- errorNote :: Cause v loc -> M v loc ()
 -- errorNote = liftResult . errorNote
@@ -216,7 +205,7 @@ modEnv :: (Env v loc -> Env v loc) -> M v loc ()
 modEnv f = modEnv' $ ((), ) . f
 
 modEnv' :: (Env v loc -> (a, Env v loc)) -> M v loc a
-modEnv' f = MT (\_ _ env -> pure . f $ env)
+modEnv' f = M (\_ _ env -> pure . f $ env)
 
 data Unknown = Data | Effect deriving Show
 
@@ -370,7 +359,7 @@ scope' p (ErrorNote cause path) = ErrorNote cause (path `mappend` pure p)
 
 -- Add `p` onto the end of the `path` of any `ErrorNote`s emitted by the action
 scope :: PathElement v loc -> M v loc a -> M v loc a
-scope p (MT m) = MT \datas effects env -> mapErrors (scope' p) (m datas effects env)
+scope p (M m) = M \datas effects env -> mapErrors (scope' p) (m datas effects env)
 
 newtype Context v loc = Context [(Element v loc, Info v loc)]
 
@@ -659,7 +648,7 @@ extendN ctx es = foldM (flip extend) ctx es
 
 -- | doesn't combine notes
 orElse :: M v loc a -> M v loc a -> M v loc a
-orElse m1 m2 = MT go where
+orElse m1 m2 = M go where
   go datas effects env = runM m1 datas effects env <|> runM m2 datas effects env
   s@(Success _ _)         <|> _ = s
   TypeError _ _           <|> r = r
@@ -674,10 +663,10 @@ orElse m1 m2 = MT go where
 -- hoistMaybe f (Result es is a) = Result es is (f a)
 
 getDataDeclarations :: M v loc (DataDeclarations v loc)
-getDataDeclarations = MT \datas _ env -> pure (datas, env)
+getDataDeclarations = M \datas _ env -> pure (datas, env)
 
 getEffectDeclarations :: M v loc (EffectDeclarations v loc)
-getEffectDeclarations = MT \_ effects env -> pure (effects, env)
+getEffectDeclarations = M \_ effects env -> pure (effects, env)
 
 compilerCrash :: CompilerBug v loc -> M v loc a
 compilerCrash bug = liftResult $ compilerBug bug
@@ -2632,11 +2621,11 @@ annotateRefs synth = ABT.visit f where
   f _ = Nothing
 
 run
-  :: (Var v, Ord loc, Functor f)
+  :: (Var v, Ord loc)
   => DataDeclarations v loc
   -> EffectDeclarations v loc
-  -> MT v loc f a
-  -> f a
+  -> M v loc a
+  -> Result v loc a
 run datas effects m =
   fmap fst
     . runM m datas effects
@@ -2660,16 +2649,16 @@ synthesizeClosed' abilities term = do
   pure $ generalizeExistentials ctx t
 
 -- Check if the given typechecking action succeeds.
-succeeds :: M v loc a -> TotalM v loc Bool
+succeeds :: M v loc a -> M v loc Bool
 succeeds m =
-  MT \datas effects env ->
+  M \datas effects env ->
     case runM m datas effects env of
-      Success _ _ -> Right (True, env)
-      TypeError _ _ -> Right (False, env)
-      CompilerBug bug _ _ -> Left bug
+      Success _ _ -> Success Seq.empty (True, env)
+      TypeError _ _ -> Success Seq.empty (False, env)
+      CompilerBug bug es is -> CompilerBug bug es is
 
 -- Check if `t1` is a subtype of `t2`. Doesn't update the typechecking context.
-isSubtype' :: (Var v, Ord loc) => Type v loc -> Type v loc -> TotalM v loc Bool
+isSubtype' :: (Var v, Ord loc) => Type v loc -> Type v loc -> M v loc Bool
 isSubtype' type1 type2 = succeeds $ do
   let vars = Set.toList $ Set.union (ABT.freeVars type1) (ABT.freeVars type2)
   reserveAll (TypeVar.underlying <$> vars)
@@ -2703,13 +2692,16 @@ isRedundant userType0 inferredType0 = do
   -- type would have caused the program not to typecheck! Ex: if user writes
   -- `: Nat -> Nat` when it has an inferred type of `a -> a`. So we only
   -- need to check the other direction to determine redundancy.
-  (liftTotalM $ isSubtype' userType inferredType) <* setContext ctx0
+  (isSubtype' userType inferredType) <* setContext ctx0
 
 -- Public interface to `isSubtype`
 isSubtype
   :: (Var v, Ord loc) => Type v loc -> Type v loc -> Either (CompilerBug v loc) Bool
 isSubtype t1 t2 =
-  run Map.empty Map.empty (isSubtype' t1 t2)
+  case run Map.empty Map.empty (isSubtype' t1 t2) of
+    Success _ b -> Right b
+    TypeError _ _ -> Left (OtherBug "unexpected TypeError from isSubtype")
+    CompilerBug bug _ _ -> Left bug
 
 isEqual
   :: (Var v, Ord loc) => Type v loc -> Type v loc -> Either (CompilerBug v loc) Bool
@@ -2735,19 +2727,20 @@ instance (Ord loc, Var v) => Show (Context v loc) where
     showElem ctx (Ann v t) = Text.unpack (Var.name v) ++ " : " ++ TP.prettyStr Nothing mempty (apply ctx t)
     showElem _ (Marker v) = "|"++Text.unpack (Var.name v)++"|"
 
-instance Monad f => Monad (MT v loc f) where
+instance Monad (M v loc) where
   return = pure
-  m >>= f = MT \datas effects env0 -> do
+  m >>= f = M \datas effects env0 -> do
     (a, env1) <- runM m datas effects env0
     runM (f a) datas effects $! env1
+  {-# INLINE (>>=) #-}
 
-instance Monad f => MonadFail.MonadFail (MT v loc f) where
+instance MonadFail.MonadFail (M v loc) where
   fail = error
 
-instance Monad f => Applicative (MT v loc f) where
-  pure a = MT (\_ _ env -> pure (a, env))
+instance Applicative (M v loc) where
+  pure a = M (\_ _ env -> pure (a, env))
   (<*>) = ap
 
-instance Monad f => MonadState (Env v loc) (MT v loc f) where
-  get = MT \_ _ env -> pure (env, env)
-  put env = MT \_ _ _ -> pure ((), env)
+instance MonadState (Env v loc) (M v loc) where
+  get = M \_ _ env -> pure (env, env)
+  put env = M \_ _ _ -> pure ((), env)

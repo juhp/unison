@@ -6,7 +6,7 @@
 </span><span id="line-6"></span><span class="hs-keyword">data</span><span> </span><span id="Position"><span class="annot"><a href="Unison.Position.html#Position"><span class="hs-identifier hs-var">Position</span></a></span></span><span>
 </span><span id="line-7"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="Absolute"><span class="annot"><a href="Unison.Position.html#Absolute"><span class="hs-identifier hs-var">Absolute</span></a></span></span><span>
 </span><span id="line-8"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="Relative"><span class="annot"><a href="Unison.Position.html#Relative"><span class="hs-identifier hs-var">Relative</span></a></span></span><span>
-</span><span id="line-9"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679191994"><span id="local-6989586621679191996"><span class="annot"><span class="annottext">Position -&gt; Position -&gt; Bool
+</span><span id="line-9"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679192006"><span id="local-6989586621679192008"><span class="annot"><span class="annottext">Position -&gt; Position -&gt; Bool
 (Position -&gt; Position -&gt; Bool)
 -&gt; (Position -&gt; Position -&gt; Bool) -&gt; Eq Position
 forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
@@ -14,7 +14,7 @@ forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
 $c/= :: Position -&gt; Position -&gt; Bool
 == :: Position -&gt; Position -&gt; Bool
 $c== :: Position -&gt; Position -&gt; Bool
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679191978"><span id="local-6989586621679191980"><span id="local-6989586621679191982"><span id="local-6989586621679191984"><span id="local-6989586621679191986"><span id="local-6989586621679191988"><span id="local-6989586621679191990"><span class="annot"><span class="annottext">Eq Position
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679191990"><span id="local-6989586621679191992"><span id="local-6989586621679191994"><span id="local-6989586621679191996"><span id="local-6989586621679191998"><span id="local-6989586621679192000"><span id="local-6989586621679192002"><span class="annot"><span class="annottext">Eq Position
 Eq Position
 -&gt; (Position -&gt; Position -&gt; Ordering)
 -&gt; (Position -&gt; Position -&gt; Bool)
@@ -52,7 +52,7 @@ $c&lt; :: Position -&gt; Position -&gt; Bool
 compare :: Position -&gt; Position -&gt; Ordering
 $ccompare :: Position -&gt; Position -&gt; Ordering
 $cp1Ord :: Eq Position
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679191971"><span id="local-6989586621679191973"><span id="local-6989586621679191975"><span class="annot"><span class="annottext">Int -&gt; Position -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679191983"><span id="local-6989586621679191985"><span id="local-6989586621679191987"><span class="annot"><span class="annottext">Int -&gt; Position -&gt; ShowS
 [Position] -&gt; ShowS
 Position -&gt; String
 (Int -&gt; Position -&gt; ShowS)

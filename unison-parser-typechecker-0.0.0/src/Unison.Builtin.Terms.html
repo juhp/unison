@@ -19,10 +19,10 @@
 </span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Unison.Var</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Var</span></span><span>
 </span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Unison.Symbol</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Symbol</span></span><span class="hs-special">)</span><span>
 </span><span id="line-21"></span><span>
-</span><span id="line-22"></span><span id="local-6989586621680809205"><span class="annot"><a href="Unison.Builtin.Terms.html#builtinTermsSrc"><span class="hs-identifier hs-type">builtinTermsSrc</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621680809205"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Symbol</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Term</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Symbol</span></span><span> </span><span class="annot"><a href="#local-6989586621680809205"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Symbol</span></span><span> </span><span class="annot"><a href="#local-6989586621680809205"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span></span><span>
+</span><span id="line-22"></span><span id="local-6989586621680809827"><span class="annot"><a href="Unison.Builtin.Terms.html#builtinTermsSrc"><span class="hs-identifier hs-type">builtinTermsSrc</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621680809827"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Symbol</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Term</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Symbol</span></span><span> </span><span class="annot"><a href="#local-6989586621680809827"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Symbol</span></span><span> </span><span class="annot"><a href="#local-6989586621680809827"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span></span><span>
 </span><span id="line-23"></span><span id="builtinTermsSrc"><span class="annot"><span class="annottext">builtinTermsSrc :: a -&gt; [(Symbol, Term Symbol a, Type Symbol a)]
-</span><a href="Unison.Builtin.Terms.html#builtinTermsSrc"><span class="hs-identifier hs-var hs-var">builtinTermsSrc</span></a></span></span><span> </span><span id="local-6989586621680809203"><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621680809203"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><a href="Unison.Builtin.Terms.html#builtinTermsSrc"><span class="hs-identifier hs-var hs-var">builtinTermsSrc</span></a></span></span><span> </span><span id="local-6989586621680809825"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621680809825"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-24"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Symbol
 forall v. Var v =&gt; Text -&gt; v
 </span><a href="Unison.Builtin.Terms.html#v"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Text
@@ -32,7 +32,7 @@ forall v a vt at ap.
 Ord v =&gt;
 a -&gt; ConstructorReference -&gt; Term2 vt at ap v a
 </span><span class="hs-identifier hs-var">Term.constructor</span></span><span> </span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621680809203"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Reference -&gt; ConstructorId -&gt; ConstructorReference
+</span><a href="#local-6989586621680809825"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Reference -&gt; ConstructorId -&gt; ConstructorReference
 forall r. r -&gt; ConstructorId -&gt; GConstructorReference r
 </span><span class="hs-identifier hs-var">ConstructorReference</span></span><span> </span><span class="annot"><span class="annottext">Reference
 </span><a href="Unison.Builtin.Decls.html#isPropagatedRef"><span class="hs-identifier hs-var">Decls.isPropagatedRef</span></a></span><span> </span><span class="annot"><span class="annottext">ConstructorId
@@ -40,7 +40,7 @@ forall r. r -&gt; ConstructorId -&gt; GConstructorReference r
 </span><span id="line-26"></span><span>      </span><span class="annot"><span class="annottext">a -&gt; Reference -&gt; Type Symbol a
 forall v a. Ord v =&gt; a -&gt; Reference -&gt; Type v a
 </span><span class="hs-identifier hs-var">Type.ref</span></span><span> </span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621680809203"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680809825"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Reference
 </span><a href="Unison.Builtin.Decls.html#isPropagatedRef"><span class="hs-identifier hs-var">Decls.isPropagatedRef</span></a></span><span>
 </span><span id="line-27"></span><span>    </span><span class="hs-special">)</span><span class="hs-special">,</span><span>
 </span><span id="line-28"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Symbol
@@ -52,7 +52,7 @@ forall v a vt at ap.
 Ord v =&gt;
 a -&gt; ConstructorReference -&gt; Term2 vt at ap v a
 </span><span class="hs-identifier hs-var">Term.constructor</span></span><span> </span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621680809203"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Reference -&gt; ConstructorId -&gt; ConstructorReference
+</span><a href="#local-6989586621680809825"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Reference -&gt; ConstructorId -&gt; ConstructorReference
 forall r. r -&gt; ConstructorId -&gt; GConstructorReference r
 </span><span class="hs-identifier hs-var">ConstructorReference</span></span><span> </span><span class="annot"><span class="annottext">Reference
 </span><a href="Unison.Builtin.Decls.html#isTestRef"><span class="hs-identifier hs-var">Decls.isTestRef</span></a></span><span> </span><span class="annot"><span class="annottext">ConstructorId
@@ -60,21 +60,21 @@ forall r. r -&gt; ConstructorId -&gt; GConstructorReference r
 </span><span id="line-30"></span><span>      </span><span class="annot"><span class="annottext">a -&gt; Reference -&gt; Type Symbol a
 forall v a. Ord v =&gt; a -&gt; Reference -&gt; Type v a
 </span><span class="hs-identifier hs-var">Type.ref</span></span><span> </span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621680809203"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680809825"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Reference
 </span><a href="Unison.Builtin.Decls.html#isTestRef"><span class="hs-identifier hs-var">Decls.isTestRef</span></a></span><span>
 </span><span id="line-31"></span><span>    </span><span class="hs-special">)</span><span>
 </span><span id="line-32"></span><span>  </span><span class="hs-special">]</span><span>
 </span><span id="line-33"></span><span>
-</span><span id="line-34"></span><span id="local-6989586621680809239"><span class="annot"><a href="Unison.Builtin.Terms.html#v"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Var</span></span><span> </span><span class="annot"><a href="#local-6989586621680809239"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621680809239"><span class="hs-identifier hs-type">v</span></a></span></span><span>
+</span><span id="line-34"></span><span id="local-6989586621680809861"><span class="annot"><a href="Unison.Builtin.Terms.html#v"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Var</span></span><span> </span><span class="annot"><a href="#local-6989586621680809861"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621680809861"><span class="hs-identifier hs-type">v</span></a></span></span><span>
 </span><span id="line-35"></span><span id="v"><span class="annot"><span class="annottext">v :: Text -&gt; v
 </span><a href="Unison.Builtin.Terms.html#v"><span class="hs-identifier hs-var hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; v
 forall v. Var v =&gt; Text -&gt; v
 </span><span class="hs-identifier hs-var">Var.named</span></span><span>
 </span><span id="line-36"></span><span>
-</span><span id="line-37"></span><span id="local-6989586621680809193"><span class="annot"><a href="Unison.Builtin.Terms.html#builtinTermsRef"><span class="hs-identifier hs-type">builtinTermsRef</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621680809193"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Map</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Symbol</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Reference.Id</span></span></span><span>
+</span><span id="line-37"></span><span id="local-6989586621680809815"><span class="annot"><a href="Unison.Builtin.Terms.html#builtinTermsRef"><span class="hs-identifier hs-type">builtinTermsRef</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621680809815"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Map</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Symbol</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Reference.Id</span></span></span><span>
 </span><span id="line-38"></span><span id="builtinTermsRef"><span class="annot"><span class="annottext">builtinTermsRef :: a -&gt; Map Symbol Id
-</span><a href="Unison.Builtin.Terms.html#builtinTermsRef"><span class="hs-identifier hs-var hs-var">builtinTermsRef</span></a></span></span><span> </span><span id="local-6989586621680809191"><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621680809191"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><a href="Unison.Builtin.Terms.html#builtinTermsRef"><span class="hs-identifier hs-var hs-var">builtinTermsRef</span></a></span></span><span> </span><span id="local-6989586621680809813"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621680809813"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
 </span><span id="line-39"></span><span>  </span><span class="annot"><span class="annottext">((Id, Term Symbol a) -&gt; Id)
 -&gt; Map Symbol (Id, Term Symbol a) -&gt; Map Symbol Id
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
@@ -109,17 +109,17 @@ forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
 -&gt; [(Symbol, Term Symbol a, Type Symbol a)]
 -&gt; [(Symbol, Term Symbol a)]
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
-</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621680809187"><span class="annot"><span class="annottext">Symbol
-</span><a href="#local-6989586621680809187"><span class="hs-identifier hs-var">v</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680809186"><span class="annot"><span class="annottext">Term Symbol a
-</span><a href="#local-6989586621680809186"><span class="hs-identifier hs-var">tm</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680809185"><span class="annot"><span class="annottext">Type Symbol a
-</span><a href="#local-6989586621680809185"><span class="hs-identifier hs-var">_tp</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Symbol
-</span><a href="#local-6989586621680809187"><span class="hs-identifier hs-var">v</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Term Symbol a
-</span><a href="#local-6989586621680809186"><span class="hs-identifier hs-var">tm</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621680809809"><span class="annot"><span class="annottext">Symbol
+</span><a href="#local-6989586621680809809"><span class="hs-identifier hs-var">v</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680809808"><span class="annot"><span class="annottext">Term Symbol a
+</span><a href="#local-6989586621680809808"><span class="hs-identifier hs-var">tm</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680809807"><span class="annot"><span class="annottext">Type Symbol a
+</span><a href="#local-6989586621680809807"><span class="hs-identifier hs-var">_tp</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Symbol
+</span><a href="#local-6989586621680809809"><span class="hs-identifier hs-var">v</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Term Symbol a
+</span><a href="#local-6989586621680809808"><span class="hs-identifier hs-var">tm</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
 </span><span id="line-43"></span><span>    </span><span class="annot"><span class="annottext">([(Symbol, Term Symbol a, Type Symbol a)] -&gt; Map Symbol Id)
 -&gt; [(Symbol, Term Symbol a, Type Symbol a)] -&gt; Map Symbol Id
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; [(Symbol, Term Symbol a, Type Symbol a)]
 forall a. a -&gt; [(Symbol, Term Symbol a, Type Symbol a)]
 </span><a href="Unison.Builtin.Terms.html#builtinTermsSrc"><span class="hs-identifier hs-var">builtinTermsSrc</span></a></span><span> </span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621680809191"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><a href="#local-6989586621680809813"><span class="hs-identifier hs-var">a</span></a></span><span>
 </span><span id="line-44"></span></pre></body></html>

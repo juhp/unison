@@ -12,6 +12,7 @@ module Unison.Referent
     fold,
     toReference,
     toReferenceId,
+    fromId,
     fromTermReference,
     fromTermReferenceId,
     fromText,
@@ -98,6 +99,9 @@ toReference = toReference'
 
 toReferenceId :: Referent -> Maybe Reference.Id
 toReferenceId = Reference.toId . toReference
+
+fromId :: Id -> Referent
+fromId = fmap Reference.fromId
 
 -- | Inject a Term Reference into a Referent
 fromTermReference :: Reference -> Referent

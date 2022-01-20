@@ -1,12 +1,14 @@
 {- ORMOLU_DISABLE -} -- Remove this when the file is ready to be auto-formatted
 module Unison.Codebase.TermEdit where
 
-import Unison.Reference (Reference)
+import Unison.Reference (TermReference)
+import Unison.Referent (Referent)
+import qualified Unison.Referent as Referent
 
-data TermEdit = Replace Reference Typing | Deprecate
+data TermEdit = Replace TermReference Typing | Deprecate
   deriving (Eq, Ord, Show)
 
-references :: TermEdit -> [Reference]
+references :: TermEdit -> [TermReference]
 references (Replace r _) = [r]
 references Deprecate = []
 
@@ -16,9 +18,12 @@ references Deprecate = []
 data Typing = Same | Subtype | Different
   deriving (Eq, Ord, Show)
 
-toReference :: TermEdit -> Maybe Reference
+toReference :: TermEdit -> Maybe TermReference
 toReference (Replace r _) = Just r
 toReference Deprecate     = Nothing
+
+toReferent :: TermEdit -> Maybe Referent
+toReferent (Replace r _) = Just (Referent.fromTermReference r)
 
 isTypePreserving :: TermEdit -> Bool
 isTypePreserving e = case e of

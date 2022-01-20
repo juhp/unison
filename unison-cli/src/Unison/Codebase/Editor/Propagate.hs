@@ -150,10 +150,12 @@ genInitialCtorMapping ::
   forall v m i . Var v => Names -> Map Reference Reference -> F m i v (Map Referent Referent)
 genInitialCtorMapping rootNames initialTypeReplacements = do
   let mappings :: (Reference,Reference) -> _ (Map Referent Referent)
-      mappings (old,new) = do
-        old <- unhashTypeComponent old
-        new <- fmap (over _2 (either Decl.toDataDecl id)) <$> unhashTypeComponent new
-        pure $ ctorMapping old new
+      mappings = \case
+        (Reference.DerivedId old, Reference.DerivedId new) -> do
+          old <- unhashTypeComponent old
+          new <- fmap (over _2 (either Decl.toDataDecl id)) <$> unhashTypeComponent new
+          pure $ ctorMapping old new
+        _ -> pure Map.empty
   Map.unions <$> traverse mappings (Map.toList initialTypeReplacements)
   where
   -- True if the unqualified versions of the names in the two sets overlap
@@ -286,20 +288,22 @@ propagate rootNames patch b = case validatePatch patch of
         Nothing        -> pure es
         Just (r, todo) -> case r of
           Reference.Builtin   _ -> collectEdits es seen todo
-          Reference.DerivedId _ -> go r todo
+          Reference.DerivedId r -> go r todo
        where
         debugCtors =
           unlines [ referentName old <> " -> " <> referentName new
                   | (old,new) <- Map.toList constructorReplacements ]
-        go r _ | debugMode && traceShow ("Rewriting: ", refName r) False = undefined
+        go r _ | debugMode && traceShow ("Rewriting: ", refName (Reference.DerivedId r)) False = undefined
         go _ _ | debugMode && trace ("** Constructor replacements:\n\n" <> debugCtors) False = undefined
         go r todo =
-          if Map.member r termEdits || Set.member r seen || Map.member r typeEdits
+          if Map.member (Reference.DerivedId r) termEdits
+              || Set.member (Reference.DerivedId r) seen
+              || Map.member (Reference.DerivedId r) typeEdits
           then collectEdits es seen todo
           else
             do
-              haveType <- eval $ IsType r
-              haveTerm <- eval $ IsTerm r
+              haveType <- eval $ IsType (Reference.DerivedId r)
+              haveTerm <- eval $ IsTerm (Reference.DerivedId r)
               let message =
                     "This reference is not a term nor a type " <> show r
                   mmayEdits | haveTerm  = doTerm r
@@ -310,15 +314,13 @@ propagate rootNames patch b = case validatePatch patch of
                 (Nothing    , seen') -> collectEdits es seen' todo
                 (Just edits', seen') -> do
                   -- plan to update the dependents of this component too
-                  dependents <- case r of
-                    Reference.Builtin{} -> eval $ GetDependents r
-                    Reference.Derived h _i -> eval $ GetDependentsOfComponent h
+                  dependents <- eval $ GetDependentsOfComponent (Reference.idToHash r)
                   let todo' = todo <> getOrdered dependents
                   collectEdits edits' seen' todo'
 
-        doType :: Reference -> F m i v (Maybe (Edits v), Set Reference)
+        doType :: Reference.Id -> F m i v (Maybe (Edits v), Set Reference)
         doType r = do
-          when debugMode $ traceM ("Rewriting type: " <> refName r)
+          when debugMode $ traceM ("Rewriting type: " <> refName (Reference.DerivedId r))
           componentMap <- unhashTypeComponent r
           let componentMap' =
                 over _2 (Decl.updateDependencies typeReplacements)
@@ -376,7 +378,7 @@ propagate rootNames patch b = case validatePatch patch of
                            constructorReplacements'
             , seen'
             )
-        doTerm :: Reference -> F m i v (Maybe (Edits v), Set Reference)
+        doTerm :: Reference.Id -> F m i v (Maybe (Edits v), Set Reference)
         doTerm r = do
           when debugMode (traceM $ "Rewriting term: " <> show r)
           componentMap <- unhashTermComponent r
@@ -389,7 +391,7 @@ propagate rootNames patch b = case validatePatch patch of
           mayComponent <- verifyTermComponent componentMap' es
           case mayComponent of
             Nothing             -> do
-              when debugMode (traceM $ refName r <> " did not typecheck after substitutions")
+              when debugMode (traceM $ refName (Reference.DerivedId r) <> " did not typecheck after substitutions")
               pure (Nothing, seen')
             Just componentMap'' -> do
               let
@@ -472,13 +474,11 @@ propagate rootNames patch b = case validatePatch patch of
   unhashTermComponent
     :: forall m v
      . (Applicative m, Var v)
-    => Reference
+    => Reference.Id
     -> F m i v (Map v (Reference, Term v _, Type v _))
-  unhashTermComponent r = case Reference.toId r of
-    Nothing -> pure mempty
-    Just r -> do
-      unhashed <- unhashTermComponent' (Reference.idToHash r)
-      pure $ fmap (over _1 Reference.DerivedId) unhashed
+  unhashTermComponent r = do
+    unhashed <- unhashTermComponent' (Reference.idToHash r)
+    pure $ fmap (over _1 Reference.DerivedId) unhashed
 
   unhashTermComponent'
     :: forall m v
@@ -529,12 +529,10 @@ propagate rootNames patch b = case validatePatch patch of
           $   runIdentity (Result.toMaybe typecheckResult)
           >>= hush
 
-unhashTypeComponent :: Var v => Reference -> F m i v (Map v (Reference, Decl v Ann))
-unhashTypeComponent r = case Reference.toId r of
-  Nothing -> pure mempty
-  Just id -> do
-    unhashed <- unhashTypeComponent' (Reference.idToHash id)
-    pure $ over _1 Reference.DerivedId <$> unhashed
+unhashTypeComponent :: Var v => Reference.Id -> F m i v (Map v (Reference, Decl v Ann))
+unhashTypeComponent r = do
+  unhashed <- unhashTypeComponent' (Reference.idToHash r)
+  pure $ over _1 Reference.DerivedId <$> unhashed
 
 unhashTypeComponent' :: Var v => Hash -> F m i v (Map v (Reference.Id, Decl v Ann))
 unhashTypeComponent' h =

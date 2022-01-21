@@ -1620,6 +1620,8 @@ pattern And' :: Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeA
 pattern Or' :: Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a
 pattern Handle' :: Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a
 pattern Apps' :: Term2 vt at ap v a -> [Term2 vt at ap v a] -> Term2 vt at ap v a
+pattern Ands' :: [Term2 vt at ap v a] -> Term2 vt at ap v a -> Term2 vt at ap v a
+pattern Ors' :: [Term2 vt at ap v a] -> Term2 vt at ap v a -> Term2 vt at ap v a
 pattern AppsPred' :: Term2 vt at ap v a -> [Term2 vt at ap v a] -> (Term2 vt at ap v a, Term2 vt at ap v a -> Bool)
 pattern BinaryApp' :: Term2 vt at ap v a -> Term2 vt at ap v a -> Term2 vt at ap v a -> Term2 vt at ap v a
 pattern BinaryApps' :: [(Term2 vt at ap v a, Term2 vt at ap v a)] -> Term2 vt at ap v a -> Term2 vt at ap v a
@@ -1716,6 +1718,8 @@ unLet :: Term2 vt at ap v a -> Maybe ([(IsTop, v, Term2 vt at ap v a)], Term2 vt
 -- | Satisfies `unLetRec (letRec bs e) == Just (bs, e)`
 unLetRecNamed :: Term2 vt at ap v a -> Maybe (IsTop, [(v, Term2 vt at ap v a)], Term2 vt at ap v a)
 unLetRec :: (Monad m, Var v) => Term2 vt at ap v a -> Maybe (IsTop, (v -> m v) -> m ([(v, Term2 vt at ap v a)], Term2 vt at ap v a))
+unAnds :: Term2 vt at ap v a -> Maybe ([Term2 vt at ap v a], Term2 vt at ap v a)
+unOrs :: Term2 vt at ap v a -> Maybe ([Term2 vt at ap v a], Term2 vt at ap v a)
 unApps :: Term2 vt at ap v a -> Maybe (Term2 vt at ap v a, [Term2 vt at ap v a])
 unAppsPred :: (Term2 vt at ap v a, Term2 vt at ap v a -> Bool) -> Maybe (Term2 vt at ap v a, [Term2 vt at ap v a])
 unBinaryApp :: Term2 vt at ap v a -> Maybe (Term2 vt at ap v a, Term2 vt at ap v a, Term2 vt at ap v a)

@@ -4404,9 +4404,10 @@ ambiguousNamespace :: HashQualifiedName -> Set HashQualifiedName -> ServerError
 missingSigForTerm :: HashQualifiedName -> ServerError
 
 module Unison.Server.Endpoints.Projects
-type ProjectsAPI = "projects" :> QueryParam "rootBranch" ShortBranchHash :> APIGet [ProjectListing]
+type ProjectsAPI = "projects" :> QueryParam "rootBranch" ShortBranchHash :> QueryParam "owner" ProjectOwner :> APIGet [ProjectListing]
 newtype ProjectOwner
 ProjectOwner :: Text -> ProjectOwner
+projectOwnerFromText :: Text -> Either Text ProjectOwner
 data ProjectListing
 ProjectListing :: ProjectOwner -> Text -> UnisonHash -> ProjectListing
 [owner] :: ProjectListing -> ProjectOwner
@@ -4414,16 +4415,19 @@ ProjectListing :: ProjectOwner -> Text -> UnisonHash -> ProjectListing
 [hash] :: ProjectListing -> UnisonHash
 backendListEntryToProjectListing :: ProjectOwner -> ShallowListEntry Symbol a -> Maybe ProjectListing
 entryToOwner :: ShallowListEntry Symbol a -> Maybe ProjectOwner
-serve :: Handler () -> Codebase IO Symbol Ann -> Maybe ShortBranchHash -> Handler (APIHeaders [ProjectListing])
+serve :: Handler () -> Codebase IO Symbol Ann -> Maybe ShortBranchHash -> Maybe ProjectOwner -> Handler (APIHeaders [ProjectListing])
 instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Endpoints.Projects.ProjectOwner
 instance GHC.Show.Show Unison.Server.Endpoints.Projects.ProjectOwner
 instance GHC.Generics.Generic Unison.Server.Endpoints.Projects.ProjectOwner
 instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Endpoints.Projects.ProjectListing
 instance GHC.Show.Show Unison.Server.Endpoints.Projects.ProjectListing
 instance GHC.Generics.Generic Unison.Server.Endpoints.Projects.ProjectListing
+instance Data.OpenApi.Internal.ParamSchema.ToParamSchema Unison.Server.Endpoints.Projects.ProjectOwner
 instance Servant.Docs.Internal.ToSample Unison.Server.Endpoints.Projects.ProjectListing
 instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Endpoints.Projects.ProjectListing
+instance Servant.Docs.Internal.ToParam (Servant.API.QueryParam.QueryParam "owner" Unison.Server.Endpoints.Projects.ProjectOwner)
 instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Endpoints.Projects.ProjectOwner
+instance Web.Internal.HttpApiData.FromHttpApiData Unison.Server.Endpoints.Projects.ProjectOwner
 
 module Unison.Server.Endpoints.NamespaceListing
 type NamespaceListingAPI = "list" :> QueryParam "rootBranch" ShortBranchHash :> QueryParam "relativeTo" NamespaceFQN :> QueryParam "namespace" NamespaceFQN :> APIGet NamespaceListing

@@ -3512,9 +3512,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5Ema loc_a5Emb. Lens' (Env v_a5Ema loc_a5Emb) (TypeLookup v_a5Ema loc_a5Emb)
-termsByShortname :: forall v_a5Ema loc_a5Emb. Lens' (Env v_a5Ema loc_a5Emb) (Map Name [NamedReference v_a5Ema loc_a5Emb])
-ambientAbilities :: forall v_a5Ema loc_a5Emb. Lens' (Env v_a5Ema loc_a5Emb) [Type v_a5Ema loc_a5Emb]
+typeLookup :: forall v_a5Eqw loc_a5Eqx. Lens' (Env v_a5Eqw loc_a5Eqx) (TypeLookup v_a5Eqw loc_a5Eqx)
+termsByShortname :: forall v_a5Eqw loc_a5Eqx. Lens' (Env v_a5Eqw loc_a5Eqx) (Map Name [NamedReference v_a5Eqw loc_a5Eqx])
+ambientAbilities :: forall v_a5Eqw loc_a5Eqx. Lens' (Env v_a5Eqw loc_a5Eqx) [Type v_a5Eqw loc_a5Eqx]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.
@@ -4823,6 +4823,7 @@ CACH :: POp
 LKUP :: POp
 LOAD :: POp
 CVLD :: POp
+SDBX :: POp
 VALU :: POp
 TLTT :: POp
 PRNT :: POp
@@ -5152,6 +5153,7 @@ IDXB :: BPrim2
 CATB :: BPrim2
 THRO :: BPrim2
 TRCE :: BPrim2
+SDBX :: BPrim2
 data Branch
 Test1 :: !Word64 -> !Section -> !Section -> Branch
 Test2 :: !Word64 -> !Section -> !Word64 -> !Section -> !Section -> Branch
@@ -5324,6 +5326,7 @@ pokeOffS :: Stack 'BX -> Int -> Seq Closure -> IO ()
 frameView :: MEM b => Show (Elem b) => Stack b -> IO ()
 uscount :: Seg 'UN -> Int
 bscount :: Seg 'BX -> Int
+closureTermRefs :: Monoid m => (Reference -> m) -> Closure -> m
 instance GHC.Classes.Ord Unison.Runtime.Stack.Closure
 instance GHC.Classes.Eq Unison.Runtime.Stack.Closure
 instance GHC.Show.Show Unison.Runtime.Stack.Closure
@@ -5565,13 +5568,23 @@ instance Unison.Runtime.Serialize.Tag Unison.Runtime.ANF.Serialize.FnTag
 instance Unison.Runtime.Serialize.Tag Unison.Runtime.ANF.Serialize.TmTag
 
 module Unison.Runtime.Builtin
-builtinLookup :: Map Reference (SuperNormal Symbol)
+builtinLookup :: Map Reference (Sandbox, SuperNormal Symbol)
 builtinTermNumbering :: Map Reference Word64
 builtinTypeNumbering :: Map Reference Word64
 builtinTermBackref :: EnumMap Word64 Reference
 builtinTypeBackref :: EnumMap Word64 Reference
 builtinForeigns :: EnumMap Word64 ForeignFunc
 numberedTermLookup :: EnumMap Word64 (SuperNormal Symbol)
+data Sandbox
+Tracked :: Sandbox
+Untracked :: Sandbox
+baseSandboxInfo :: Map Reference (Set Reference)
+instance GHC.Enum.Bounded Unison.Runtime.Builtin.Sandbox
+instance GHC.Enum.Enum Unison.Runtime.Builtin.Sandbox
+instance GHC.Read.Read Unison.Runtime.Builtin.Sandbox
+instance GHC.Show.Show Unison.Runtime.Builtin.Sandbox
+instance GHC.Classes.Ord Unison.Runtime.Builtin.Sandbox
+instance GHC.Classes.Eq Unison.Runtime.Builtin.Sandbox
 
 module Unison.Runtime.Machine
 
@@ -5584,7 +5597,7 @@ type ActiveThreads = Maybe (IORef (Set ThreadId))
 type Tag = Word64
 type DEnv = EnumMap Word64 Closure
 data CCache
-CCache :: EnumMap Word64 ForeignFunc -> (Text -> Closure -> IO ()) -> TVar (EnumMap Word64 Combs) -> TVar (EnumMap Word64 Reference) -> TVar (EnumMap Word64 Reference) -> TVar Word64 -> TVar Word64 -> TVar (Map Reference (SuperGroup Symbol)) -> TVar (Map Reference Word64) -> TVar (Map Reference Word64) -> CCache
+CCache :: EnumMap Word64 ForeignFunc -> (Text -> Closure -> IO ()) -> TVar (EnumMap Word64 Combs) -> TVar (EnumMap Word64 Reference) -> TVar (EnumMap Word64 Reference) -> TVar Word64 -> TVar Word64 -> TVar (Map Reference (SuperGroup Symbol)) -> TVar (Map Reference Word64) -> TVar (Map Reference Word64) -> TVar (Map Reference (Set Reference)) -> CCache
 [foreignFuncs] :: CCache -> EnumMap Word64 ForeignFunc
 [tracer] :: CCache -> Text -> Closure -> IO ()
 [combs] :: CCache -> TVar (EnumMap Word64 Combs)
@@ -5595,6 +5608,7 @@ CCache :: EnumMap Word64 ForeignFunc -> (Text -> Closure -> IO ()) -> TVar (Enum
 [intermed] :: CCache -> TVar (Map Reference (SuperGroup Symbol))
 [refTm] :: CCache -> TVar (Map Reference Word64)
 [refTy] :: CCache -> TVar (Map Reference Word64)
+[sandbox] :: CCache -> TVar (Map Reference (Set Reference))
 refNumsTm :: CCache -> IO (Map Reference Word64)
 refNumsTy :: CCache -> IO (Map Reference Word64)
 refNumTm :: CCache -> Reference -> IO Word64
@@ -5640,9 +5654,12 @@ reserveIds :: Word64 -> TVar Word64 -> IO Word64
 updateMap :: Semigroup s => s -> TVar s -> STM s
 refLookup :: String -> Map Reference Word64 -> Reference -> Word64
 decodeCacheArgument :: Seq Closure -> IO [(Reference, SuperGroup Symbol)]
+decodeSandboxArgument :: Seq Closure -> IO [Reference]
 addRefs :: TVar Word64 -> TVar (Map Reference Word64) -> TVar (EnumMap Word64 Reference) -> Set Reference -> STM (Map Reference Word64)
 codeValidate :: [(Reference, SuperGroup Symbol)] -> CCache -> IO (Maybe (Failure Closure))
-cacheAdd0 :: Set Reference -> [(Reference, SuperGroup Symbol)] -> CCache -> IO ()
+checkSandboxing :: CCache -> [Reference] -> Closure -> IO Bool
+cacheAdd0 :: Set Reference -> [(Reference, SuperGroup Symbol)] -> [(Reference, Set Reference)] -> CCache -> IO ()
+expandSandbox :: Map Reference (Set Reference) -> [(Reference, SuperGroup Symbol)] -> [(Reference, Set Reference)]
 cacheAdd :: [(Reference, SuperGroup Symbol)] -> CCache -> IO [Reference]
 reflectValue :: EnumMap Word64 Reference -> Closure -> IO Value
 reifyValue :: CCache -> Value -> IO (Either [Reference] Closure)

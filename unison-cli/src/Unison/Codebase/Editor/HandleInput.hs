@@ -85,6 +85,7 @@ import qualified Unison.CommandLine.InputPattern as InputPattern
 import qualified Unison.CommandLine.InputPatterns as InputPatterns
 import Unison.ConstructorReference (GConstructorReference(..))
 import qualified Unison.DataDeclaration as DD
+import Unison.Hash (Hash)
 import qualified Unison.HashQualified as HQ
 import qualified Unison.HashQualified' as HQ'
 import qualified Unison.Hashing.V2.Convert as Hashing
@@ -139,6 +140,7 @@ import qualified Unison.Util.Pretty as P
 import qualified Unison.Util.Relation as R
 import qualified Unison.Util.Relation as Relation
 import qualified Unison.Util.Relation4 as R4
+import qualified Unison.Util.Set as Set (mapMaybe)
 import qualified Unison.Util.Star3 as Star3
 import Unison.Util.TransitiveClosure (transitiveClosure)
 import Unison.Var (Var)
@@ -1808,6 +1810,10 @@ handleUpdate input maybePatchPath hqs = do
   use LoopState.latestTypecheckedFile >>= \case
     Nothing -> respond NoUnisonFile
     Just uf -> do
+      structure <- oink hqs uf
+
+      -- goal: only use structure below here, not uf/slurp
+
       currentPath' <- use LoopState.currentPath
       let defaultPatchPath :: PatchPath
           defaultPatchPath = (Path' $ Left currentPath', defaultPatchNameSegment)
@@ -1927,7 +1933,8 @@ handleUpdate input maybePatchPath hqs = do
               pure . doSlurpUpdates typeEdits termEdits termDeprecations
             ),
             ( Path.unabsolute currentPath',
-              pure . doSlurpAdds addsAndUpdates uf
+              -- pure . doSlurpAdds addsAndUpdates uf
+              pure . Branch.batchUpdates (structureToAdds structure)
             ),
             (Path.unabsolute p, updatePatches)
           ]
@@ -1945,15 +1952,207 @@ handleUpdate input maybePatchPath hqs = do
               & tShow
       syncRoot ("update " <> patchString)
 
+data Structure v
+  = Structure
+  { structureTerms :: [Update v Referent]
+  }
+
+-- copy doSlurpAdds
+structureToAdds :: Structure v -> [(Path, Branch0 m -> Branch0 m)]
+structureToAdds = undefined
+
+-- updates the namespace for adding `slurp`
+-- doSlurpAdds ::
+--   forall m v.
+--   (Monad m, Var v) =>
+--   SlurpComponent v ->
+--   UF.TypecheckedUnisonFile v Ann ->
+--   (Branch0 m -> Branch0 m)
+-- doSlurpAdds slurp uf = Branch.batchUpdates (typeActions <> termActions)
+--   where
+--     typeActions = map doType . toList $ SC.types slurp
+--     termActions =
+--       map doTerm . toList $
+--         SC.terms slurp <> Slurp.constructorsFor (SC.types slurp) uf
+--     names = UF.typecheckedToNames uf
+--     tests = Set.fromList $ fst <$> UF.watchesOfKind WK.TestWatch (UF.discardTypes uf)
+--     (isTestType, isTestValue) = isTest
+--     md v =
+--       if Set.member v tests
+--         then Metadata.singleton isTestType isTestValue
+--         else Metadata.empty
+--     doTerm :: v -> (Path, Branch0 m -> Branch0 m)
+--     doTerm v = case toList (Names.termsNamed names (Name.unsafeFromVar v)) of
+--       [] -> errorMissingVar v
+--       [r] -> case Path.splitFromName (Name.unsafeFromVar v) of
+--         Nothing -> errorEmptyVar
+--         Just split -> BranchUtil.makeAddTermName split r (md v)
+--       wha ->
+--         error $
+--           "Unison bug, typechecked file w/ multiple terms named "
+--             <> Var.nameStr v
+--             <> ": "
+--             <> show wha
+--     doType :: v -> (Path, Branch0 m -> Branch0 m)
+--     doType v = case toList (Names.typesNamed names (Name.unsafeFromVar v)) of
+--       [] -> errorMissingVar v
+--       [r] -> case Path.splitFromName (Name.unsafeFromVar v) of
+--         Nothing -> errorEmptyVar
+--         Just split -> BranchUtil.makeAddTypeName split r Metadata.empty
+--       wha ->
+--         error $
+--           "Unison bug, typechecked file w/ multiple types named "
+--             <> Var.nameStr v
+--             <> ": "
+--             <> show wha
+--     errorEmptyVar = error "encountered an empty var name"
+--     errorMissingVar v = error $ "expected to find " ++ show v ++ " in " ++ show uf
+
+data Update v r
+  = Update 
+  { updateName :: v 
+  , updateSplit :: Path.Split
+  , updateRef :: r
+  , updateExplicit :: Bool
+  }
+
+-- to add, we need to, for each name being updated, resolve that to a split and a referent
+
+oink ::
+  forall m v.
+  (Monad m, Var v) =>
+  [HQ'.HashQualified Name] ->
+  UF.TypecheckedUnisonFile v Ann ->
+  Action' m v (Structure v)
+oink selection unisonFile = do
+  names <- currentPathNames
+  path <- use LoopState.currentPath
+  let sr0 = applySelection selection unisonFile (toSlurpResult path unisonFile names)
+  let fileNames = UF.typecheckedToNames unisonFile
+
+  let updatedTermNames :: Set v
+      updatedTermNames =
+        SC.terms (Slurp.updates sr0)
+
+  let updatedTermOldRef :: v -> Reference
+      updatedTermOldRef =
+        Names.theRefTermNamed names . Name.unsafeFromVar
+
+  let updatedTermNewRef :: v -> Reference
+      updatedTermNewRef =
+        Names.theRefTermNamed fileNames . Name.unsafeFromVar
+
+  -- Get the set of term hashes that are being updated
+  let updatedTermHashes :: Set Hash
+      updatedTermHashes =
+        updatedTermNames & Set.mapMaybe \name -> Reference.toHash (updatedTermOldRef name)
+
+  let shouldPullOut :: (Reference.Id, (Term v Ann, Type v Ann)) -> Bool
+      shouldPullOut (Referent.fromTermReferenceId -> ref, (_term, _typ)) =
+        hasNameInCurrentNamespace && doesntHaveNameThatsBeingUpdated
+        where
+          hasNameInCurrentNamespace = not (Set.null (Names.namesForReferent names ref))
+          doesntHaveNameThatsBeingUpdated = Set.null (Names.namesForReferent fileNames ref)
+
+  pulledOutMates :: Map Reference.Id (Term v Ann, Type v Ann) <-
+    -- FIXME pretty sure this could be Map.fromAscList
+    fmap Map.fromList do
+      Monoid.foldMapM
+        ( \hash -> do
+            eval (LoadTermComponentWithTypes hash) <&> \case
+              Nothing -> [] -- shouldn't really ever happen
+              Just component -> filter shouldPullOut (Reference.componentFor hash component)
+        )
+        (Set.toList updatedTermHashes)
+
+  let -- The mapping induced by the updates in the slurp
+      mapref :: Reference -> Reference
+      mapref =
+        let maprefMap :: Map Reference Reference
+            maprefMap =
+              foldl'
+                (\acc name -> Map.insert (updatedTermOldRef name) (updatedTermNewRef name) acc)
+                Map.empty
+                updatedTermNames
+         in \ref -> Map.findWithDefault ref ref maprefMap
+
+  if Map.null pulledOutMates
+    then pure undefined -- Structure -- no more work to do
+    else do
+      -- in mates, perform ref->ref replacement, for all new ->ref that are being updated
+      let pulledOutMates1 :: Map Reference.Id (Term v Ann, Type v Ann)
+          pulledOutMates1 = Map.map substitute pulledOutMates
+            where
+              -- FIXME what about old type? currently just passing it along...
+              substitute :: (Term v Ann, Type v Ann) -> (Term v Ann, Type v Ann)
+              substitute (term, typ) =
+                (substitute1 term, typ)
+              substitute1 :: Term v Ann -> Term v Ann
+              substitute1 =
+                ABT.rebuildUp \case
+                  Term.Ref ref -> Term.Ref (mapref ref)
+                  term -> term
+
+      traceShowM ("pulledOutMates1 = " ++ show pulledOutMates1)
+
+      let allTerms :: Map Reference.Id (Term v Ann)
+          allTerms =
+            Map.union
+              (Map.map fst pulledOutMates1)
+              (Map.fromList (mapMaybe project (Map.elems (UF.hashTermsId unisonFile))))
+            where
+              project :: (Reference.Id, Maybe WK.WatchKind, Term v Ann, Type v Ann) -> Maybe (Reference.Id, Term v Ann)
+              project (refId, watchKind, term, _typ) = do
+                guard (isNothing watchKind)
+                Just (refId, term)
+
+      traceShowM ("allTerms = " ++ show allTerms)
+
+      let allTermsUnhashed :: Map Reference.Id (v, Term v Ann)
+          allTermsUnhashed =
+            Term.unhashComponent allTerms
+
+      traceShowM ("allTermsUnhashed = " ++ show allTermsUnhashed)
+
+      -- FIXME can skip typechecking if types don't change
+      let fileToTypecheck :: UF.UnisonFile v Ann
+          fileToTypecheck =
+            UF.UnisonFileId {
+              -- FIXME should pull out decls/effects too
+              UF.dataDeclarationsId = UF.dataDeclarationsId' unisonFile,
+              UF.effectDeclarationsId = UF.effectDeclarationsId' unisonFile,
+              UF.terms = Map.elems allTermsUnhashed,
+              UF.watches = Map.empty
+            }
+
+      result <- eval (TypecheckFile fileToTypecheck [])
+      case runIdentity (Result.toMaybe result) of
+        Just (Right unisonFile') -> do
+          pure Structure
+            { structureTerms = undefined
+            }
+            -- { updateExplicit = undefined,
+            --   updateSplit = undefined,
+            --   updateName = undefined,
+            --   updateRef = undefined
+            -- }
+        -- fall back on original unisonFile I guess?
+        _ ->
+          pure undefined -- Structure
+
 -- Add default metadata to all added types and terms in a slurp component.
 --
 -- No-op if the slurp component is empty.
 addDefaultMetadata :: (Monad m, Var v) => SlurpComponent v -> Action m (Either Event Input) v ()
 addDefaultMetadata adds =
-  when (not (SC.isEmpty adds)) do
+  addDefaultMetadata' (SC.types adds <> SC.terms adds)
+
+-- Add default metadata to all of the given names.
+addDefaultMetadata' :: (Monad m, Var v) => Set v -> Action m (Either Event Input) v ()
+addDefaultMetadata' (Set.toList -> addedVs) =
+  when (not (null addedVs)) do
     currentPath' <- use LoopState.currentPath
-    let addedVs = Set.toList $ SC.types adds <> SC.terms adds
-        addedNs = traverse (Path.hqSplitFromName' . Name.unsafeFromVar) addedVs
+    let addedNs = traverse (Path.hqSplitFromName' . Name.unsafeFromVar) addedVs
     case addedNs of
       Nothing ->
         error $

@@ -32,11 +32,14 @@ module Unison.Names
   , mapNames
   , prefix0
   , restrictReferences
+  , theRefTermNamed
   , refTermsNamed
   , termReferences
   , termReferents
   , typeReferences
+  , theTermNamed
   , termsNamed
+  , theTypeNamed
   , typesNamed
   , unionLeft
   , unionLeftName
@@ -240,12 +243,48 @@ unionLeft' p a b = Names terms' types'
 numHashChars :: Int
 numHashChars = 3
 
+theTermNamed :: HasCallStack => Names -> Name -> Referent
+theTermNamed names name =
+  let refs = termsNamed names name
+   in case Set.minView refs of
+        Just (ref, others) | Set.null others -> ref
+        _ ->
+          error $
+            "theTermNamed: expected exactly one referent named "
+              ++ show name
+              ++ ", but found: "
+              ++ show (Set.toList refs)
+
 termsNamed :: Names -> Name -> Set Referent
 termsNamed = flip R.lookupDom . terms
+
+theRefTermNamed :: HasCallStack => Names -> Name -> Reference
+theRefTermNamed names name =
+  let refs = termsNamed names name
+   in case Set.minView refs of
+        Just (Referent.Ref ref, others) | Set.null others -> ref
+        _ ->
+          error $
+            "theRefTermNamed: expected exactly one reference named "
+              ++ show name
+              ++ ", but found: "
+              ++ show (Set.toList refs)
 
 refTermsNamed :: Names -> Name -> Set Reference
 refTermsNamed names n =
   Set.fromList [ r | Referent.Ref r <- toList $ termsNamed names n ]
+
+theTypeNamed :: HasCallStack => Names -> Name -> Reference
+theTypeNamed names name =
+  let refs = typesNamed names name
+   in case Set.minView refs of
+        Just (ref, others) | Set.null others -> ref
+        _ ->
+          error $
+            "theTypeNamed: expected exactly one reference named "
+              ++ show name
+              ++ ", but found: "
+              ++ show (Set.toList refs)
 
 typesNamed :: Names -> Name -> Set Reference
 typesNamed = flip R.lookupDom . types

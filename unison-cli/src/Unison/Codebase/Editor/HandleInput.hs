@@ -1830,6 +1830,7 @@ handleUpdate input maybePatchPath hqs = do
             applySelection hqs uf
               . toSlurpResult currentPath' uf
               $ slurpCheckNames
+          -- FIXME delete
           addsAndUpdates :: SlurpComponent v
           addsAndUpdates = Slurp.updates sr <> Slurp.adds sr
           fileNames :: Names
@@ -1933,6 +1934,9 @@ handleUpdate input maybePatchPath hqs = do
               pure . doSlurpUpdates typeEdits termEdits termDeprecations
             ),
             ( Path.unabsolute currentPath',
+              -- FIXME delete
+              -- observation: don't want updates here, they are redundant due to doSlurpUpdates
+              --   wait, maybe not? (isTest metadata, other complications maybe)
               -- pure . doSlurpAdds addsAndUpdates uf
               pure . Branch.batchUpdates (structureToAdds structure)
             ),
@@ -1943,7 +1947,9 @@ handleUpdate input maybePatchPath hqs = do
       respond $ SlurpOutput input (PPE.suffixifiedPPE ppe) sr
       -- propagatePatch prints TodoOutput
       void $ propagatePatchNoSync (updatePatch ye'ol'Patch) currentPath'
-      addDefaultMetadata addsAndUpdates
+      -- FIXME delete
+      -- addDefaultMetadata addsAndUpdates
+      addDefaultMetadata' (structureToVars structure)
       let patchString :: Text
           patchString =
             patchPath
@@ -1954,12 +1960,16 @@ handleUpdate input maybePatchPath hqs = do
 
 data Structure v
   = Structure
-  { structureTerms :: [Update v Referent]
+  { structureTerms :: [Upsert v]
   }
 
 -- copy doSlurpAdds
+-- maybe this should be adds and updates
 structureToAdds :: Structure v -> [(Path, Branch0 m -> Branch0 m)]
 structureToAdds = undefined
+
+structureToVars :: Structure v -> Set v
+structureToVars = undefined
 
 -- updates the namespace for adding `slurp`
 -- doSlurpAdds ::
@@ -2008,15 +2018,26 @@ structureToAdds = undefined
 --     errorEmptyVar = error "encountered an empty var name"
 --     errorMissingVar v = error $ "expected to find " ++ show v ++ " in " ++ show uf
 
-data Update v r
-  = Update 
-  { updateName :: v 
-  , updateSplit :: Path.Split
-  , updateRef :: r
-  , updateExplicit :: Bool
+data Upsert v
+  = Upsert
+  { upsertVar :: v
+  , upsertOp :: UpsertOp
+  }
+
+data UpsertOp
+  = UpsertOpAdd Reference
+  | UpsertOpUpdate UpdateOp
+
+data UpdateOp
+  = UpdateOp
+  { updateOldRef :: Reference,
+    updateNewRef :: Reference,
+    updateExplicit :: Bool
   }
 
 -- to add, we need to, for each name being updated, resolve that to a split and a referent
+
+-- to add metadata, we need the set of Path.Split
 
 oink ::
   forall m v.
@@ -2025,9 +2046,9 @@ oink ::
   UF.TypecheckedUnisonFile v Ann ->
   Action' m v (Structure v)
 oink selection unisonFile = do
-  names <- currentPathNames
+  allNames <- currentPathNames
   path <- use LoopState.currentPath
-  let sr0 = applySelection selection unisonFile (toSlurpResult path unisonFile names)
+  let sr0 = applySelection selection unisonFile (toSlurpResult path unisonFile allNames)
   let fileNames = UF.typecheckedToNames unisonFile
 
   let updatedTermNames :: Set v
@@ -2036,7 +2057,7 @@ oink selection unisonFile = do
 
   let updatedTermOldRef :: v -> Reference
       updatedTermOldRef =
-        Names.theRefTermNamed names . Name.unsafeFromVar
+        Names.theRefTermNamed allNames . Name.unsafeFromVar
 
   let updatedTermNewRef :: v -> Reference
       updatedTermNewRef =
@@ -2051,8 +2072,9 @@ oink selection unisonFile = do
       shouldPullOut (Referent.fromTermReferenceId -> ref, (_term, _typ)) =
         hasNameInCurrentNamespace && doesntHaveNameThatsBeingUpdated
         where
-          hasNameInCurrentNamespace = not (Set.null (Names.namesForReferent names ref))
-          doesntHaveNameThatsBeingUpdated = Set.null (Names.namesForReferent fileNames ref)
+          names = Names.namesForReferent allNames ref
+          hasNameInCurrentNamespace = not (Set.null names)
+          doesntHaveNameThatsBeingUpdated = Set.null (Set.intersection updatedTermNames (Set.map Name.toVar names))
 
   pulledOutMates :: Map Reference.Id (Term v Ann, Type v Ann) <-
     -- FIXME pretty sure this could be Map.fromAscList
@@ -3254,7 +3276,7 @@ doSlurpAdds slurp uf = Branch.batchUpdates (typeActions <> termActions)
       [] -> errorMissingVar v
       [r] -> case Path.splitFromName (Name.unsafeFromVar v) of
         Nothing -> errorEmptyVar
-        Just split -> BranchUtil.makeAddTermName split r (md v)
+        Just split -> trace ("doSlurpAdds: makeAddTermName (" ++ show split ++ ") (" ++ show r ++ ") (" ++ show (md v) ++ ")") $ BranchUtil.makeAddTermName split r (md v)
       wha ->
         error $
           "Unison bug, typechecked file w/ multiple terms named "
@@ -3310,6 +3332,7 @@ doSlurpUpdates typeEdits termEdits deprecated b0 =
     doTerm (n, (old, new)) = case Path.splitFromName n of
       Nothing -> errorEmptyVar
       Just split ->
+        trace ("doSlurpUpdates: makeDeleteTermName (" ++ show split ++ ") (" ++ show (Referent.Ref old) ++ "); makeAddTermName (" ++ show split ++ ") (" ++ show (Referent.Ref new) ++ ") (" ++ show oldMd ++ ")") $
         [ BranchUtil.makeDeleteTermName split (Referent.Ref old),
           BranchUtil.makeAddTermName split (Referent.Ref new) oldMd
         ]

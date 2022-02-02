@@ -157,3 +157,14 @@ makeDeleteBranch (p, name) = (p, Branch.children . ix name %~ Branch.cons Branch
 makeObliterateBranch ::
   Path.Split -> (Path, Branch0 m -> Branch0 m)
 makeObliterateBranch p = makeSetBranch p Branch.empty
+
+makeModifyMetadataForTerm ::
+  ( (Referent, Metadata.Type, Metadata.Value) ->
+    Branch.Star r NameSegment ->
+    Branch.Star r NameSegment
+  ) ->
+  Referent ->
+  Metadata.Type ->
+  Metadata.Value ->
+  ()
+makeModifyMetadataForTerm op ref = undefined

@@ -107,7 +107,7 @@ import qualified Unison.PrettyPrintEnv as PPE
 import qualified Unison.PrettyPrintEnv.Names as PPE
 import qualified Unison.PrettyPrintEnvDecl as PPE
 import qualified Unison.PrettyPrintEnvDecl.Names as PPE
-import Unison.Reference (Reference (..))
+import Unison.Reference (Reference (..), TermReference)
 import qualified Unison.Reference as Reference
 import Unison.Referent (Referent)
 import qualified Unison.Referent as Referent
@@ -951,12 +951,18 @@ loop = do
                     where
                       go r = (r, NamesWithHistory.typeName hqLength r printNames)
               respond $ ListNames hqLength (toList types') (toList terms')
-            LinkI mdValue srcs -> do
-              manageLinks False srcs [mdValue] Metadata.insert
-              syncRoot
-            UnlinkI mdValue srcs -> do
-              manageLinks False srcs [mdValue] Metadata.delete
-              syncRoot
+            LinkI mdValue srcs ->
+              getMetadataFromName mdValue >>= \case
+                Left output -> respond output
+                Right md -> do
+                  manageLinks False srcs [md] Metadata.insert
+                  syncRoot
+            UnlinkI mdValue srcs ->
+              getMetadataFromName mdValue >>= \case
+                Left output -> respond output
+                Right md -> do
+                  manageLinks False srcs [md] Metadata.delete
+                  syncRoot
 
             -- > links List.map (.Docs .English)
             -- > links List.map -- give me all the
@@ -1266,7 +1272,7 @@ loop = do
                   eval . AddDefsToCodebase . filterBySlurpResult sr $ uf
                   ppe <- prettyPrintEnvDecl =<< displayNames uf
                   respond $ SlurpOutput input (PPE.suffixifiedPPE ppe) sr
-                  addDefaultMetadata adds
+                  addDefaultMetadataToSlurp adds
                   syncRoot
             PreviewAddI hqs -> case (latestFile', uf) of
               (Just (sourceName, _), Just uf) -> do
@@ -1894,7 +1900,7 @@ handleUpdate input maybePatchPath hqs = do
               fromOld =
                 [ (r, r') | (r, TermEdit.Replace r' _) <- R.toList . Patch._termEdits $ old, Set.member r' newLHS
                 ]
-          neededTypes = collectOldForTyping (toList termEdits) ye'ol'Patch
+          neededTypes = collectOldForTyping (structureTermEdits structure) {- FIXME delete (toList termEdits) -} ye'ol'Patch
 
       allTypes :: Map Reference (Type v Ann) <-
         fmap Map.fromList . for (toList neededTypes) $ \r ->
@@ -1917,7 +1923,7 @@ handleUpdate input maybePatchPath hqs = do
                   <> show e
 
       let updatePatch :: Patch -> Patch
-          updatePatch p = foldl' step2 p' termEdits
+          updatePatch p = foldl' step2 p' (structureTermEdits structure) -- FIXME delete termEdits
             where
               p' = foldl' step1 p typeEdits
               step1 p (r, r') = Patch.updateType r (TypeEdit.Replace r') p
@@ -1949,7 +1955,7 @@ handleUpdate input maybePatchPath hqs = do
       void $ propagatePatchNoSync (updatePatch ye'ol'Patch) currentPath'
       -- FIXME delete
       -- addDefaultMetadata addsAndUpdates
-      addDefaultMetadata' (structureToVars structure)
+      addDefaultMetadataToVars (structureToVars structure)
       let patchString :: Text
           patchString =
             patchPath
@@ -1960,7 +1966,7 @@ handleUpdate input maybePatchPath hqs = do
 
 data Structure v
   = Structure
-  { structureTerms :: [Upsert v]
+  { structureTerms :: [UpsertOp v]
   }
 
 -- copy doSlurpAdds
@@ -1968,8 +1974,31 @@ data Structure v
 structureToAdds :: Structure v -> [(Path, Branch0 m -> Branch0 m)]
 structureToAdds = undefined
 
+-- doSlurpUpdates
+--   [x] termEdits
+--   [ ] typeEdits
+--   [ ] termDeprecations
+structureToUpdates :: (Referent -> [(Path.Split, Metadata.Metadata)]) -> Structure v -> [(Path, Branch0 m -> Branch0 m)]
+structureToUpdates termNames structure =
+  foldMap
+    (\case
+      UpsertOpAdd{} -> []
+      UpsertOpUpdate UpdateOp{updateOldRef, updateNewRef} ->
+        foldMap
+          (\(name, metadata) ->
+            [ BranchUtil.makeDeleteTermName name (Referent.Ref updateOldRef),
+              BranchUtil.makeAddTermName name (Referent.Ref updateNewRef) metadata
+            ])
+          (termNames (Referent.Ref updateOldRef))
+    )
+    (structureTerms structure)
+
+-- this is for addDefaultMetadata, but that function is kinda busted...
 structureToVars :: Structure v -> Set v
 structureToVars = undefined
+
+structureTermEdits :: Structure v -> [(Reference, Reference)]
+structureTermEdits = undefined
 
 -- updates the namespace for adding `slurp`
 -- doSlurpAdds ::
@@ -2018,15 +2047,15 @@ structureToVars = undefined
 --     errorEmptyVar = error "encountered an empty var name"
 --     errorMissingVar v = error $ "expected to find " ++ show v ++ " in " ++ show uf
 
-data Upsert v
-  = Upsert
-  { upsertVar :: v
-  , upsertOp :: UpsertOp
-  }
-
-data UpsertOp
-  = UpsertOpAdd Reference
+data UpsertOp v
+  = UpsertOpAdd (AddOp v)
   | UpsertOpUpdate UpdateOp
+
+data AddOp v
+  = AddOp
+  { addVar :: v
+  , addRef :: Reference
+  }
 
 data UpdateOp
   = UpdateOp
@@ -2063,13 +2092,8 @@ oink selection unisonFile = do
       updatedTermNewRef =
         Names.theRefTermNamed fileNames . Name.unsafeFromVar
 
-  -- Get the set of term hashes that are being updated
-  let updatedTermHashes :: Set Hash
-      updatedTermHashes =
-        updatedTermNames & Set.mapMaybe \name -> Reference.toHash (updatedTermOldRef name)
-
   let shouldPullOut :: (Reference.Id, (Term v Ann, Type v Ann)) -> Bool
-      shouldPullOut (Referent.fromTermReferenceId -> ref, (_term, _typ)) =
+      shouldPullOut (Referent.fromTermReferenceId -> ref, _) =
         hasNameInCurrentNamespace && doesntHaveNameThatsBeingUpdated
         where
           names = Names.namesForReferent allNames ref
@@ -2081,11 +2105,10 @@ oink selection unisonFile = do
     fmap Map.fromList do
       Monoid.foldMapM
         ( \hash -> do
-            eval (LoadTermComponentWithTypes hash) <&> \case
-              Nothing -> [] -- shouldn't really ever happen
-              Just component -> filter shouldPullOut (Reference.componentFor hash component)
+            component <- eval (LoadTermComponentWithTypes hash) <&> maybe [] (Reference.componentFor hash)
+            pure (filter shouldPullOut component)
         )
-        (Set.toList updatedTermHashes)
+        (Set.mapMaybe (Reference.toHash . updatedTermOldRef) updatedTermNames)
 
   let -- The mapping induced by the updates in the slurp
       mapref :: Reference -> Reference
@@ -2139,25 +2162,26 @@ oink selection unisonFile = do
       -- FIXME can skip typechecking if types don't change
       let fileToTypecheck :: UF.UnisonFile v Ann
           fileToTypecheck =
-            UF.UnisonFileId {
-              -- FIXME should pull out decls/effects too
-              UF.dataDeclarationsId = UF.dataDeclarationsId' unisonFile,
-              UF.effectDeclarationsId = UF.effectDeclarationsId' unisonFile,
-              UF.terms = Map.elems allTermsUnhashed,
-              UF.watches = Map.empty
-            }
+            UF.UnisonFileId
+              { -- FIXME should pull out decls/effects too
+                UF.dataDeclarationsId = UF.dataDeclarationsId' unisonFile,
+                UF.effectDeclarationsId = UF.effectDeclarationsId' unisonFile,
+                UF.terms = Map.elems allTermsUnhashed,
+                UF.watches = Map.empty
+              }
 
       result <- eval (TypecheckFile fileToTypecheck [])
       case runIdentity (Result.toMaybe result) of
         Just (Right unisonFile') -> do
-          pure Structure
-            { structureTerms = undefined
-            }
-            -- { updateExplicit = undefined,
-            --   updateSplit = undefined,
-            --   updateName = undefined,
-            --   updateRef = undefined
-            -- }
+          pure
+            Structure
+              { structureTerms = undefined
+              }
+        -- { updateExplicit = undefined,
+        --   updateSplit = undefined,
+        --   updateName = undefined,
+        --   updateRef = undefined
+        -- }
         -- fall back on original unisonFile I guess?
         _ ->
           pure undefined -- Structure
@@ -2165,15 +2189,14 @@ oink selection unisonFile = do
 -- Add default metadata to all added types and terms in a slurp component.
 --
 -- No-op if the slurp component is empty.
-addDefaultMetadata :: (Monad m, Var v) => SlurpComponent v -> Action m (Either Event Input) v ()
-addDefaultMetadata adds =
-  addDefaultMetadata' (SC.types adds <> SC.terms adds)
+addDefaultMetadataToSlurp :: (Monad m, Var v) => SlurpComponent v -> Action m (Either Event Input) v ()
+addDefaultMetadataToSlurp adds =
+  addDefaultMetadataToVars (SC.types adds <> SC.terms adds)
 
 -- Add default metadata to all of the given names.
-addDefaultMetadata' :: (Monad m, Var v) => Set v -> Action m (Either Event Input) v ()
-addDefaultMetadata' (Set.toList -> addedVs) =
+addDefaultMetadataToVars :: (Monad m, Var v) => Set v -> Action m (Either Event Input) v ()
+addDefaultMetadataToVars (Set.toList -> addedVs) =
   when (not (null addedVs)) do
-    currentPath' <- use LoopState.currentPath
     let addedNs = traverse (Path.hqSplitFromName' . Name.unsafeFromVar) addedVs
     case addedNs of
       Nothing ->
@@ -2182,20 +2205,23 @@ addDefaultMetadata' (Set.toList -> addedVs) =
             <> "-- Added names: "
             <> show addedVs
       Just addedNames -> do
-        dm <- resolveDefaultMetadata currentPath'
-        case toList dm of
-          [] -> pure ()
-          dm' -> do
-            let hqs = traverse InputPatterns.parseHashQualifiedName dm'
-            case hqs of
-              Left e ->
-                respond $
-                  ConfiguredMetadataParseError
-                    (Path.absoluteToPath' currentPath')
-                    (show dm')
-                    e
-              Right defaultMeta ->
-                manageLinks True addedNames defaultMeta Metadata.insert
+        defaultMetaNames <- getDefaultMetadataNames
+        runExceptT (for defaultMetaNames \name -> ExceptT (getMetadataFromName name)) >>= \case
+          Left output -> respond output
+          Right defaultMeta -> manageLinks True addedNames defaultMeta Metadata.insert
+
+-- | Get the names of the default metadata configured for the current path.
+--
+-- If any name fails to parse, outputs the parse error, and returns the empty list.
+getDefaultMetadataNames :: Action' m v [HQ.HashQualified Name]
+getDefaultMetadataNames = do
+  path <- use LoopState.currentPath
+  strings <- resolveDefaultMetadata path
+  case traverse InputPatterns.parseHashQualifiedName strings of
+    Left err -> do
+      respond (ConfiguredMetadataParseError (Path.absoluteToPath' path) (show strings) err)
+      pure []
+    Right names -> pure names
 
 resolveDefaultMetadata :: Path.Absolute -> Action' m v [String]
 resolveDefaultMetadata path = do
@@ -2213,7 +2239,7 @@ resolveDefaultMetadata path = do
 -- Add/remove links between definitions and metadata.
 -- `silent` controls whether this produces any output to the user.
 -- `srcs` is (names of the) definitions to pass to `op`
--- `mdValues` is (names of the) metadata to pass to `op`
+-- `mdValues` is metadata to pass to `op`
 -- `op` is the operation to add/remove/alter metadata mappings.
 --   e.g. `Metadata.insert` is passed to add metadata links.
 manageLinks ::
@@ -2221,7 +2247,7 @@ manageLinks ::
   (Monad m, Var v) =>
   Bool ->
   [(Path', HQ'.HQSegment)] ->
-  [HQ.HashQualified Name] ->
+  [(Metadata.Type, Metadata.Value)] ->
   ( forall r.
     Ord r =>
     (r, Metadata.Type, Metadata.Value) ->
@@ -2229,26 +2255,25 @@ manageLinks ::
     Branch.Star r NameSegment
   ) ->
   Action m (Either Event Input) v ()
-manageLinks silent srcs mdValues op = do
-  runExceptT (for mdValues \val -> ExceptT (getMetadataFromName val)) >>= \case
-    Left output -> respond output
-    Right metadata -> do
-      before <- Branch.head <$> use LoopState.root
-      traverse_ go metadata
-      if silent
-        then respond DefaultMetadataNotification
-        else do
-          after <- Branch.head <$> use LoopState.root
-          (ppe, outputDiff) <- diffHelper before after
-          if OBranchDiff.isEmpty outputDiff
-            then respond NoOp
-            else
-              respondNumbered $
-                ShowDiffNamespace
-                  (Right Path.absoluteEmpty)
-                  (Right Path.absoluteEmpty)
-                  ppe
-                  outputDiff
+manageLinks _ [] _ _ = pure ()
+manageLinks _ _ [] _ = pure ()
+manageLinks silent srcs metadata op = do
+  before <- Branch.head <$> use LoopState.root
+  traverse_ go metadata
+  if silent
+    then respond DefaultMetadataNotification
+    else do
+      after <- Branch.head <$> use LoopState.root
+      (ppe, outputDiff) <- diffHelper before after
+      if OBranchDiff.isEmpty outputDiff
+        then respond NoOp
+        else
+          respondNumbered $
+            ShowDiffNamespace
+              (Right Path.absoluteEmpty)
+              (Right Path.absoluteEmpty)
+              ppe
+              outputDiff
   where
     go :: (Metadata.Type, Metadata.Value) -> Action m (Either Event Input) v ()
     go (mdType, mdValue) = do
@@ -2273,6 +2298,44 @@ manageLinks silent srcs mdValues op = do
               in over Branch.terms tmUpdates . over Branch.types tyUpdates $ b0
           steps = srcs <&> \(path, _hq) -> (Path.unabsolute (resolveToAbsolute path), step)
       stepManyAtNoSync Branch.CompressHistory steps
+
+manageLinkForTerm ::
+  ( forall r.
+    Ord r =>
+    (r, Metadata.Type, Metadata.Value) ->
+    Branch.Star r NameSegment ->
+    Branch.Star r NameSegment
+  ) ->
+  Referent
+  -> (Metadata.Type, Metadata.Value)
+  -> Action' m v ()
+manageLinkForTerm op ref (mdType, mdValue) = do
+  undefined
+--   r ->
+--   (Metadata.Type, Metadata.Value) ->
+--   Action m (Either Event Input) v ()
+-- manageLinkForRef op ref (mdType, mdValue) = do
+--   newRoot <- use LoopState.root
+--   currentPath' <- use LoopState.currentPath
+--   let resolveToAbsolute :: Path' -> Path.Absolute
+--       resolveToAbsolute = Path.resolve currentPath'
+--       resolveSplit' :: (Path', a) -> (Path, a)
+--       resolveSplit' = Path.fromAbsoluteSplit . Path.toAbsoluteSplit currentPath'
+--       r0 = Branch.head newRoot
+--       getTerms p = BranchUtil.getTerm (resolveSplit' p) r0
+--       getTypes p = BranchUtil.getType (resolveSplit' p) r0
+--       !srcle = toList . getTerms =<< srcs
+--       !srclt = toList . getTypes =<< srcs
+--   let step b0 =
+--         let tmUpdates terms = foldl' go terms srcle
+--               where
+--                 go terms src = op (src, mdType, mdValue) terms
+--             tyUpdates types = foldl' go types srclt
+--               where
+--                 go types src = op (src, mdType, mdValue) types
+--          in over Branch.terms tmUpdates . over Branch.types tyUpdates $ b0
+--       steps = srcs <&> \(path, _hq) -> (Path.unabsolute (resolveToAbsolute path), step)
+--   stepManyAtNoSync Branch.CompressHistory steps
 
 -- Takes a maybe (namespace address triple); returns it as-is if `Just`;
 -- otherwise, tries to load a value from .unisonConfig, and complains
@@ -2715,22 +2778,28 @@ getMetadataFromName ::
   Action m (Either Event Input) v (Either (Output v) (Metadata.Type, Metadata.Value))
 getMetadataFromName name = do
   (Set.toList <$> getHQTerms name) >>= \case
-    [ref@(Referent.Ref val)] ->
-      eval (LoadTypeOfTerm val) >>= \case
-        Nothing -> do
-          ppe <- getPPE
-          pure (Left (MetadataMissingType ppe ref))
-        Just ty -> pure (Right (Hashing.typeToReference ty, val))
+    [Referent.Ref ref] -> getMetadataFromReference ref
     -- FIXME: we want a different error message if the given name is associated with a data constructor (`Con`).
     refs -> do
-      ppe <- getPPE
+      ppe <- PPE.suffixifiedPPE <$> currentPrettyPrintEnvDecl
       pure (Left (MetadataAmbiguous name ppe refs))
-  where
-    getPPE :: Action m (Either Event Input) v PPE.PrettyPrintEnv
-    getPPE = do
-      currentPath' <- use LoopState.currentPath
-      sbhLength <- eval BranchHashLength
-      Backend.basicSuffixifiedNames sbhLength <$> use LoopState.root <*> pure (Backend.AllNames $ Path.unabsolute currentPath')
+
+-- | Get metadata type/value from the value.
+--
+-- May fail with:
+--
+--   * 'MetadataMissingType', if the given name is associated with a single reference, but that reference doesn't have a
+--     type.
+getMetadataFromReference ::
+  Var v =>
+  TermReference ->
+  Action m (Either Event Input) v (Either (Output v) (Metadata.Type, Metadata.Value))
+getMetadataFromReference ref =
+  eval (LoadTypeOfTerm ref) >>= \case
+    Nothing -> do
+      ppe <- PPE.suffixifiedPPE <$> currentPrettyPrintEnvDecl
+      pure (Left (MetadataMissingType ppe (Referent.Ref ref)))
+    Just ty -> pure (Right (Hashing.typeToReference ty, ref))
 
 -- | Get the set of terms related to a hash-qualified name.
 getHQTerms :: HQ.HashQualified Name -> Action' m v (Set Referent)

@@ -169,8 +169,7 @@ basicNames' root scope =
 
 basicSuffixifiedNames :: Int -> Branch m -> NameScoping -> PPE.PrettyPrintEnv
 basicSuffixifiedNames hashLength root nameScope =
-  let names0 = basicPrettyPrintNames root nameScope
-   in PPE.suffixifiedPPE . PPE.fromNamesDecl hashLength $ NamesWithHistory names0 mempty
+  PPE.suffixifiedPPE . PPE.fromNamesDecl hashLength $ getCurrentPrettyNames nameScope root
 
 basicPrettyPrintNames :: Branch m -> NameScoping -> Names
 basicPrettyPrintNames root = snd . basicNames' root

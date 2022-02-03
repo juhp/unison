@@ -8,6 +8,8 @@ module Unison.Codebase.BranchUtil
   , getBranch
   , getTerm
   , getType
+  , getTermPaths
+  , getTypePaths
   , getTermMetadataAt
   , getTypeMetadataAt
   , getTermMetadataHQNamed
@@ -38,7 +40,7 @@ import Unison.Names (Names)
 import qualified Unison.Referent as Referent
 import qualified Unison.Reference as Reference
 import Unison.Referent (Referent)
-import Unison.Reference (Reference)
+import Unison.Reference (Reference, TypeReference)
 import Unison.HashQualified' (HashQualified(NameOnly, HashQualified))
 import qualified Unison.HashQualified' as HQ'
 import qualified Unison.ShortHash as SH
@@ -70,6 +72,16 @@ getTerm (p, hq) b = case hq of
   where
   filter sh = Set.filter (SH.isPrefixOf sh . Referent.toShortHash)
   terms = Branch._terms (Branch.getAt0 p b)
+
+-- | Get all paths to a term.
+getTermPaths :: Referent -> Branch0 m -> Set Path.Split
+getTermPaths r =
+  Set.map Path.splitFromName . R.lookupDom r . Branch.deepTerms
+
+-- | Get all paths to a type.
+getTypePaths :: TypeReference -> Branch0 m -> Set Path.Split
+getTypePaths r b =
+  Set.map Path.splitFromName (R.lookupDom r (Branch.deepTypes b))
 
 getTermMetadataHQNamed
   :: (Path.Path, HQ'.HQSegment) -> Branch0 m -> Metadata.R4 Referent NameSegment

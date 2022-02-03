@@ -107,7 +107,7 @@ import qualified Unison.PrettyPrintEnv as PPE
 import qualified Unison.PrettyPrintEnv.Names as PPE
 import qualified Unison.PrettyPrintEnvDecl as PPE
 import qualified Unison.PrettyPrintEnvDecl.Names as PPE
-import Unison.Reference (Reference (..), TermReference)
+import Unison.Reference (Reference (..), TermReference, TypeReference)
 import qualified Unison.Reference as Reference
 import Unison.Referent (Referent)
 import qualified Unison.Referent as Referent
@@ -137,6 +137,7 @@ import Unison.Util.List (uniqueBy)
 import Unison.Util.Monoid (intercalateMap)
 import qualified Unison.Util.Monoid as Monoid
 import qualified Unison.Util.Pretty as P
+import Unison.Util.Relation (Relation)
 import qualified Unison.Util.Relation as R
 import qualified Unison.Util.Relation as Relation
 import qualified Unison.Util.Relation4 as R4
@@ -1272,7 +1273,7 @@ loop = do
                   eval . AddDefsToCodebase . filterBySlurpResult sr $ uf
                   ppe <- prettyPrintEnvDecl =<< displayNames uf
                   respond $ SlurpOutput input (PPE.suffixifiedPPE ppe) sr
-                  addDefaultMetadataToSlurp adds
+                  addDefaultMetadataToSlurped adds
                   syncRoot
             PreviewAddI hqs -> case (latestFile', uf) of
               (Just (sourceName, _), Just uf) -> do
@@ -2189,8 +2190,8 @@ oink selection unisonFile = do
 -- Add default metadata to all added types and terms in a slurp component.
 --
 -- No-op if the slurp component is empty.
-addDefaultMetadataToSlurp :: (Monad m, Var v) => SlurpComponent v -> Action m (Either Event Input) v ()
-addDefaultMetadataToSlurp adds =
+addDefaultMetadataToSlurped :: (Monad m, Var v) => SlurpComponent v -> Action m (Either Event Input) v ()
+addDefaultMetadataToSlurped adds =
   addDefaultMetadataToVars (SC.types adds <> SC.terms adds)
 
 -- Add default metadata to all of the given names.
@@ -2292,43 +2293,99 @@ manageLinks silent srcs metadata op = do
           steps = srcs <&> \(path, _hq) -> (Path.unabsolute (resolveToAbsolute path), step)
       stepManyAtNoSync Branch.CompressHistory steps
 
-manageLinkForTerm ::
+manageLinkStepsForPath ::
   ( forall r.
     Ord r =>
     (r, Metadata.Type, Metadata.Value) ->
     Branch.Star r NameSegment ->
     Branch.Star r NameSegment
   ) ->
-  Referent
-  -> (Metadata.Type, Metadata.Value)
-  -> Action' m v ()
-manageLinkForTerm op ref (mdType, mdValue) = do
+  Branch0 m ->
+  Path.HQSplit' ->
+  Metadata.Type ->
+  Metadata.Value ->
+  [(Path, Branch0 m -> Branch0 m)]
+manageLinkStepsForPath op rootBranch split mdType mdValue = do
+  let refs = BranchUtil.getTerm undefined undefined
   undefined
---   r ->
---   (Metadata.Type, Metadata.Value) ->
---   Action m (Either Event Input) v ()
--- manageLinkForRef op ref (mdType, mdValue) = do
---   newRoot <- use LoopState.root
---   currentPath' <- use LoopState.currentPath
---   let resolveToAbsolute :: Path' -> Path.Absolute
---       resolveToAbsolute = Path.resolve currentPath'
---       resolveSplit' :: (Path', a) -> (Path, a)
---       resolveSplit' = Path.fromAbsoluteSplit . Path.toAbsoluteSplit currentPath'
---       r0 = Branch.head newRoot
---       getTerms p = BranchUtil.getTerm (resolveSplit' p) r0
---       getTypes p = BranchUtil.getType (resolveSplit' p) r0
---       !srcle = toList . getTerms =<< srcs
---       !srclt = toList . getTypes =<< srcs
---   let step b0 =
---         let tmUpdates terms = foldl' go terms srcle
---               where
---                 go terms src = op (src, mdType, mdValue) terms
---             tyUpdates types = foldl' go types srclt
---               where
---                 go types src = op (src, mdType, mdValue) types
---          in over Branch.terms tmUpdates . over Branch.types tyUpdates $ b0
---       steps = srcs <&> \(path, _hq) -> (Path.unabsolute (resolveToAbsolute path), step)
---   stepManyAtNoSync Branch.CompressHistory steps
+      -- newRoot <- use LoopState.root
+      -- currentPath' <- use LoopState.currentPath
+      -- let resolveToAbsolute :: Path' -> Path.Absolute
+      --     resolveToAbsolute = Path.resolve currentPath'
+      --     resolveSplit' :: (Path', a) -> (Path, a)
+      --     resolveSplit' = Path.fromAbsoluteSplit . Path.toAbsoluteSplit currentPath'
+      --     r0 = Branch.head newRoot
+      --     getTerms p = BranchUtil.getTerm (resolveSplit' p) r0
+      --     getTypes p = BranchUtil.getType (resolveSplit' p) r0
+      --     !srcle = toList . getTerms =<< srcs
+      --     !srclt = toList . getTypes =<< srcs
+      -- let step b0 =
+      --       let tmUpdates terms = foldl' go terms srcle
+      --             where
+      --               go terms src = op (src, mdType, mdValue) terms
+      --           tyUpdates types = foldl' go types srclt
+      --             where
+      --               go types src = op (src, mdType, mdValue) types
+      --         in over Branch.terms tmUpdates . over Branch.types tyUpdates $ b0
+      --     steps = srcs <&> \(path, _hq) -> (Path.unabsolute (resolveToAbsolute path), step)
+      -- stepManyAtNoSync Branch.CompressHistory steps
+
+-- | Given a metadata operation to perform (insert/delete), a branch, a referent, and metadata, return a list of branch
+-- steps (relative to the given branch) that applies that operation to every child (including the given branch) that
+-- contains the given referent.
+--
+-- For example, if modifying metadata (T, V) of referent R, and R has names "yo", "foo.bar", "foo.baz", and
+-- "foo.boo.who", then we will return
+--
+--   [ ( [],             over Branch.terms (op (R, T, V)) )
+--   , ( ["foo"],        over Branch.terms (op (R, T, V)) )
+--   , ( ["foo", "boo"], over Branch.terms (op (R, T, V)) )
+--   ]
+--
+-- Note that it is currently not possible to associate metadata with a specific *namimg* of a term or type, even though
+-- the codebase format supports it. That's why, in the example above, even though in child "foo" referent R is called
+-- both "bar" and "baz", we only record that we're modifying the metadata to referent R in child "foo", and it ends up
+-- affecting both "foo.bar" and "foo.baz".
+manageLinkStepsForTerm ::
+  ( forall r.
+    Ord r =>
+    (r, Metadata.Type, Metadata.Value) ->
+    Branch.Star r NameSegment ->
+    Branch.Star r NameSegment
+  ) ->
+  Branch0 m ->
+  Referent ->
+  Metadata.Type ->
+  Metadata.Value ->
+  [(Path, Branch0 m -> Branch0 m)]
+manageLinkStepsForTerm op branch0 ref mdType mdValue =
+ BranchUtil.getTermPaths ref branch0
+   & Set.map fst
+   & Set.toList
+   & map \path -> (path, modifyMetadata)
+ where
+   modifyMetadata = over Branch.terms (op (ref, mdType, mdValue))
+
+-- | Same as 'manageLinkStepsForTerm', but for types.
+manageLinkStepsForType ::
+  ( forall r.
+    Ord r =>
+    (r, Metadata.Type, Metadata.Value) ->
+    Branch.Star r NameSegment ->
+    Branch.Star r NameSegment
+  ) ->
+  Branch0 m ->
+  Reference ->
+  Metadata.Type ->
+  Metadata.Value ->
+  [(Path, Branch0 m -> Branch0 m)]
+manageLinkStepsForType op branch0 ref mdType mdValue =
+ BranchUtil.getTypePaths ref branch0
+   & Set.map fst
+   & Set.toList
+   & map \path -> (path, modifyMetadata)
+ where
+   modifyMetadata = over Branch.types (op (ref, mdType, mdValue))
 
 -- Takes a maybe (namespace address triple); returns it as-is if `Just`;
 -- otherwise, tries to load a value from .unisonConfig, and complains

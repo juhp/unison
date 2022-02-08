@@ -3523,6 +3523,9 @@ eitherLeftId :: ConstructorId
 eitherRightId :: ConstructorId
 someId :: ConstructorId
 noneId :: ConstructorId
+authorRef :: Reference
+guidRef :: Reference
+copyrightHolderRef :: Reference
 doc2Ref :: Reference
 doc2SpecialFormRef :: Reference
 doc2TermRef :: Reference

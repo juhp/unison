@@ -107,7 +107,7 @@ import qualified Unison.PrettyPrintEnv as PPE
 import qualified Unison.PrettyPrintEnv.Names as PPE
 import qualified Unison.PrettyPrintEnvDecl as PPE
 import qualified Unison.PrettyPrintEnvDecl.Names as PPE
-import Unison.Reference (Reference (..), TermReference, TypeReference)
+import Unison.Reference (Reference (..), TermReference, TermReferenceId, TypeReference)
 import qualified Unison.Reference as Reference
 import Unison.Referent (Referent)
 import qualified Unison.Referent as Referent
@@ -134,7 +134,7 @@ import qualified Unison.UnisonFile as UF
 import qualified Unison.UnisonFile.Names as UF
 import qualified Unison.Util.Find as Find
 import Unison.Util.List (uniqueBy)
-import Unison.Util.Monoid (intercalateMap)
+import Unison.Util.Monoid (foldMapM, intercalateMap)
 import qualified Unison.Util.Monoid as Monoid
 import qualified Unison.Util.Pretty as P
 import Unison.Util.Relation (Relation)
@@ -1822,6 +1822,8 @@ handleUpdate input maybePatchPath hqs = do
       -- goal: only use structure below here, not uf/slurp
 
       currentPath' <- use LoopState.currentPath
+      currentBranch <- Branch.head <$> getAt currentPath'
+
       let defaultPatchPath :: PatchPath
           defaultPatchPath = (Path' $ Left currentPath', defaultPatchNameSegment)
           getPatchAt :: Path.Split' -> Action' m v Patch
@@ -1831,58 +1833,11 @@ handleUpdate input maybePatchPath hqs = do
             eval . Eval $ Branch.getPatch seg (Branch.head b)
       let patchPath = fromMaybe defaultPatchPath maybePatchPath
       slurpCheckNames <- slurpResultNames
-      let currentPathNames = slurpCheckNames
       let sr :: SlurpResult v
           sr =
             applySelection hqs uf
               . toSlurpResult currentPath' uf
               $ slurpCheckNames
-          -- FIXME delete
-          addsAndUpdates :: SlurpComponent v
-          addsAndUpdates = Slurp.updates sr <> Slurp.adds sr
-          fileNames :: Names
-          fileNames = UF.typecheckedToNames uf
-          -- todo: display some error if typeEdits or termEdits itself contains a loop
-          typeEdits :: Map Name (Reference, Reference)
-          typeEdits = Map.fromList $ map f (toList $ SC.types (updates sr))
-            where
-              f v = case ( toList (Names.typesNamed slurpCheckNames n),
-                           toList (Names.typesNamed fileNames n)
-                         ) of
-                ([old], [new]) -> (n, (old, new))
-                _ ->
-                  error $
-                    "Expected unique matches for "
-                      ++ Var.nameStr v
-                      ++ " but got: "
-                      ++ show otherwise
-                where
-                  n = Name.unsafeFromVar v
-          hashTerms :: Map Reference (Type v Ann)
-          hashTerms = Map.fromList (toList hashTerms0)
-            where
-              hashTerms0 = (\(r, _wk, _tm, typ) -> (r, typ)) <$> UF.hashTerms uf
-          termEdits :: Map Name (Reference, Reference)
-          termEdits = Map.fromList $ map g (toList $ SC.terms (updates sr))
-            where
-              g v = case ( toList (Names.refTermsNamed slurpCheckNames n),
-                           toList (Names.refTermsNamed fileNames n)
-                         ) of
-                ([old], [new]) -> (n, (old, new))
-                _ ->
-                  error $
-                    "Expected unique matches for "
-                      ++ Var.nameStr v
-                      ++ " but got: "
-                      ++ show otherwise
-                where
-                  n = Name.unsafeFromVar v
-          termDeprecations :: [(Name, Referent)]
-          termDeprecations =
-            [ (n, r)
-              | (oldTypeRef, _) <- Map.elems typeEdits,
-                (n, r) <- Names.constructorsForType oldTypeRef currentPathNames
-            ]
 
       ye'ol'Patch <- getPatchAt patchPath
       -- If `uf` updates a -> a', we want to replace all (a0 -> a) in patch
@@ -1901,17 +1856,18 @@ handleUpdate input maybePatchPath hqs = do
               fromOld =
                 [ (r, r') | (r, TermEdit.Replace r' _) <- R.toList . Patch._termEdits $ old, Set.member r' newLHS
                 ]
-          neededTypes = collectOldForTyping (structureTermEdits structure) {- FIXME delete (toList termEdits) -} ye'ol'Patch
+          neededTypes = collectOldForTyping (structureTermEdits structure) ye'ol'Patch
 
+      -- FIXME don't need to look up again, we have typing from structure
       allTypes :: Map Reference (Type v Ann) <-
         fmap Map.fromList . for (toList neededTypes) $ \r ->
           (r,) . fromMaybe (Type.builtin External "unknown type")
             <$> (eval . LoadTypeOfTerm) r
 
-      let typing r1 r2 = case (Map.lookup r1 allTypes, Map.lookup r2 hashTerms) of
-            (Just t1, Just t2)
-              | Typechecker.isEqual t1 t2 -> TermEdit.Same
-              | Typechecker.isSubtype t1 t2 -> TermEdit.Subtype
+      let typing r1 r2 = case Map.lookup r1 allTypes of
+            Just t1
+              | Typechecker.isEqual t1 (structureTermType structure r2) -> TermEdit.Same
+              | Typechecker.isSubtype t1 (structureTermType structure r2) -> TermEdit.Subtype
               | otherwise -> TermEdit.Different
             e ->
               error $
@@ -1924,21 +1880,21 @@ handleUpdate input maybePatchPath hqs = do
                   <> show e
 
       let updatePatch :: Patch -> Patch
-          updatePatch p = foldl' step2 p' (structureTermEdits structure) -- FIXME delete termEdits
+          updatePatch p = foldl' step2 p' (structureTermEdits structure)
             where
-              p' = foldl' step1 p typeEdits
+              p' = foldl' step1 p (structureTypeEdits structure)
               step1 p (r, r') = Patch.updateType r (TypeEdit.Replace r') p
               step2 p (r, r') = Patch.updateTerm typing r (TermEdit.Replace r' (typing r r')) p
           (p, seg) = Path.toAbsoluteSplit currentPath' patchPath
           updatePatches :: Branch0 m -> m (Branch0 m)
           updatePatches = Branch.modifyPatches seg updatePatch
 
-      when (Slurp.isNonempty sr) $ do
+      when (not (structureIsEmpty structure)) do
         -- take a look at the `updates` from the SlurpResult
         -- and make a patch diff to record a replacement from the old to new references
         stepManyAtMNoSync Branch.CompressHistory
           [ ( Path.unabsolute currentPath',
-              pure . doSlurpUpdates typeEdits termEdits termDeprecations
+              pure . Branch.batchUpdates (structureToUpdates currentBranch structure)
             ),
             ( Path.unabsolute currentPath',
               -- FIXME delete
@@ -1949,6 +1905,8 @@ handleUpdate input maybePatchPath hqs = do
             ),
             (Path.unabsolute p, updatePatches)
           ]
+        for_ (structureTerms structure) \case
+          UpsertOpAdd _ -> pure ()
         eval . AddDefsToCodebase . filterBySlurpResult sr $ uf
       ppe <- prettyPrintEnvDecl =<< displayNames uf
       respond $ SlurpOutput input (PPE.suffixifiedPPE ppe) sr
@@ -1965,92 +1923,85 @@ handleUpdate input maybePatchPath hqs = do
               & tShow
       syncRoot ("update " <> patchString)
 
-data Structure v
-  = Structure
-  { structureTerms :: [UpsertOp v]
+data Structure v = Structure
+  { structureTerms :: [UpsertOp v],
+    -- Look up the type of a term in the structure. Only valid for terms in the structure (old or new).
+    structureTermType :: TermReference -> Type v Ann,
+    structureTypes :: [UpsertOp v]
   }
+
+structureIsEmpty :: Structure v -> Bool
+structureIsEmpty structure =
+  null (structureTerms structure) && null (structureTypes structure)
 
 -- copy doSlurpAdds
 -- maybe this should be adds and updates
 structureToAdds :: Structure v -> [(Path, Branch0 m -> Branch0 m)]
 structureToAdds = undefined
 
--- doSlurpUpdates
---   [x] termEdits
---   [ ] typeEdits
---   [ ] termDeprecations
-structureToUpdates :: (Referent -> [(Path.Split, Metadata.Metadata)]) -> Structure v -> [(Path, Branch0 m -> Branch0 m)]
-structureToUpdates termNames structure =
-  foldMap
-    (\case
-      UpsertOpAdd{} -> []
-      UpsertOpUpdate UpdateOp{updateOldRef, updateNewRef} ->
-        foldMap
-          (\(name, metadata) ->
-            [ BranchUtil.makeDeleteTermName name (Referent.Ref updateOldRef),
-              BranchUtil.makeAddTermName name (Referent.Ref updateNewRef) metadata
-            ])
-          (termNames (Referent.Ref updateOldRef))
-    )
-    (structureTerms structure)
+-- FIXME reduce duplication?
+structureToUpdates :: forall m v. Branch0 m -> Structure v -> [(Path, Branch0 m -> Branch0 m)]
+structureToUpdates branch structure =
+  let termUpsertToOps :: UpsertOp v -> [(Path, Branch0 m -> Branch0 m)]
+      termUpsertToOps = \case
+        UpsertOpAdd {} -> []
+        UpsertOpUpdate updateOp -> termUpdateToOps updateOp
+      termUpdateToOps :: UpdateOp v -> [(Path, Branch0 m -> Branch0 m)]
+      termUpdateToOps UpdateOp {updateOldRef, updateNewRef} = do
+        (name, metadata) <- getTermInfo (Referent.Ref updateOldRef)
+        [ BranchUtil.makeDeleteTermName name (Referent.Ref updateOldRef),
+          BranchUtil.makeAddTermName name (Referent.Ref updateNewRef) metadata
+          ]
+      typeUpsertToOps :: UpsertOp v -> [(Path, Branch0 m -> Branch0 m)]
+      typeUpsertToOps = \case
+        UpsertOpAdd {} -> []
+        UpsertOpUpdate updateOp -> typeUpdateToOps updateOp
+      typeUpdateToOps :: UpdateOp v -> [(Path, Branch0 m -> Branch0 m)]
+      typeUpdateToOps UpdateOp {updateOldRef, updateNewRef} =
+        let infoToOps (name, metadata) =
+              [ BranchUtil.makeDeleteTypeName name updateOldRef,
+                BranchUtil.makeAddTypeName name updateNewRef metadata
+              ]
+         in foldMap infoToOps (getTypeInfo updateOldRef) ++ termDeprecations
+        where
+          termDeprecations :: [(Path, Branch0 m -> Branch0 m)]
+          termDeprecations =
+            map
+              (\(name, term) -> BranchUtil.makeDeleteTermName (Path.splitFromName name) term)
+              (Names.constructorsForType updateOldRef (Branch.toNames branch))
+   in foldMap termUpsertToOps (structureTerms structure) ++ foldMap typeUpsertToOps (structureTypes structure)
+  where
+    getTermInfo :: Referent -> [(Path.Split, Metadata.Metadata)]
+    getTermInfo ref =
+      BranchUtil.getTermPaths ref branch
+        & Set.toList
+        & map \split -> (split, BranchUtil.getTermMetadataAt split ref branch)
+    getTypeInfo :: TypeReference -> [(Path.Split, Metadata.Metadata)]
+    getTypeInfo ref =
+      BranchUtil.getTypePaths ref branch
+        & Set.toList
+        & map \split -> (split, BranchUtil.getTypeMetadataAt split ref branch)
 
--- this is for addDefaultMetadata, but that function is kinda busted...
+-- All explicitly named vars in the structure.
 structureToVars :: Structure v -> Set v
 structureToVars = undefined
 
-structureTermEdits :: Structure v -> [(Reference, Reference)]
-structureTermEdits = undefined
+structureTermEdits :: Structure v -> [(TermReference, TermReference)]
+structureTermEdits structure =
+  mapMaybe upsertOpUpdate (structureTerms structure)
 
--- updates the namespace for adding `slurp`
--- doSlurpAdds ::
---   forall m v.
---   (Monad m, Var v) =>
---   SlurpComponent v ->
---   UF.TypecheckedUnisonFile v Ann ->
---   (Branch0 m -> Branch0 m)
--- doSlurpAdds slurp uf = Branch.batchUpdates (typeActions <> termActions)
---   where
---     typeActions = map doType . toList $ SC.types slurp
---     termActions =
---       map doTerm . toList $
---         SC.terms slurp <> Slurp.constructorsFor (SC.types slurp) uf
---     names = UF.typecheckedToNames uf
---     tests = Set.fromList $ fst <$> UF.watchesOfKind WK.TestWatch (UF.discardTypes uf)
---     (isTestType, isTestValue) = isTest
---     md v =
---       if Set.member v tests
---         then Metadata.singleton isTestType isTestValue
---         else Metadata.empty
---     doTerm :: v -> (Path, Branch0 m -> Branch0 m)
---     doTerm v = case toList (Names.termsNamed names (Name.unsafeFromVar v)) of
---       [] -> errorMissingVar v
---       [r] -> case Path.splitFromName (Name.unsafeFromVar v) of
---         Nothing -> errorEmptyVar
---         Just split -> BranchUtil.makeAddTermName split r (md v)
---       wha ->
---         error $
---           "Unison bug, typechecked file w/ multiple terms named "
---             <> Var.nameStr v
---             <> ": "
---             <> show wha
---     doType :: v -> (Path, Branch0 m -> Branch0 m)
---     doType v = case toList (Names.typesNamed names (Name.unsafeFromVar v)) of
---       [] -> errorMissingVar v
---       [r] -> case Path.splitFromName (Name.unsafeFromVar v) of
---         Nothing -> errorEmptyVar
---         Just split -> BranchUtil.makeAddTypeName split r Metadata.empty
---       wha ->
---         error $
---           "Unison bug, typechecked file w/ multiple types named "
---             <> Var.nameStr v
---             <> ": "
---             <> show wha
---     errorEmptyVar = error "encountered an empty var name"
---     errorMissingVar v = error $ "expected to find " ++ show v ++ " in " ++ show uf
+structureTypeEdits :: Structure v -> [(TypeReference, TypeReference)]
+structureTypeEdits structure =
+  mapMaybe upsertOpUpdate (structureTypes structure)
 
 data UpsertOp v
   = UpsertOpAdd (AddOp v)
-  | UpsertOpUpdate UpdateOp
+  | UpsertOpUpdate (UpdateOp v)
+
+upsertOpUpdate :: UpsertOp v -> Maybe (Reference, Reference)
+upsertOpUpdate = \case
+  UpsertOpAdd _ -> Nothing
+  UpsertOpUpdate UpdateOp {updateOldRef, updateNewRef} -> Just (updateOldRef, updateNewRef)
 
 data AddOp v
   = AddOp
@@ -2058,11 +2009,30 @@ data AddOp v
   , addRef :: Reference
   }
 
-data UpdateOp
+data UpdateOp v
   = UpdateOp
   { updateOldRef :: Reference,
     updateNewRef :: Reference,
-    updateExplicit :: Bool
+    updateVar :: Maybe v
+  }
+
+data TermUpsertOp v
+  = TermUpsertOpAdd (TermAddOp v)
+  | TermUpsertOpUpdate (TermUpdateOp v)
+
+data TermAddOp v
+  = TermAddOp
+  { termAddVar :: v
+  , termAddRef :: TermReference
+  }
+
+data TermUpdateOp v
+  = TermUpdateOp
+  { termUpdateOldRef :: TermReference,
+    termUpdateNewRef :: TermReference,
+    termUpdateNewTerm :: Term v Ann,
+    termUpdateNewType :: Type v Ann,
+    termUpdateVar :: Maybe v
   }
 
 -- to add, we need to, for each name being updated, resolve that to a split and a referent
@@ -2081,40 +2051,46 @@ oink selection unisonFile = do
   let sr0 = applySelection selection unisonFile (toSlurpResult path unisonFile allNames)
   let fileNames = UF.typecheckedToNames unisonFile
 
-  let updatedTermNames :: Set v
+  let -- The names of all terms being updated in the unison file
+      updatedTermNames :: Set v
       updatedTermNames =
         SC.terms (Slurp.updates sr0)
 
-  let updatedTermOldRef :: v -> Reference
+  let -- The names of all types being updated in the unison file
+      updatedTypeNames :: Set v
+      updatedTypeNames =
+        SC.types (Slurp.updates sr0)
+
+  let updatedTermOldRef :: v -> TermReference
       updatedTermOldRef =
         Names.theRefTermNamed allNames . Name.unsafeFromVar
 
-  let updatedTermNewRef :: v -> Reference
+  let updatedTermNewRef :: v -> TermReference
       updatedTermNewRef =
         Names.theRefTermNamed fileNames . Name.unsafeFromVar
 
-  let shouldPullOut :: (Reference.Id, (Term v Ann, Type v Ann)) -> Bool
-      shouldPullOut (Referent.fromTermReferenceId -> ref, _) =
-        hasNameInCurrentNamespace && doesntHaveNameThatsBeingUpdated
-        where
-          names = Names.namesForReferent allNames ref
-          hasNameInCurrentNamespace = not (Set.null names)
-          doesntHaveNameThatsBeingUpdated = Set.null (Set.intersection updatedTermNames (Set.map Name.toVar names))
+  let updatedTypeOldRef :: v -> TypeReference
+      updatedTypeOldRef =
+        Names.theTypeNamed allNames . Name.unsafeFromVar
 
-  pulledOutMates :: Map Reference.Id (Term v Ann, Type v Ann) <-
+  let updatedTypeNewRef :: v -> TypeReference
+      updatedTypeNewRef =
+        Names.theTypeNamed fileNames . Name.unsafeFromVar
+
+  pulledOutMates :: Map TermReferenceId (Term v Ann, Type v Ann) <-
     -- FIXME pretty sure this could be Map.fromAscList
     fmap Map.fromList do
-      Monoid.foldMapM
-        ( \hash -> do
-            component <- eval (LoadTermComponentWithTypes hash) <&> maybe [] (Reference.componentFor hash)
-            pure (filter shouldPullOut component)
-        )
+      let shouldPullOut :: (TermReferenceId, (Term v Ann, Type v Ann)) -> Bool
+          shouldPullOut (Referent.fromTermReferenceId -> ref, _) =
+            Set.disjoint updatedTermNames (Set.map Name.toVar (Names.namesForReferent allNames ref))
+      foldMapM
+        (\hash -> filter shouldPullOut <$> loadTermComponent hash)
         (Set.mapMaybe (Reference.toHash . updatedTermOldRef) updatedTermNames)
 
   let -- The mapping induced by the updates in the slurp
-      mapref :: Reference -> Reference
+      mapref :: TermReference -> TermReference
       mapref =
-        let maprefMap :: Map Reference Reference
+        let maprefMap :: Map TermReference TermReference
             maprefMap =
               foldl'
                 (\acc name -> Map.insert (updatedTermOldRef name) (updatedTermNewRef name) acc)
@@ -2122,41 +2098,80 @@ oink selection unisonFile = do
                 updatedTermNames
          in \ref -> Map.findWithDefault ref ref maprefMap
 
+      typeReferenceMapping :: TypeReference -> TypeReference
+      typeReferenceMapping =
+        \ref -> Map.findWithDefault ref ref m
+        where
+          m :: Map TypeReference TypeReference
+          m =
+            foldl'
+              (\acc name -> Map.insert (updatedTypeOldRef name) (updatedTypeNewRef name) acc)
+              Map.empty
+              updatedTypeNames
+
+
+  -- foo#old = ... bar#old ...
+  -- bar#old = ... foo#old ...
+  --
+  -- foo#new = bar#old + 30
+  -- bar#old = ... foo#new ...
+
   if Map.null pulledOutMates
     then pure undefined -- Structure -- no more work to do
     else do
       -- in mates, perform ref->ref replacement, for all new ->ref that are being updated
-      let pulledOutMates1 :: Map Reference.Id (Term v Ann, Type v Ann)
+      -- FIXME what about old type? currently just passing it along...
+      -- FIXME substitute new types per update too, right?
+      -- FIXME what about constructor references?
+      let pulledOutMates1 :: Map TermReferenceId (Term v Ann, Type v Ann)
           pulledOutMates1 = Map.map substitute pulledOutMates
             where
-              -- FIXME what about old type? currently just passing it along...
               substitute :: (Term v Ann, Type v Ann) -> (Term v Ann, Type v Ann)
               substitute (term, typ) =
-                (substitute1 term, typ)
-              substitute1 :: Term v Ann -> Term v Ann
-              substitute1 =
+                (substituteTerm term, typ)
+              substituteTerm :: Term v Ann -> Term v Ann
+              substituteTerm =
                 ABT.rebuildUp \case
                   Term.Ref ref -> Term.Ref (mapref ref)
+                  Term.Ann ann ty -> Term.Ann ann (substituteType ty)
                   term -> term
+              substituteType :: Type v Ann -> Type v Ann
+              substituteType =
+                ABT.rebuildUp \case
+                  Type.Ref ref -> Type.Ref (typeReferenceMapping ref)
+                  ty -> ty
 
-      traceShowM ("pulledOutMates1 = " ++ show pulledOutMates1)
-
-      let allTerms :: Map Reference.Id (Term v Ann)
+      let -- gather together all terms from both the typechecked unison file, and the ones we just pulled out
+          allTerms :: Map TermReferenceId (Term v Ann)
           allTerms =
             Map.union
               (Map.map fst pulledOutMates1)
               (Map.fromList (mapMaybe project (Map.elems (UF.hashTermsId unisonFile))))
             where
-              project :: (Reference.Id, Maybe WK.WatchKind, Term v Ann, Type v Ann) -> Maybe (Reference.Id, Term v Ann)
+              project ::
+                (TermReferenceId, Maybe WK.WatchKind, Term v Ann, Type v Ann) ->
+                Maybe (TermReferenceId, Term v Ann)
               project (refId, watchKind, term, _typ) = do
-                guard (isNothing watchKind)
+                guard (isNothing watchKind) -- throw away watches; FIXME is this right?
                 Just (refId, term)
 
       traceShowM ("allTerms = " ++ show allTerms)
 
-      let allTermsUnhashed :: Map Reference.Id (v, Term v Ann)
+      let allTermsUnhashed :: Map TermReferenceId (v, Term v Ann)
           allTermsUnhashed =
             Term.unhashComponent allTerms
+
+      let recoverTermName :: v -> Maybe v
+          recoverTermName =
+            \v -> Map.lookup v m1
+            where
+              m0 :: Map TermReferenceId v
+              m0 =
+                Map.foldlWithKey' (\acc v (ref, _, _, _) -> Map.insert ref v acc) Map.empty (UF.hashTermsId unisonFile)
+
+              m1 :: Map v v
+              m1 =
+                Map.foldlWithKey' (\acc ref (v, _term) -> Map.insert v (m0 Map.! ref) acc) Map.empty allTermsUnhashed
 
       traceShowM ("allTermsUnhashed = " ++ show allTermsUnhashed)
 
@@ -2174,18 +2189,27 @@ oink selection unisonFile = do
       result <- eval (TypecheckFile fileToTypecheck [])
       case runIdentity (Result.toMaybe result) of
         Just (Right unisonFile') -> do
+          let -- replace generated names with their originals, wherever possible
+              -- FIXME think a little bit about if that works - they can't overlap right? printf debug a little
+              terms :: Map v (TermReferenceId, Maybe WK.WatchKind, Term v Ann, Type v Ann)
+              terms =
+                Map.mapKeys (\v -> fromMaybe v (recoverTermName v)) (UF.hashTermsId unisonFile)
           pure
             Structure
-              { structureTerms = undefined
+              { structureTerms =
+                  -- named added terms
+                  -- named updated terms
+                  -- nameless updated terms
+                  undefined
+              , structureTypes = undefined
               }
-        -- { updateExplicit = undefined,
-        --   updateSplit = undefined,
-        --   updateName = undefined,
-        --   updateRef = undefined
-        -- }
         -- fall back on original unisonFile I guess?
         _ ->
           pure undefined -- Structure
+  where
+    loadTermComponent :: Hash -> Action' m v [(TermReferenceId, (Term v Ann, Type v Ann))]
+    loadTermComponent hash =
+      eval (LoadTermComponentWithTypes hash) <&> maybe [] (Reference.componentFor hash)
 
 -- Add default metadata to all added types and terms in a slurp component.
 --
@@ -2252,13 +2276,38 @@ manageLinks ::
 manageLinks _ [] _ _ = pure ()
 manageLinks _ _ [] _ = pure ()
 manageLinks silent srcs metadata op = do
-  before <- Branch.head <$> use LoopState.root
-  traverse_ go metadata
+  rootBranch <- Branch.head <$> use LoopState.root
+
+  currentBranch <- do
+    path <- use LoopState.currentPath
+    Branch.head <$> getAt path
+
+  let -- Resolve a HQSplit' by making it a relative HQSplit instead, paired with the branch it is relative to.
+      resolveSplit' :: Path.HQSplit' -> (Branch0 m, Path.HQSplit)
+      resolveSplit' = \case
+        (Path' (Left (Path.Absolute path)), name) -> (rootBranch, (path, name))
+        (Path' (Right (Path.Relative path)), name) -> (currentBranch, (path, name))
+
+  let -- Map a (branch, split) pair to the list of requested branch-stepping actions to apply at that path (either
+      -- adding or removing the input metadata).
+      oink :: (Branch0 m, Path.HQSplit) -> [(Path, Branch0 m -> Branch0 m)]
+      oink (branch, split) =
+        foldMap
+          (\(mdType, mdValue) -> manageLinkStepsForPath op branch split mdType mdValue)
+          metadata
+
+  let -- Collect together all branch-stepping actions.
+      allBranchSteps :: [(Path, Branch0 m -> Branch0 m)]
+      allBranchSteps =
+        foldMap (oink . resolveSplit') srcs
+
+  stepManyAtNoSync Branch.CompressHistory allBranchSteps
+
   if silent
     then respond DefaultMetadataNotification
     else do
-      after <- Branch.head <$> use LoopState.root
-      (ppe, outputDiff) <- diffHelper before after
+      newRootBranch <- Branch.head <$> use LoopState.root
+      (ppe, outputDiff) <- diffHelper rootBranch newRootBranch
       if OBranchDiff.isEmpty outputDiff
         then respond NoOp
         else
@@ -2268,32 +2317,10 @@ manageLinks silent srcs metadata op = do
               (Right Path.absoluteEmpty)
               ppe
               outputDiff
-  where
-    go :: (Metadata.Type, Metadata.Value) -> Action m (Either Event Input) v ()
-    go (mdType, mdValue) = do
-      newRoot <- use LoopState.root
-      currentPath' <- use LoopState.currentPath
-      let resolveToAbsolute :: Path' -> Path.Absolute
-          resolveToAbsolute = Path.resolve currentPath'
-          resolveSplit' :: (Path', a) -> (Path, a)
-          resolveSplit' = Path.fromAbsoluteSplit . Path.toAbsoluteSplit currentPath'
-          r0 = Branch.head newRoot
-          getTerms p = BranchUtil.getTerm (resolveSplit' p) r0
-          getTypes p = BranchUtil.getType (resolveSplit' p) r0
-          !srcle = toList . getTerms =<< srcs
-          !srclt = toList . getTypes =<< srcs
-      let step b0 =
-            let tmUpdates terms = foldl' go terms srcle
-                  where
-                    go terms src = op (src, mdType, mdValue) terms
-                tyUpdates types = foldl' go types srclt
-                  where
-                    go types src = op (src, mdType, mdValue) types
-              in over Branch.terms tmUpdates . over Branch.types tyUpdates $ b0
-          steps = srcs <&> \(path, _hq) -> (Path.unabsolute (resolveToAbsolute path), step)
-      stepManyAtNoSync Branch.CompressHistory steps
 
+-- FIXME better name
 manageLinkStepsForPath ::
+  forall m.
   ( forall r.
     Ord r =>
     (r, Metadata.Type, Metadata.Value) ->
@@ -2301,34 +2328,22 @@ manageLinkStepsForPath ::
     Branch.Star r NameSegment
   ) ->
   Branch0 m ->
-  Path.HQSplit' ->
+  Path.HQSplit ->
   Metadata.Type ->
   Metadata.Value ->
   [(Path, Branch0 m -> Branch0 m)]
-manageLinkStepsForPath op rootBranch split mdType mdValue = do
-  let refs = BranchUtil.getTerm undefined undefined
-  undefined
-      -- newRoot <- use LoopState.root
-      -- currentPath' <- use LoopState.currentPath
-      -- let resolveToAbsolute :: Path' -> Path.Absolute
-      --     resolveToAbsolute = Path.resolve currentPath'
-      --     resolveSplit' :: (Path', a) -> (Path, a)
-      --     resolveSplit' = Path.fromAbsoluteSplit . Path.toAbsoluteSplit currentPath'
-      --     r0 = Branch.head newRoot
-      --     getTerms p = BranchUtil.getTerm (resolveSplit' p) r0
-      --     getTypes p = BranchUtil.getType (resolveSplit' p) r0
-      --     !srcle = toList . getTerms =<< srcs
-      --     !srclt = toList . getTypes =<< srcs
-      -- let step b0 =
-      --       let tmUpdates terms = foldl' go terms srcle
-      --             where
-      --               go terms src = op (src, mdType, mdValue) terms
-      --           tyUpdates types = foldl' go types srclt
-      --             where
-      --               go types src = op (src, mdType, mdValue) types
-      --         in over Branch.terms tmUpdates . over Branch.types tyUpdates $ b0
-      --     steps = srcs <&> \(path, _hq) -> (Path.unabsolute (resolveToAbsolute path), step)
-      -- stepManyAtNoSync Branch.CompressHistory steps
+manageLinkStepsForPath op branch split mdType mdValue =
+  go BranchUtil.getTerm Branch.terms ++ go BranchUtil.getType Branch.types
+  where
+    go ::
+      Ord r =>
+      (Path.HQSplit -> Branch0 m -> Set r) ->
+      Lens' (Branch0 m) (Branch.Star r NameSegment) ->
+      [(Path, Branch0 m -> Branch0 m)]
+    go get l =
+      get split branch
+        & Set.toList
+        & map \ref -> (fst split, over l (op (ref, mdType, mdValue)))
 
 -- | Given a metadata operation to perform (insert/delete), a branch, a referent, and metadata, return a list of branch
 -- steps (relative to the given branch) that applies that operation to every child (including the given branch) that
@@ -2346,6 +2361,8 @@ manageLinkStepsForPath op rootBranch split mdType mdValue = do
 -- the codebase format supports it. That's why, in the example above, even though in child "foo" referent R is called
 -- both "bar" and "baz", we only record that we're modifying the metadata to referent R in child "foo", and it ends up
 -- affecting both "foo.bar" and "foo.baz".
+--
+-- FIXME oh wait we might not need this (=
 manageLinkStepsForTerm ::
   ( forall r.
     Ord r =>
@@ -3411,44 +3428,6 @@ doSlurpAdds slurp uf = Branch.batchUpdates (typeActions <> termActions)
             <> ": "
             <> show wha
     errorMissingVar v = error $ "expected to find " ++ show v ++ " in " ++ show uf
-
-doSlurpUpdates ::
-  Monad m =>
-  Map Name (Reference, Reference) ->
-  Map Name (Reference, Reference) ->
-  [(Name, Referent)] ->
-  (Branch0 m -> Branch0 m)
-doSlurpUpdates typeEdits termEdits deprecated b0 =
-  Branch.batchUpdates (typeActions <> termActions <> deprecateActions) b0
-  where
-    typeActions = join . map doType . Map.toList $ typeEdits
-    termActions = join . map doTerm . Map.toList $ termEdits
-    deprecateActions = join . map doDeprecate $ deprecated
-      where
-        doDeprecate (n, r) = [BranchUtil.makeDeleteTermName (Path.splitFromName n) r]
-
-    -- we copy over the metadata on the old thing
-    -- todo: if the thing being updated, m, is metadata for something x in b0
-    -- update x's md to reference `m`
-    doType,
-      doTerm ::
-        (Name, (Reference, Reference)) -> [(Path, Branch0 m -> Branch0 m)]
-    doType (n, (old, new)) =
-      let split = Path.splitFromName n
-          oldMd = BranchUtil.getTypeMetadataAt split old b0
-      in
-        [ BranchUtil.makeDeleteTypeName split old,
-          BranchUtil.makeAddTypeName split new oldMd
-        ]
-    doTerm (n, (old, new)) =
-      let split = Path.splitFromName n
-          -- oldMd is the metadata linked to the old definition
-          -- we relink it to the new definition
-          oldMd = BranchUtil.getTermMetadataAt split (Referent.Ref old) b0
-      in
-        [ BranchUtil.makeDeleteTermName split (Referent.Ref old),
-          BranchUtil.makeAddTermName split (Referent.Ref new) oldMd
-        ]
 
 loadDisplayInfo ::
   Set Reference ->

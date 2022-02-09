@@ -610,7 +610,7 @@ data Command m i v a
 [LoadLocalRootBranch] :: Command m i v (Branch m)
 [LoadLocalBranch] :: Hash -> Command m i v (Branch m)
 [Merge] :: MergeMode -> Branch m -> Branch m -> Command m i v (Branch m)
-[ViewRemoteBranch] :: ReadRemoteNamespace -> (Branch m -> Free (Command m i v) r) -> Command m i v (Either GitError r)
+[ViewRemoteBranch] :: ReadRemoteNamespace -> GitBranchBehavior -> (Branch m -> Free (Command m i v) r) -> Command m i v (Either GitError r)
 [ImportRemoteBranch] :: ReadRemoteNamespace -> SyncMode -> Preprocessing m -> Command m i v (Either GitError (Branch m))
 [SyncLocalRootBranch] :: Branch m -> Command m i v ()
 [SyncRemoteBranch] :: Branch m -> WriteRepo -> PushGitBranchOpts -> Command m i v (Either GitError ())
@@ -687,13 +687,13 @@ LoopState :: Branch m -> Branch m -> NonEmpty Absolute -> Maybe (FilePath, SkipN
 type Action' m v = Action m (Either Event Input) v
 type SkipNextUpdate = Bool
 type InputDescription = Text
-root :: forall m_a1tUn v_a1tUo. Lens' (LoopState m_a1tUn v_a1tUo) (Branch m_a1tUn)
-numberedArgs :: forall m_a1tUn v_a1tUo. Lens' (LoopState m_a1tUn v_a1tUo) NumberedArgs
-latestTypecheckedFile :: forall m_a1tUn v_a1tUo v_a1u68. Lens (LoopState m_a1tUn v_a1tUo) (LoopState m_a1tUn v_a1u68) (Maybe (TypecheckedUnisonFile v_a1tUo Ann)) (Maybe (TypecheckedUnisonFile v_a1u68 Ann))
-latestFile :: forall m_a1tUn v_a1tUo. Lens' (LoopState m_a1tUn v_a1tUo) (Maybe (FilePath, SkipNextUpdate))
-lastSavedRoot :: forall m_a1tUn v_a1tUo. Lens' (LoopState m_a1tUn v_a1tUo) (Branch m_a1tUn)
-lastInput :: forall m_a1tUn v_a1tUo. Lens' (LoopState m_a1tUn v_a1tUo) (Maybe Input)
-currentPathStack :: forall m_a1tUn v_a1tUo. Lens' (LoopState m_a1tUn v_a1tUo) (NonEmpty Absolute)
+root :: forall m_a1tSg v_a1tSh. Lens' (LoopState m_a1tSg v_a1tSh) (Branch m_a1tSg)
+numberedArgs :: forall m_a1tSg v_a1tSh. Lens' (LoopState m_a1tSg v_a1tSh) NumberedArgs
+latestTypecheckedFile :: forall m_a1tSg v_a1tSh v_a1u41. Lens (LoopState m_a1tSg v_a1tSh) (LoopState m_a1tSg v_a1u41) (Maybe (TypecheckedUnisonFile v_a1tSh Ann)) (Maybe (TypecheckedUnisonFile v_a1u41 Ann))
+latestFile :: forall m_a1tSg v_a1tSh. Lens' (LoopState m_a1tSg v_a1tSh) (Maybe (FilePath, SkipNextUpdate))
+lastSavedRoot :: forall m_a1tSg v_a1tSh. Lens' (LoopState m_a1tSg v_a1tSh) (Branch m_a1tSg)
+lastInput :: forall m_a1tSg v_a1tSh. Lens' (LoopState m_a1tSg v_a1tSh) (Maybe Input)
+currentPathStack :: forall m_a1tSg v_a1tSh. Lens' (LoopState m_a1tSg v_a1tSh) (NonEmpty Absolute)
 currentPath :: Getter (LoopState m v) Absolute
 loopState0 :: Branch m -> Absolute -> LoopState m v
 instance Unison.Codebase.Editor.HandleInput.LoopState.MonadCommand (Unison.Util.Free.Free (Unison.Codebase.Editor.Command.Command m i v)) m i v
@@ -856,6 +856,7 @@ newNameArg :: ArgumentType
 noCompletions :: ArgumentType
 gitUrlArg :: ArgumentType
 collectNothings :: (a -> Maybe b) -> [a] -> [a]
+explainRemote :: Pretty ColorText
 
 module Unison.CommandLine.OutputMessages
 type Pretty = Pretty ColorText

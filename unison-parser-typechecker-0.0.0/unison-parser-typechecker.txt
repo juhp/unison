@@ -258,11 +258,13 @@ instance GHC.Show.Show Unison.Codebase.ShortBranchHash.ShortBranchHash
 
 module Unison.Codebase.Editor.RemoteRepo
 data ReadRepo
-ReadGitRepo :: Text -> ReadRepo
+ReadGitRepo :: Text -> Maybe Text -> ReadRepo
 [url] :: ReadRepo -> Text
+[ref] :: ReadRepo -> Maybe Text
 data WriteRepo
-WriteGitRepo :: Text -> WriteRepo
+WriteGitRepo :: Text -> Maybe Text -> WriteRepo
 [url'] :: WriteRepo -> Text
+[branch] :: WriteRepo -> Maybe Text
 writeToRead :: WriteRepo -> ReadRepo
 writePathToRead :: WriteRemotePath -> ReadRemoteNamespace
 printReadRepo :: ReadRepo -> Text
@@ -290,14 +292,59 @@ PushException :: WriteRepo -> String -> GitProtocolError
 PushNoOp :: WriteRepo -> GitProtocolError
 PushDestinationHasNewStuff :: WriteRepo -> GitProtocolError
 CleanupError :: SomeException -> GitProtocolError
+RemoteRefNotFound :: Text -> Text -> GitProtocolError
 data GitCodebaseError h
 NoRemoteNamespaceWithHash :: ReadRepo -> ShortBranchHash -> GitCodebaseError h
 RemoteNamespaceHashAmbiguous :: ReadRepo -> ShortBranchHash -> Set h -> GitCodebaseError h
 CouldntLoadRootBranch :: ReadRepo -> h -> GitCodebaseError h
 CouldntLoadSyncedBranch :: ReadRemoteNamespace -> h -> GitCodebaseError h
 CouldntFindRemoteBranch :: ReadRepo -> Path -> GitCodebaseError h
+instance GHC.Exception.Type.Exception Unison.Codebase.GitError.GitProtocolError
 instance GHC.Show.Show Unison.Codebase.GitError.GitProtocolError
 instance GHC.Show.Show h => GHC.Show.Show (Unison.Codebase.GitError.GitCodebaseError h)
+
+module Unison.Codebase.Editor.Git
+
+-- | Run a git command in the repository at localPath
+gitIn :: MonadIO m => GitRepo -> [Text] -> m ()
+
+-- | Run a git command in the repository at localPath and capture stdout
+gitTextIn :: MonadIO m => GitRepo -> [Text] -> m Text
+
+-- | like <a>gitIn</a>, but silences all output from the command and
+--   returns whether the command succeeded.
+gitInCaptured :: MonadIO m => GitRepo -> [Text] -> m (Bool, Text, Text)
+
+-- | Clone or fetch an updated copy of the provided repository and check
+--   out the expected ref, then provide the action with a path to the
+--   codebase in that repository. Note that the repository provided to the
+--   action is temporary, it will be removed when the action completes or
+--   fails.
+withRepo :: forall m a. MonadUnliftIO m => ReadRepo -> GitBranchBehavior -> (GitRepo -> m a) -> m (Either GitProtocolError a)
+
+-- | Perform an IO action, passing any IO exception to <tt>handler</tt>
+withIOError :: MonadIO m => IO a -> (IOException -> m a) -> m a
+withStatus :: MonadIO m => String -> m a -> m a
+
+-- | Run an action on an isolated copy of the provided repo. The repo is
+--   deleted when the action exits or fails. A branch or tag to check out
+--   from the source repo may be specified.
+withIsolatedRepo :: forall m r. MonadUnliftIO m => GitRepo -> Text -> Maybe Text -> (GitRepo -> m r) -> m (Either GitProtocolError r)
+debugGit :: Bool
+gitDirToPath :: GitRepo -> FilePath
+
+-- | Define what to do if the repo we're pulling/pushing doesn't have the
+--   specified branch.
+data GitBranchBehavior
+CreateBranchIfMissing :: GitBranchBehavior
+RequireExistingBranch :: GitBranchBehavior
+
+-- | A path to a git repository.
+data GitRepo
+Bare :: FilePath -> GitRepo
+Worktree :: FilePath -> GitRepo
+gitCacheDir :: MonadIO m => Text -> m FilePath
+instance GHC.Show.Show Unison.Codebase.Editor.Git.GitRepo
 
 module Unison.Codebase.SqliteCodebase.SyncEphemeral
 data Dependencies
@@ -1235,23 +1282,6 @@ module Unison.Util.Exception
 tryAny :: MonadIO m => IO a -> m (Either SomeException a)
 catchAny :: IO a -> (SomeException -> IO a) -> IO a
 
-module Unison.Codebase.Editor.Git
-gitIn :: MonadIO m => FilePath -> [Text] -> m ()
-gitTextIn :: MonadIO m => FilePath -> [Text] -> m Text
-
--- | Given a remote git repo url, and branch/commit hash (currently not
---   allowed): checks for git, clones or updates a cached copy of the repo
-pullRepo :: (MonadIO m, MonadError GitProtocolError m) => ReadRepo -> m CodebasePath
-
--- | Perform an IO action, passing any IO exception to <tt>handler</tt>
-withIOError :: MonadIO m => IO a -> (IOException -> m a) -> m a
-withStatus :: MonadIO m => String -> m a -> m a
-
--- | Run an action on an isolated copy of the provided repo. The repo is
---   deleted when the action exits or fails.
-withIsolatedRepo :: forall m r. MonadUnliftIO m => FilePath -> (FilePath -> m r) -> m (Either GitProtocolError r)
-gitCacheDir :: MonadIO m => Text -> m FilePath
-
 module Unison.Util.Free
 data Free f a
 Pure :: a -> Free f a
@@ -2119,7 +2149,7 @@ module Unison.Codebase.Type
 
 -- | Abstract interface to a user's codebase.
 data Codebase m v a
-Codebase :: (Id -> m (Maybe (Term v a))) -> (Id -> m (Maybe (Type v a))) -> (Id -> m (Maybe (Decl v a))) -> (Id -> Term v a -> Type v a -> m ()) -> (Id -> Decl v a -> m ()) -> m (Either GetRootBranchError (Branch m)) -> m Bool -> (Branch m -> m ()) -> m (IO (), IO (Set Hash)) -> (Hash -> m (Maybe (Branch m))) -> (Branch m -> m ()) -> (Hash -> m Bool) -> (EditHash -> m (Maybe Patch)) -> (EditHash -> Patch -> m ()) -> (EditHash -> m Bool) -> (Reference -> m (Set Id)) -> (CodebasePath -> SyncMode -> Branch m -> m ()) -> (CodebasePath -> SyncMode -> Branch m -> m ()) -> (forall r. ReadRemoteNamespace -> ((Branch m, CodebasePath) -> m r) -> m (Either GitError r)) -> (Branch m -> WriteRepo -> PushGitBranchOpts -> m (Either GitError ())) -> (WatchKind -> m [Id]) -> (WatchKind -> Id -> m (Maybe (Term v a))) -> (WatchKind -> Id -> Term v a -> m ()) -> m () -> m [Entry Hash] -> (Text -> Branch m -> Branch m -> m ()) -> (Reference -> m (Set Id)) -> (Reference -> m (Set Id)) -> m Int -> (ShortHash -> m (Set Id)) -> (ShortHash -> m (Set Id)) -> (ShortHash -> m (Set Id)) -> m Int -> (ShortBranchHash -> m (Set Hash)) -> Maybe (Hash -> Hash -> m (Maybe Hash)) -> Maybe (Hash -> Hash -> m Bool) -> Codebase m v a
+Codebase :: (Id -> m (Maybe (Term v a))) -> (Id -> m (Maybe (Type v a))) -> (Id -> m (Maybe (Decl v a))) -> (Id -> Term v a -> Type v a -> m ()) -> (Id -> Decl v a -> m ()) -> m (Either GetRootBranchError (Branch m)) -> m Bool -> (Branch m -> m ()) -> m (IO (), IO (Set Hash)) -> (Hash -> m (Maybe (Branch m))) -> (Branch m -> m ()) -> (Hash -> m Bool) -> (EditHash -> m (Maybe Patch)) -> (EditHash -> Patch -> m ()) -> (EditHash -> m Bool) -> (Reference -> m (Set Id)) -> (CodebasePath -> SyncMode -> Branch m -> m ()) -> (CodebasePath -> SyncMode -> Branch m -> m ()) -> (forall r. ReadRemoteNamespace -> GitBranchBehavior -> ((Branch m, CodebasePath) -> m r) -> m (Either GitError r)) -> (Branch m -> WriteRepo -> PushGitBranchOpts -> m (Either GitError ())) -> (WatchKind -> m [Id]) -> (WatchKind -> Id -> m (Maybe (Term v a))) -> (WatchKind -> Id -> Term v a -> m ()) -> m () -> m [Entry Hash] -> (Text -> Branch m -> Branch m -> m ()) -> (Reference -> m (Set Id)) -> (Reference -> m (Set Id)) -> m Int -> (ShortHash -> m (Set Id)) -> (ShortHash -> m (Set Id)) -> (ShortHash -> m (Set Id)) -> m Int -> (ShortBranchHash -> m (Set Hash)) -> Maybe (Hash -> Hash -> m (Maybe Hash)) -> Maybe (Hash -> Hash -> m Bool) -> Codebase m v a
 
 -- | Get a user-defined term from the codebase.
 --   
@@ -2196,7 +2226,7 @@ Codebase :: (Id -> m (Maybe (Term v a))) -> (Id -> m (Maybe (Type v a))) -> (Id 
 -- | Copy a branch and all of its dependencies from this codebase into the
 --   given codebase.
 [syncToDirectory] :: Codebase m v a -> CodebasePath -> SyncMode -> Branch m -> m ()
-[viewRemoteBranch'] :: Codebase m v a -> forall r. ReadRemoteNamespace -> ((Branch m, CodebasePath) -> m r) -> m (Either GitError r)
+[viewRemoteBranch'] :: Codebase m v a -> forall r. ReadRemoteNamespace -> GitBranchBehavior -> ((Branch m, CodebasePath) -> m r) -> m (Either GitError r)
 
 -- | Push the given branch to the given repo, and optionally set it as the
 --   root branch.
@@ -3218,9 +3248,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a595E loc_a595F. Lens' (Env v_a595E loc_a595F) (TypeLookup v_a595E loc_a595F)
-termsByShortname :: forall v_a595E loc_a595F. Lens' (Env v_a595E loc_a595F) (Map Name [NamedReference v_a595E loc_a595F])
-ambientAbilities :: forall v_a595E loc_a595F. Lens' (Env v_a595E loc_a595F) [Type v_a595E loc_a595F]
+typeLookup :: forall v_a5b3f loc_a5b3g. Lens' (Env v_a5b3f loc_a5b3g) (TypeLookup v_a5b3f loc_a5b3g)
+termsByShortname :: forall v_a5b3f loc_a5b3g. Lens' (Env v_a5b3f loc_a5b3g) (Map Name [NamedReference v_a5b3f loc_a5b3g])
+ambientAbilities :: forall v_a5b3f loc_a5b3g. Lens' (Env v_a5b3f loc_a5b3g) [Type v_a5b3f loc_a5b3g]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.
@@ -3898,7 +3928,7 @@ syncToDirectory :: Codebase m v a -> CodebasePath -> SyncMode -> Branch m -> m (
 
 -- | Pull a git branch and view it from the cache, without syncing into the
 --   local codebase.
-viewRemoteBranch :: MonadIO m => Codebase m v a -> ReadRemoteNamespace -> (Branch m -> m r) -> m (Either GitError r)
+viewRemoteBranch :: MonadIO m => Codebase m v a -> ReadRemoteNamespace -> GitBranchBehavior -> (Branch m -> m r) -> m (Either GitError r)
 
 -- | Sync elements as needed from a remote codebase into the local one. If
 --   <tt>sbh</tt> is supplied, we try to load the specified branch hash;

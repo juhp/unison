@@ -3248,9 +3248,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5b3f loc_a5b3g. Lens' (Env v_a5b3f loc_a5b3g) (TypeLookup v_a5b3f loc_a5b3g)
-termsByShortname :: forall v_a5b3f loc_a5b3g. Lens' (Env v_a5b3f loc_a5b3g) (Map Name [NamedReference v_a5b3f loc_a5b3g])
-ambientAbilities :: forall v_a5b3f loc_a5b3g. Lens' (Env v_a5b3f loc_a5b3g) [Type v_a5b3f loc_a5b3g]
+typeLookup :: forall v_a5b3b loc_a5b3c. Lens' (Env v_a5b3b loc_a5b3c) (TypeLookup v_a5b3b loc_a5b3c)
+termsByShortname :: forall v_a5b3b loc_a5b3c. Lens' (Env v_a5b3b loc_a5b3c) (Map Name [NamedReference v_a5b3b loc_a5b3c])
+ambientAbilities :: forall v_a5b3b loc_a5b3c. Lens' (Env v_a5b3b loc_a5b3c) [Type v_a5b3b loc_a5b3c]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.

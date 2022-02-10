@@ -34,14 +34,16 @@ module Unison.DataDeclaration
     amap,
     updateDependencies,
 
+    dataDecl_,
     constructors_,
+    types_,
     asDataDecl_,
   )
 where
 
 import Unison.Prelude
 
-import Control.Lens (over, _3, Iso', iso, Lens', lens)
+import Control.Lens (over, _3, Iso', iso, Lens', lens, Traversal')
 import Control.Monad.State (evalState)
 import Data.Bifunctor (bimap, first, second)
 import qualified Data.Map as Map
@@ -76,6 +78,16 @@ data DeclOrBuiltin v a =
 asDataDecl :: Decl v a -> DataDeclaration v a
 asDataDecl = either toDataDecl id
 
+-- | View the 'DataDeclaration' inside a 'Decl'.
+dataDecl_ :: Lens' (Decl v a) (DataDeclaration v a)
+dataDecl_ = lens getter setter
+  where
+    getter = asDataDecl
+    setter d dd =
+      case d of
+        Left _ -> Left (EffectDeclaration dd)
+        Right _ -> Right dd
+
 declDependencies :: Ord v => Decl v a -> Set Reference
 declDependencies = either (dependencies . toDataDecl) dependencies
 
@@ -99,6 +111,19 @@ constructors_ = lens getter setter
   where
     getter = constructors'
     setter dd ctors = dd{constructors'=ctors}
+
+-- | Target all types in a decl, e.g.
+--
+-- @
+-- structural type Foo a
+--   = Foo Nat a Hey
+--         ^^^ ^ ^^^
+--   | Bar Int
+--         ^^^
+-- @
+types_ :: Traversal' (Decl v a) (Type v a)
+types_ =
+  dataDecl_ . constructors_ . traverse . _3
 
 newtype EffectDeclaration v a = EffectDeclaration {
   toDataDecl :: DataDeclaration v a

@@ -84,6 +84,7 @@ import qualified Unison.CommandLine.FuzzySelect as Fuzzy
 import qualified Unison.CommandLine.InputPattern as InputPattern
 import qualified Unison.CommandLine.InputPatterns as InputPatterns
 import Unison.ConstructorReference (GConstructorReference(..))
+import Unison.DataDeclaration (Decl)
 import qualified Unison.DataDeclaration as DD
 import Unison.Hash (Hash)
 import qualified Unison.HashQualified as HQ
@@ -107,7 +108,7 @@ import qualified Unison.PrettyPrintEnv as PPE
 import qualified Unison.PrettyPrintEnv.Names as PPE
 import qualified Unison.PrettyPrintEnvDecl as PPE
 import qualified Unison.PrettyPrintEnvDecl.Names as PPE
-import Unison.Reference (Reference (..), TermReference, TermReferenceId, TypeReference)
+import Unison.Reference (Reference (..), TermReference, TermReferenceId, TypeReference, TypeReferenceId)
 import qualified Unison.Reference as Reference
 import Unison.Referent (Referent)
 import qualified Unison.Referent as Referent
@@ -2051,52 +2052,110 @@ oink selection unisonFile = do
   let sr0 = applySelection selection unisonFile (toSlurpResult path unisonFile allNames)
   let fileNames = UF.typecheckedToNames unisonFile
 
-  let -- The names of all terms being updated in the unison file
-      updatedTermNames :: Set v
-      updatedTermNames =
-        SC.terms (Slurp.updates sr0)
+  -- Naming conventions for these variables:
+  --
+  --   * "u" prefix means "updated in this slurp", e.g. udecls = updated decls
+  --   * "v" suffix means "var"
+  --   * "r0" suffix means "the old reference" (in the codebase)
+  --   * "r1" suffix means "the new reference" (in the unison file)
+  --   * "ns0" suffix means "the old names" (in the current namespace, ignoring the unison file)
 
-  let -- The names of all types being updated in the unison file
-      updatedTypeNames :: Set v
-      updatedTypeNames =
-        SC.types (Slurp.updates sr0)
+  let udecls_v = SC.types (Slurp.updates sr0)
+  let uterms_v = SC.terms (Slurp.updates sr0)
 
-  let updatedTermOldRef :: v -> TermReference
-      updatedTermOldRef =
-        Names.theRefTermNamed allNames . Name.unsafeFromVar
+  let udecl_v_r0 = Names.theTypeNamed allNames . Name.unsafeFromVar
+  let uterm_v_r0 = Names.theRefTermNamed allNames . Name.unsafeFromVar
 
-  let updatedTermNewRef :: v -> TermReference
-      updatedTermNewRef =
-        Names.theRefTermNamed fileNames . Name.unsafeFromVar
+  let udecl_v_r1 = Names.theTypeNamed fileNames . Name.unsafeFromVar
+  let uterm_v_r1 = Names.theRefTermNamed fileNames . Name.unsafeFromVar
 
-  let updatedTypeOldRef :: v -> TypeReference
-      updatedTypeOldRef =
-        Names.theTypeNamed allNames . Name.unsafeFromVar
+  let udecl_r0_ns0 = Names.namesForReference allNames . Reference.fromId
+  let uterm_r0_ns0 = Names.namesForReferent allNames . Referent.fromTermReferenceId
 
-  let updatedTypeNewRef :: v -> TypeReference
-      updatedTypeNewRef =
-        Names.theTypeNamed fileNames . Name.unsafeFromVar
+  let udecl_r0_r1 = foldMap (\var -> Map.singleton (udecl_v_r0 var) (udecl_v_r1 var)) udecls_v
+  let uterm_r0_r1 = foldMap (\var -> Map.singleton (uterm_v_r0 var) (uterm_v_r1 var)) uterms_v
+
+  -- Bring some "extra decls" out of the codebase to re-typecheck and hash with the new decls in the slurp, so that:
+  --
+  --   1. Component-mates are considered (e.g. if we're updating Ping in a unison file, but Pong is not mentioned)
+  --   2. New cycles could be formed (e.g. if we're updating Ping to *now* refer to Pong, which *already* referred to
+  --      Ping)
+  --        ^ this isn't implemented yet
+  extraDecls :: Map TypeReferenceId (Decl v Ann) <-
+    -- FIXME pretty sure this could be Map.fromAscList
+    fmap Map.fromList do
+      let notBeingUpdated :: (TypeReferenceId, Decl v Ann) -> Bool
+          notBeingUpdated (ref0, _) =
+            Set.disjoint udecls_v (Set.map Name.toVar (udecl_r0_ns0 ref0))
+      foldMapM
+        (\hash -> filter notBeingUpdated <$> loadDeclComponent hash)
+        (Set.mapMaybe (Reference.toHash . udecl_v_r0) udecls_v)
+
+  let -- original unison file, but with types hydrated
+      unisonFile1 :: TypecheckedUnisonFile v Ann
+      unisonFile1 =
+        if Map.null extraDecls
+          then unisonFile
+          else
+            let extraDecls1 :: Map TypeReferenceId (Decl v Ann)
+                extraDecls1 =
+                  Map.map (over DD.types_ (ABT.rebuildUp substitute)) extraDecls
+                  where
+                    substitute :: Type.F a -> Type.F a
+                    substitute = \case
+                      Type.Ref ref0 ->
+                        case Map.lookup ref0 udecl_r0_r1 of
+                          Nothing -> Type.Ref ref0
+                          Just ref1 -> Type.Ref ref1
+                      ty -> ty
+
+                allDecls :: Map TypeReferenceId (Decl v Ann)
+                allDecls =
+                  -- The order isn't important here; all decls have different ref keys
+                  -- FIXME wait that's not true is it?
+                  Map.union extraDecls1 (UF.tcDeclarationsById unisonFile)
+
+                (effects, datas) =
+                  allDecls
+                    & DD.unhashComponent
+                    & Map.elems
+                    & Map.fromList
+                    & Hashing.hashDecls
+                    & \case
+                    Left _resolutionFailure -> (UF.effectDeclarationsId' unisonFile, UF.dataDeclarationsId' unisonFile)
+                    Right decls ->
+                      decls
+                        & map untangle
+                        & partitionEithers
+                        & \(xs, ys) -> (Map.fromList xs, Map.fromList ys)
+                  where
+                    untangle = \case
+                      (v, ref, Left e) -> Left (v, (ref, e))
+                      (v, ref, Right d) -> Right (v, (ref, d))
+
+            in unisonFile
+              { UF.dataDeclarationsId' = datas
+              , UF.effectDeclarationsId' = effects
+              }
 
   pulledOutMates :: Map TermReferenceId (Term v Ann, Type v Ann) <-
     -- FIXME pretty sure this could be Map.fromAscList
     fmap Map.fromList do
-      let shouldPullOut :: (TermReferenceId, (Term v Ann, Type v Ann)) -> Bool
-          shouldPullOut (Referent.fromTermReferenceId -> ref, _) =
-            Set.disjoint updatedTermNames (Set.map Name.toVar (Names.namesForReferent allNames ref))
+      let notBeingUpdated :: (TermReferenceId, (Term v Ann, Type v Ann)) -> Bool
+          notBeingUpdated (ref, _) =
+            Set.disjoint uterms_v (Set.map Name.toVar (uterm_r0_ns0 ref))
       foldMapM
-        (\hash -> filter shouldPullOut <$> loadTermComponent hash)
-        (Set.mapMaybe (Reference.toHash . updatedTermOldRef) updatedTermNames)
+        (\hash -> filter notBeingUpdated <$> loadTermComponent hash)
+        (Set.mapMaybe (Reference.toHash . uterm_v_r0) uterms_v)
 
   let -- The mapping induced by the updates in the slurp
       mapref :: TermReference -> TermReference
       mapref =
-        let maprefMap :: Map TermReference TermReference
-            maprefMap =
-              foldl'
-                (\acc name -> Map.insert (updatedTermOldRef name) (updatedTermNewRef name) acc)
-                Map.empty
-                updatedTermNames
-         in \ref -> Map.findWithDefault ref ref maprefMap
+        \ref -> Map.findWithDefault ref ref m
+        where
+            m :: Map TermReference TermReference
+            m =
+              foldl' (\acc var -> Map.insert (uterm_v_r0 var) (uterm_v_r1 var) acc) Map.empty uterms_v
 
       typeReferenceMapping :: TypeReference -> TypeReference
       typeReferenceMapping =
@@ -2105,9 +2164,9 @@ oink selection unisonFile = do
           m :: Map TypeReference TypeReference
           m =
             foldl'
-              (\acc name -> Map.insert (updatedTypeOldRef name) (updatedTypeNewRef name) acc)
+              (\acc var -> Map.insert (udecl_v_r0 var) (udecl_v_r1 var) acc)
               Map.empty
-              updatedTypeNames
+              udecls_v
 
 
   -- foo#old = ... bar#old ...
@@ -2207,6 +2266,10 @@ oink selection unisonFile = do
         _ ->
           pure undefined -- Structure
   where
+    loadDeclComponent :: Hash -> Action' m v [(TypeReferenceId, Decl v Ann)]
+    loadDeclComponent hash =
+      eval (LoadDeclComponent hash) <&> maybe [] (Reference.componentFor hash)
+
     loadTermComponent :: Hash -> Action' m v [(TermReferenceId, (Term v Ann, Type v Ann))]
     loadTermComponent hash =
       eval (LoadTermComponentWithTypes hash) <&> maybe [] (Reference.componentFor hash)

@@ -22,6 +22,9 @@ module Unison.UnisonFile
     dataDeclarations',
     discardTypes,
     effectDeclarations',
+    tcDataDeclarationsById,
+    tcEffectDeclarationsById,
+    tcDeclarationsById,
     hashConstructors,
     hashTerms,
     indexByReference,
@@ -42,7 +45,7 @@ import qualified Unison.ABT as ABT
 import qualified Unison.Builtin.Decls as DD
 import Unison.ConstructorReference (GConstructorReference(..))
 import qualified Unison.ConstructorType as CT
-import Unison.DataDeclaration (DataDeclaration, EffectDeclaration (..))
+import Unison.DataDeclaration (DataDeclaration, Decl, EffectDeclaration (..))
 import qualified Unison.DataDeclaration as DD
 import qualified Unison.Hashing.V2.Convert as Hashing
 import Unison.LabeledDependency (LabeledDependency)
@@ -59,6 +62,7 @@ import Unison.UnisonFile.Type (TypecheckedUnisonFile (..), UnisonFile (..), patt
 import qualified Unison.Util.List as List
 import Unison.Var (Var)
 import Unison.WatchKind (WatchKind, pattern TestWatch)
+
 dataDeclarations :: UnisonFile v a -> Map v (Reference, DataDeclaration v a)
 dataDeclarations = fmap (first Reference.DerivedId) . dataDeclarationsId
 
@@ -93,6 +97,21 @@ effectDeclarations' :: TypecheckedUnisonFile v a -> Map v (Reference, EffectDecl
 effectDeclarations' = fmap (first Reference.DerivedId) . effectDeclarationsId'
 hashTerms :: TypecheckedUnisonFile v a -> Map v (Reference, Maybe WatchKind, Term v a, Type v a)
 hashTerms = fmap (over _1 Reference.DerivedId) . hashTermsId
+
+-- | Get all data declarations in a typechecked unison file, keyed by id.
+tcDataDeclarationsById :: TypecheckedUnisonFile v a -> Map Reference.Id (DataDeclaration v a)
+tcDataDeclarationsById =
+  Map.fromList . Map.elems . dataDeclarationsId'
+
+-- | Get all effect declarations in a typechecked unison file, keyed by id.
+tcEffectDeclarationsById :: TypecheckedUnisonFile v a -> Map Reference.Id (EffectDeclaration v a)
+tcEffectDeclarationsById =
+  Map.fromList . Map.elems . effectDeclarationsId'
+
+-- | Get all declarations in a typechecked unison file, keyed by id.
+tcDeclarationsById :: TypecheckedUnisonFile v a -> Map Reference.Id (Decl v a)
+tcDeclarationsById file =
+  Map.union (Map.map Right (tcDataDeclarationsById file)) (Map.map Left (tcEffectDeclarationsById file))
 
 typecheckedUnisonFile :: forall v a. Var v
                       => Map v (Reference.Id, DataDeclaration v a)

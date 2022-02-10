@@ -487,7 +487,6 @@ PatchNeedsToBeConflictFree :: Output v
 PatchInvolvesExternalDependents :: PrettyPrintEnv -> Set Reference -> Output v
 WarnIncomingRootBranch :: ShortBranchHash -> Set ShortBranchHash -> Output v
 StartOfCurrentPathHistory :: Output v
-History :: Maybe Int -> [(ShortBranchHash, Diff)] -> HistoryTail -> Output v
 ShowReflog :: [ReflogEntry] -> Output v
 PullAlreadyUpToDate :: ReadRemoteNamespace -> Path' -> Output v
 PullSuccessful :: ReadRemoteNamespace -> Path' -> Output v
@@ -547,13 +546,16 @@ CantDeleteNamespace :: PrettyPrintEnvDecl -> Map LabeledDependency (NESet Labele
 -- | DeletedDespiteDependents ppe deletedThings
 --   thingsWhichNowHaveUnnamedReferences
 DeletedDespiteDependents :: PrettyPrintEnvDecl -> Map LabeledDependency (NESet LabeledDependency) -> NumberedOutput v
+
+-- | size limit, history , how the history ends
+History :: Maybe Int -> HashLength -> [(Hash, Diff)] -> HistoryTail -> NumberedOutput v
 ListEdits :: Patch -> PrettyPrintEnv -> NumberedOutput v
 type NumberedArgs = [String]
 type ListDetailed = Bool
 data HistoryTail
-EndOfLog :: ShortBranchHash -> HistoryTail
-MergeTail :: ShortBranchHash -> [ShortBranchHash] -> HistoryTail
-PageEnd :: ShortBranchHash -> Int -> HistoryTail
+EndOfLog :: Hash -> HistoryTail
+MergeTail :: Hash -> [Hash] -> HistoryTail
+PageEnd :: Hash -> Int -> HistoryTail
 data TestReportStats
 CachedTests :: TotalCount -> CachedCount -> TestReportStats
 NewlyComputed :: TestReportStats
@@ -687,13 +689,13 @@ LoopState :: Branch m -> Branch m -> NonEmpty Absolute -> Maybe (FilePath, SkipN
 type Action' m v = Action m (Either Event Input) v
 type SkipNextUpdate = Bool
 type InputDescription = Text
-root :: forall m_a1tSg v_a1tSh. Lens' (LoopState m_a1tSg v_a1tSh) (Branch m_a1tSg)
-numberedArgs :: forall m_a1tSg v_a1tSh. Lens' (LoopState m_a1tSg v_a1tSh) NumberedArgs
-latestTypecheckedFile :: forall m_a1tSg v_a1tSh v_a1u41. Lens (LoopState m_a1tSg v_a1tSh) (LoopState m_a1tSg v_a1u41) (Maybe (TypecheckedUnisonFile v_a1tSh Ann)) (Maybe (TypecheckedUnisonFile v_a1u41 Ann))
-latestFile :: forall m_a1tSg v_a1tSh. Lens' (LoopState m_a1tSg v_a1tSh) (Maybe (FilePath, SkipNextUpdate))
-lastSavedRoot :: forall m_a1tSg v_a1tSh. Lens' (LoopState m_a1tSg v_a1tSh) (Branch m_a1tSg)
-lastInput :: forall m_a1tSg v_a1tSh. Lens' (LoopState m_a1tSg v_a1tSh) (Maybe Input)
-currentPathStack :: forall m_a1tSg v_a1tSh. Lens' (LoopState m_a1tSg v_a1tSh) (NonEmpty Absolute)
+root :: forall m_a1tSn v_a1tSo. Lens' (LoopState m_a1tSn v_a1tSo) (Branch m_a1tSn)
+numberedArgs :: forall m_a1tSn v_a1tSo. Lens' (LoopState m_a1tSn v_a1tSo) NumberedArgs
+latestTypecheckedFile :: forall m_a1tSn v_a1tSo v_a1u48. Lens (LoopState m_a1tSn v_a1tSo) (LoopState m_a1tSn v_a1u48) (Maybe (TypecheckedUnisonFile v_a1tSo Ann)) (Maybe (TypecheckedUnisonFile v_a1u48 Ann))
+latestFile :: forall m_a1tSn v_a1tSo. Lens' (LoopState m_a1tSn v_a1tSo) (Maybe (FilePath, SkipNextUpdate))
+lastSavedRoot :: forall m_a1tSn v_a1tSo. Lens' (LoopState m_a1tSn v_a1tSo) (Branch m_a1tSn)
+lastInput :: forall m_a1tSn v_a1tSo. Lens' (LoopState m_a1tSn v_a1tSo) (Maybe Input)
+currentPathStack :: forall m_a1tSn v_a1tSo. Lens' (LoopState m_a1tSn v_a1tSo) (NonEmpty Absolute)
 currentPath :: Getter (LoopState m v) Absolute
 loopState0 :: Branch m -> Absolute -> LoopState m v
 instance Unison.Codebase.Editor.HandleInput.LoopState.MonadCommand (Unison.Util.Free.Free (Unison.Codebase.Editor.Command.Command m i v)) m i v
@@ -913,6 +915,9 @@ numberedArgsForEndangerments :: PrettyPrintEnvDecl -> Map LabeledDependency (NES
 -- | Format and render all dependents which are endangered by references
 --   going extinct.
 endangeredDependentsTable :: PrettyPrintEnvDecl -> Map LabeledDependency (NESet LabeledDependency) -> Pretty ColorText
+
+-- | Displays a full, non-truncated Branch Hash to a string, e.g. #abcdef
+displayBranchHash :: Hash -> String
 
 module Unison.CommandLine.DisplayValues
 type Pretty = Pretty ColorText

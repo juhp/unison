@@ -467,9 +467,6 @@ Evaluated :: SourceFileContents -> PrettyPrintEnv -> [(v, Term v ())] -> Map v (
 Typechecked :: SourceName -> PrettyPrintEnv -> SlurpResult v -> TypecheckedUnisonFile v Ann -> Output v
 DisplayRendered :: Maybe FilePath -> Pretty ColorText -> Output v
 DisplayDefinitions :: Maybe FilePath -> PrettyPrintEnvDecl -> Map Reference (DisplayObject () (Decl v Ann)) -> Map Reference (DisplayObject (Type v Ann) (Term v Ann)) -> Output v
-
--- | Invariant: there's at least one conflict or edit in the TodoOutput.
-TodoOutput :: PrettyPrintEnvDecl -> TodoOutput v Ann -> Output v
 TestIncrementalOutputStart :: PrettyPrintEnv -> (Int, Int) -> Reference -> Term v Ann -> Output v
 TestIncrementalOutputEnd :: PrettyPrintEnv -> (Int, Int) -> Reference -> Term v Ann -> Output v
 TestResults :: TestReportStats -> PrettyPrintEnv -> ShowSuccesses -> ShowFailures -> [(Reference, Text)] -> [(Reference, Text)] -> Output v
@@ -536,6 +533,9 @@ ShowDiffAfterMergePreview :: Path' -> Absolute -> PrettyPrintEnv -> BranchDiffOu
 ShowDiffAfterPull :: Path' -> Absolute -> PrettyPrintEnv -> BranchDiffOutput v Ann -> NumberedOutput v
 ShowDiffAfterCreatePR :: ReadRemoteNamespace -> ReadRemoteNamespace -> PrettyPrintEnv -> BranchDiffOutput v Ann -> NumberedOutput v
 ShowDiffAfterCreateAuthor :: NameSegment -> Path' -> Absolute -> PrettyPrintEnv -> BranchDiffOutput v Ann -> NumberedOutput v
+
+-- | Invariant: there's at least one conflict or edit in the TodoOutput.
+TodoOutput :: PrettyPrintEnvDecl -> TodoOutput v Ann -> NumberedOutput v
 
 -- | CantDeleteDefinitions ppe couldntDelete becauseTheseStillReferenceThem
 CantDeleteDefinitions :: PrettyPrintEnvDecl -> Map LabeledDependency (NESet LabeledDependency) -> NumberedOutput v
@@ -689,13 +689,13 @@ LoopState :: Branch m -> Branch m -> NonEmpty Absolute -> Maybe (FilePath, SkipN
 type Action' m v = Action m (Either Event Input) v
 type SkipNextUpdate = Bool
 type InputDescription = Text
-root :: forall m_a1tSn v_a1tSo. Lens' (LoopState m_a1tSn v_a1tSo) (Branch m_a1tSn)
-numberedArgs :: forall m_a1tSn v_a1tSo. Lens' (LoopState m_a1tSn v_a1tSo) NumberedArgs
-latestTypecheckedFile :: forall m_a1tSn v_a1tSo v_a1u48. Lens (LoopState m_a1tSn v_a1tSo) (LoopState m_a1tSn v_a1u48) (Maybe (TypecheckedUnisonFile v_a1tSo Ann)) (Maybe (TypecheckedUnisonFile v_a1u48 Ann))
-latestFile :: forall m_a1tSn v_a1tSo. Lens' (LoopState m_a1tSn v_a1tSo) (Maybe (FilePath, SkipNextUpdate))
-lastSavedRoot :: forall m_a1tSn v_a1tSo. Lens' (LoopState m_a1tSn v_a1tSo) (Branch m_a1tSn)
-lastInput :: forall m_a1tSn v_a1tSo. Lens' (LoopState m_a1tSn v_a1tSo) (Maybe Input)
-currentPathStack :: forall m_a1tSn v_a1tSo. Lens' (LoopState m_a1tSn v_a1tSo) (NonEmpty Absolute)
+root :: forall m_a1tSw v_a1tSx. Lens' (LoopState m_a1tSw v_a1tSx) (Branch m_a1tSw)
+numberedArgs :: forall m_a1tSw v_a1tSx. Lens' (LoopState m_a1tSw v_a1tSx) NumberedArgs
+latestTypecheckedFile :: forall m_a1tSw v_a1tSx v_a1u4h. Lens (LoopState m_a1tSw v_a1tSx) (LoopState m_a1tSw v_a1u4h) (Maybe (TypecheckedUnisonFile v_a1tSx Ann)) (Maybe (TypecheckedUnisonFile v_a1u4h Ann))
+latestFile :: forall m_a1tSw v_a1tSx. Lens' (LoopState m_a1tSw v_a1tSx) (Maybe (FilePath, SkipNextUpdate))
+lastSavedRoot :: forall m_a1tSw v_a1tSx. Lens' (LoopState m_a1tSw v_a1tSx) (Branch m_a1tSw)
+lastInput :: forall m_a1tSw v_a1tSx. Lens' (LoopState m_a1tSw v_a1tSx) (Maybe Input)
+currentPathStack :: forall m_a1tSw v_a1tSx. Lens' (LoopState m_a1tSw v_a1tSx) (NonEmpty Absolute)
 currentPath :: Getter (LoopState m v) Absolute
 loopState0 :: Branch m -> Absolute -> LoopState m v
 instance Unison.Codebase.Editor.HandleInput.LoopState.MonadCommand (Unison.Util.Free.Free (Unison.Codebase.Editor.Command.Command m i v)) m i v
@@ -884,10 +884,13 @@ prettyTypeResultHeader' :: Var v => TypeResult' v a -> Pretty
 prettyTypeResultHeaderFull' :: Var v => TypeResult' v a -> Pretty
 prettyDeclTriple :: Var v => (HashQualified Name, Reference, DisplayObject () (Decl v a)) -> Pretty
 prettyDeclPair :: Var v => PrettyPrintEnv -> (Reference, DisplayObject () (Decl v a)) -> Pretty
-renderNameConflicts :: Set Name -> Set Name -> Pretty
-renderEditConflicts :: PrettyPrintEnv -> Patch -> Pretty
+renderNameConflicts :: PrettyPrintEnv -> Names -> Numbered Pretty
+renderEditConflicts :: PrettyPrintEnv -> Patch -> Numbered Pretty
 type Numbered = State (Int, Seq String)
-todoOutput :: Var v => PrettyPrintEnvDecl -> TodoOutput v a -> Pretty
+addNumberedArg :: String -> Numbered Int
+formatNum :: Int -> Pretty
+runNumbered :: Numbered a -> (a, NumberedArgs)
+todoOutput :: Var v => PrettyPrintEnvDecl -> TodoOutput v a -> (Pretty, NumberedArgs)
 listOfDefinitions :: Var v => PrettyPrintEnv -> ListDetailed -> [SearchResult' v a] -> IO Pretty
 listOfLinks :: Var v => PrettyPrintEnv -> [(HashQualified Name, Maybe (Type v a))] -> IO Pretty
 data ShowNumbers

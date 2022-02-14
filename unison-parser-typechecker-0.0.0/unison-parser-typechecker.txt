@@ -4283,7 +4283,7 @@ toHtml :: Map Referent Name -> Doc -> Html ()
 
 -- | Unison Doc allows endlessly deep section nesting with titles, but HTML
 --   only supports to h1-h6, so we clamp the sectionLevel when converting
-h :: Nat -> Html () -> Html ()
+h :: Nat -> Text -> Html () -> Html ()
 badge :: Html () -> Html ()
 textToClass :: Text -> Text
 

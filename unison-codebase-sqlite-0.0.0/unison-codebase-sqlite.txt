@@ -117,6 +117,14 @@ instance GHC.Show.Show U.Codebase.Sqlite.DbId.BranchHashId
 instance GHC.Show.Show U.Codebase.Sqlite.DbId.BranchObjectId
 instance GHC.Show.Show U.Codebase.Sqlite.DbId.PatchObjectId
 
+module U.Codebase.Sqlite.Causal
+data GDbCausal causalHash valueHash
+DbCausal :: causalHash -> valueHash -> Set causalHash -> GDbCausal causalHash valueHash
+[selfHash] :: GDbCausal causalHash valueHash -> causalHash
+[valueHash] :: GDbCausal causalHash valueHash -> valueHash
+[parents] :: GDbCausal causalHash valueHash -> Set causalHash
+type DbCausal = GDbCausal CausalHashId BranchHashId
+
 module U.Codebase.Sqlite.JournalMode
 data JournalMode
 DELETE :: JournalMode
@@ -143,6 +151,10 @@ newtype LocalTextId
 LocalTextId :: Word64 -> LocalTextId
 
 -- | represents an index into a defnLookup
+--   
+--   In this context, "definition" means an object that is either a term
+--   component or a (type) decl component, not a patch, namespace, or any
+--   other kind of object.
 newtype LocalDefnId
 LocalDefnId :: Word64 -> LocalDefnId
 
@@ -213,7 +225,25 @@ instance Data.Bifoldable.Bifoldable U.Codebase.Sqlite.LocalIds.LocalIds'
 instance Data.Bifunctor.Bifunctor U.Codebase.Sqlite.LocalIds.LocalIds'
 
 module U.Codebase.Sqlite.Branch.Full
+
+-- | <pre>
+--   Branch
+--     { terms :: Map LocalTextId (Map LocalReferent LocalMetadataSet),
+--       types :: Map LocalTextId (Map LocalReference LocalMetadataSet),
+--       patches :: Map LocalTextId LocalPatchObjectId,
+--       children :: Map LocalTextId LocalBranchChildId
+--     }
+--   </pre>
 type LocalBranch = Branch' LocalTextId LocalDefnId LocalPatchObjectId LocalBranchChildId
+
+-- | <pre>
+--   Branch
+--     { terms :: Map TextId (Map Referent DbMetadataSet),
+--       types :: Map TextId (Map Reference DbMetadataSet),
+--       patches :: Map TextId PatchObjectId,
+--       children :: Map TextId (BranchObjectId, CausalHashId)
+--     }
+--   </pre>
 type DbBranch = Branch' TextId ObjectId PatchObjectId (BranchObjectId, CausalHashId)
 type Referent'' t h = Referent' (Reference' t h) (Reference' t h)
 data Branch' t h p c
@@ -222,12 +252,19 @@ Branch :: Map t (Map (Referent'' t h) (MetadataSetFormat' t h)) -> Map t (Map (R
 [types] :: Branch' t h p c -> Map t (Map (Reference' t h) (MetadataSetFormat' t h))
 [patches] :: Branch' t h p c -> Map t p
 [children] :: Branch' t h p c -> Map t c
+emptyBranch :: Branch' t h p c
+branchHashes_ :: (Ord h', Ord t, Ord h) => Traversal (Branch' t h p c) (Branch' t h' p c) h h'
+patches_ :: Traversal (Branch' t h p c) (Branch' t h p' c) p p'
+childrenHashes_ :: Traversal (Branch' t h p c) (Branch' t h p c') c c'
+branchCausalHashes_ :: Traversal (Branch' t h p c) (Branch' t h p c') c c'
 type LocalMetadataSet = MetadataSetFormat' LocalTextId LocalDefnId
 type DbMetadataSet = MetadataSetFormat' TextId ObjectId
 data MetadataSetFormat' t h
 Inline :: Set (Reference' t h) -> MetadataSetFormat' t h
+metadataSetFormatReferences_ :: (Ord t, Ord h, Ord h') => Traversal (MetadataSetFormat' t h) (MetadataSetFormat' t h') (Reference' t h) (Reference' t h')
 quadmap :: forall t h p c t' h' p' c'. (Ord t', Ord h') => (t -> t') -> (h -> h') -> (p -> p') -> (c -> c') -> Branch' t h p c -> Branch' t' h' p' c'
 instance (GHC.Show.Show t, GHC.Show.Show h) => GHC.Show.Show (U.Codebase.Sqlite.Branch.Full.MetadataSetFormat' t h)
+instance GHC.Generics.Generic (U.Codebase.Sqlite.Branch.Full.Branch' t h p c)
 instance (GHC.Show.Show t, GHC.Show.Show h, GHC.Show.Show p, GHC.Show.Show c) => GHC.Show.Show (U.Codebase.Sqlite.Branch.Full.Branch' t h p c)
 
 module U.Codebase.Sqlite.Branch.Diff
@@ -269,11 +306,21 @@ instance (GHC.Show.Show t, GHC.Show.Show h, GHC.Show.Show p, GHC.Show.Show c) =>
 
 module U.Codebase.Sqlite.Branch.Format
 
--- | you can use the exact same <a>BranchLocalIds</a> when converting
+-- | A <a>BranchFormat</a> is a deserialized namespace object
+--   (<tt>object.bytes</tt>).
+--   
+--   you can use the exact same <a>BranchLocalIds</a> when converting
 --   between <a>Full</a> and <a>Diff</a>
 data BranchFormat
 Full :: BranchLocalIds -> LocalBranch -> BranchFormat
 Diff :: BranchObjectId -> BranchLocalIds -> LocalDiff -> BranchFormat
+
+-- | A <a>BranchLocalIds</a> is a mapping between local ids (local to this
+--   object) encoded as offsets, and actual database ids.
+--   
+--   For example, a <tt>branchTextLookup</tt> vector of <tt>[50, 74]</tt>
+--   means "local id 0 corresponds to database text id 50, and local id 1
+--   corresponds to database text id 74".
 data BranchLocalIds
 LocalIds :: Vector TextId -> Vector ObjectId -> Vector PatchObjectId -> Vector (BranchObjectId, CausalHashId) -> BranchLocalIds
 [branchTextLookup] :: BranchLocalIds -> Vector TextId
@@ -283,6 +330,8 @@ LocalIds :: Vector TextId -> Vector ObjectId -> Vector PatchObjectId -> Vector (
 data SyncBranchFormat
 SyncFull :: BranchLocalIds -> ByteString -> SyncBranchFormat
 SyncDiff :: BranchObjectId -> BranchLocalIds -> ByteString -> SyncBranchFormat
+localToDbBranch :: BranchLocalIds -> LocalBranch -> DbBranch
+localToDbDiff :: BranchLocalIds -> LocalDiff -> Diff
 instance GHC.Show.Show U.Codebase.Sqlite.Branch.Format.BranchLocalIds
 instance GHC.Show.Show U.Codebase.Sqlite.Branch.Format.BranchFormat
 
@@ -310,6 +359,8 @@ type Referent' t h = Referent' (Reference' t h) (Reference' t h)
 data TermEdit' t h
 Replace :: Referent' t h -> Typing -> TermEdit' t h
 Deprecate :: TermEdit' t h
+_Replace :: Prism (TermEdit' t h) (TermEdit' t' h') (Referent' t h, Typing) (Referent' t' h', Typing)
+h_ :: Traversal (TermEdit' t h) (TermEdit' t h') h h'
 data Typing
 Same :: Typing
 Subtype :: Typing
@@ -330,6 +381,8 @@ type TypeEdit = TypeEdit' TextId ObjectId
 data TypeEdit' t h
 Replace :: Reference' t h -> TypeEdit' t h
 Deprecate :: TypeEdit' t h
+_Replace :: Prism (TypeEdit' t h) (TypeEdit' t' h') (Reference' t h) (Reference' t' h')
+h_ :: Traversal (TypeEdit' t h) (TypeEdit' t h') h h'
 instance (GHC.Show.Show t, GHC.Show.Show h) => GHC.Show.Show (U.Codebase.Sqlite.Patch.TypeEdit.TypeEdit' t h)
 instance (GHC.Classes.Ord t, GHC.Classes.Ord h) => GHC.Classes.Ord (U.Codebase.Sqlite.Patch.TypeEdit.TypeEdit' t h)
 instance (GHC.Classes.Eq t, GHC.Classes.Eq h) => GHC.Classes.Eq (U.Codebase.Sqlite.Patch.TypeEdit.TypeEdit' t h)
@@ -338,13 +391,29 @@ instance Data.Bifoldable.Bifoldable U.Codebase.Sqlite.Patch.TypeEdit.TypeEdit'
 instance Data.Bitraversable.Bitraversable U.Codebase.Sqlite.Patch.TypeEdit.TypeEdit'
 
 module U.Codebase.Sqlite.Patch.Full
+
+-- | <pre>
+--   LocalPatch
+--     { termEdits :: Map ReferentH (Set TermEdit),
+--       typeEdits :: Map ReferenceH (Set TypeEdit)
+--     }
+--   </pre>
 type Patch = Patch' TextId HashId ObjectId
+
+-- | <pre>
+--   LocalPatch
+--     { termEdits :: Map LocalReferentH (Set LocalTermEdit),
+--       typeEdits :: Map LocalReferenceH (Set LocalTypeEdit)
+--     }
+--   </pre>
 type LocalPatch = Patch' LocalTextId LocalHashId LocalDefnId
 type Referent'' t h = Referent' (Reference' t h) (Reference' t h)
 data Patch' t h o
 Patch :: Map (Referent'' t h) (Set (TermEdit' t o)) -> Map (Reference' t h) (Set (TypeEdit' t o)) -> Patch' t h o
 [termEdits] :: Patch' t h o -> Map (Referent'' t h) (Set (TermEdit' t o))
 [typeEdits] :: Patch' t h o -> Map (Reference' t h) (Set (TypeEdit' t o))
+patchH_ :: (Ord t, Ord h') => Traversal (Patch' t h o) (Patch' t h' o) h h'
+patchO_ :: (Ord t, Ord o') => Traversal (Patch' t h o) (Patch' t h o') o o'
 trimap :: (Ord t', Ord h', Ord o') => (t -> t') -> (h -> h') -> (o -> o') -> Patch' t h o -> Patch' t' h' o'
 
 module U.Codebase.Sqlite.Patch.Diff
@@ -381,6 +450,11 @@ data SyncPatchFormat
 SyncFull :: PatchLocalIds -> ByteString -> SyncPatchFormat
 SyncDiff :: PatchObjectId -> PatchLocalIds -> ByteString -> SyncPatchFormat
 
+-- | Apply a list of patch diffs to a patch, left to right.
+applyPatchDiffs :: Patch -> [PatchDiff] -> Patch
+localPatchToPatch :: PatchLocalIds -> LocalPatch -> Patch
+localPatchDiffToPatchDiff :: PatchLocalIds -> LocalPatchDiff -> PatchDiff
+
 module U.Codebase.Sqlite.Reference
 type Reference = Reference' TextId ObjectId
 type Id = Id' ObjectId
@@ -408,6 +482,7 @@ instance Database.SQLite.Simple.FromRow.FromRow U.Codebase.Sqlite.Referent.Id
 
 module U.Codebase.Sqlite.Queries
 type DB m = (MonadIO m, MonadReader Connection m)
+type EDB m = (DB m, Err m)
 type Err m = (MonadError Integrity m, HasCallStack)
 data Integrity
 UnknownHashId :: HashId -> Integrity
@@ -429,6 +504,7 @@ saveHash :: DB m => Base32Hex -> m HashId
 saveHashHash :: DB m => Hash -> m HashId
 loadHashId :: DB m => Base32Hex -> m (Maybe HashId)
 loadHashById :: EDB m => HashId -> m Base32Hex
+loadHashHashById :: EDB m => HashId -> m Hash
 loadHashIdByHash :: DB m => Hash -> m (Maybe HashId)
 expectHashIdByHash :: EDB m => Hash -> m HashId
 saveCausalHash :: DB m => CausalHash -> m CausalHashId
@@ -443,6 +519,13 @@ expectObjectIdForPrimaryHashId :: EDB m => HashId -> m ObjectId
 expectObjectIdForAnyHashId :: EDB m => HashId -> m ObjectId
 maybeObjectIdForPrimaryHashId :: DB m => HashId -> m (Maybe ObjectId)
 maybeObjectIdForAnyHashId :: DB m => HashId -> m (Maybe ObjectId)
+
+-- | <tt>recordObjectRehash old new</tt> records that object <tt>old</tt>
+--   was rehashed and inserted as a new object, <tt>new</tt>.
+--   
+--   This function rewrites <tt>old</tt>'s <tt>hash_object</tt> rows in
+--   place to point at the new object.
+recordObjectRehash :: DB m => ObjectId -> ObjectId -> m ()
 saveObject :: DB m => HashId -> ObjectType -> ByteString -> m ObjectId
 loadObjectById :: EDB m => ObjectId -> m ByteString
 
@@ -478,6 +561,7 @@ addToDependentsIndex :: DB m => Reference -> Id -> m ()
 
 -- | Get non-self, user-defined dependents of a dependency.
 getDependentsForDependency :: DB m => Reference -> m [Id]
+getDependentsForDependencyComponent :: DB m => ObjectId -> m [Id]
 
 -- | Get non-self dependencies of a user-defined dependent.
 getDependenciesForDependent :: DB m => Id -> m [Reference]
@@ -494,8 +578,33 @@ getTypeMentionsReferencesForComponent :: EDB m => ObjectId -> m [(Reference' Tex
 objectIdByBase32Prefix :: DB m => ObjectType -> Text -> m [ObjectId]
 namespaceHashIdByBase32Prefix :: DB m => Text -> m [BranchHashId]
 causalHashIdByBase32Prefix :: DB m => Text -> m [CausalHashId]
+
+-- | Clean the database and recover disk space. This is an expensive
+--   operation. Also note that it cannot be executed within a transaction.
+vacuum :: DB m => m ()
+
+-- | Delete objects without hashes. An object typically *would* have a
+--   hash, but (for example) during a migration in which an object's hash
+--   may change, its corresponding hash_object row may be updated to point
+--   at a new version of that object. This procedure clears out all
+--   references to objects that do not have any corresponding hash_object
+--   rows.
+garbageCollectObjectsWithoutHashes :: DB m => m ()
+
+-- | Delete all
+garbageCollectWatchesWithoutObjects :: DB m => m ()
+countObjects :: DB m => m Int
+countCausals :: DB m => m Int
+countWatches :: DB m => m Int
+
+-- | Finds all causals that refer to a branch for which we don't have an
+--   object stored. Although there are plans to support this in the future,
+--   currently all such cases are the result of database inconsistencies
+--   and are unexpected.
+getCausalsWithoutBranchObjects :: DB m => m [CausalHashId]
 createSchema :: (DB m, MonadUnliftIO m) => m ()
 schemaVersion :: DB m => m SchemaVersion
+setSchemaVersion :: DB m => SchemaVersion -> m ()
 setFlags :: DB m => m ()
 
 -- | The data version will increase if there has been any external
@@ -504,13 +613,28 @@ data DataVersion
 dataVersion :: DB m => m DataVersion
 
 -- | low-level transaction stuff
+--   
+--   Create a savepoint, which is a named transaction which may wrap many
+--   nested sub-transactions.
 savepoint :: DB m => String -> m ()
 
--- | low-level transaction stuff
+-- | Release a savepoint, which will commit the results once all wrapping
+--   transactions/savepoints are commited.
 release :: DB m => String -> m ()
 
--- | low-level transaction stuff
+-- | Roll back the savepoint and immediately release it. This effectively
+--   _aborts_ the savepoint, useful if an irrecoverable error is
+--   encountered.
 rollbackRelease :: DB m => String -> m ()
+
+-- | Roll the database back to its state from when the savepoint was
+--   created. Note: this also re-starts the savepoint and it must still be
+--   released if that is the intention. See <a>rollbackRelease</a>.
+rollbackTo :: DB m => String -> m ()
+
+-- | Runs the provided action within a savepoint. Releases the savepoint on
+--   completion. If an exception occurs, the savepoint will be rolled-back
+--   and released, abandoning all changes.
 withSavepoint :: (MonadUnliftIO m, DB m) => String -> (m () -> m r) -> m r
 withSavepoint_ :: (MonadUnliftIO m, DB m) => String -> m r -> m r
 
@@ -531,6 +655,46 @@ instance Database.SQLite.Simple.FromField.FromField U.Util.Base32Hex.Base32Hex
 instance Database.SQLite.Simple.ToField.ToField U.Codebase.WatchKind.WatchKind
 instance Database.SQLite.Simple.FromField.FromField U.Codebase.WatchKind.WatchKind
 
+
+-- | This module facilitates the creation of "localized" versions of
+--   objects, suitable for storage.
+--   
+--   Localization is a stateful process in which the real database
+--   identifiers contained within an object, e.g. <a>DbBranch</a>, are
+--   canonicalized as local identifiers counting up from 0 in the order
+--   they are encountered in the object. The association between real and
+--   local identifier is captured in a vector, where the <tt>ith</tt> index
+--   maps local identifier <tt>i</tt> to the real identifier it corresponds
+--   to.
+--   
+--   For example, consider a branch object that refers to terms
+--   <tt>#foo</tt> and <tt>#bar</tt>. In totally made-up syntax,
+--   
+--   <pre>
+--   branch = {
+--     terms = [#foo, #bar]
+--   }
+--   </pre>
+--   
+--   The localized version of this branch would be
+--   
+--   <pre>
+--   branch = {
+--     terms = [0, 1]
+--   }
+--   terms = [#foo, #bar]
+--   </pre>
+--   
+--   where all terms, types, etc. within the <tt>branch</tt> structure
+--   refer to offsets in the associated vectors.
+module U.Codebase.Sqlite.LocalizeObject
+
+-- | Localize a branch object.
+localizeBranch :: DbBranch -> (BranchLocalIds, LocalBranch)
+
+-- | Localize a patch object.
+localizePatch :: Patch -> (PatchLocalIds, LocalPatch)
+
 module U.Codebase.Sqlite.Symbol
 data Symbol
 Symbol :: !Word64 -> !Text -> Symbol
@@ -547,7 +711,7 @@ Decl :: LocallyIndexedComponent -> DeclFormat
 
 -- | V1: Decls included <tt>Hash</tt>es inline V2: Instead of
 --   <tt>Hash</tt>, we use a smaller index.
-data LocallyIndexedComponent
+newtype LocallyIndexedComponent
 LocallyIndexedComponent :: Vector (LocalIds, Decl Symbol) -> LocallyIndexedComponent
 type Decl v = DeclR TypeRef v
 type Type v = Term F v ()
@@ -557,10 +721,35 @@ instance GHC.Show.Show U.Codebase.Sqlite.Decl.Format.LocallyIndexedComponent
 instance GHC.Show.Show U.Codebase.Sqlite.Decl.Format.DeclFormat
 
 module U.Codebase.Sqlite.Term.Format
+
+-- | <ul>
+--   <li>Builtin terms are represented as local text ids.</li>
+--   <li>Non-builtin terms are represented as local definition ids, with an
+--   added distinguished element (here <tt>Nothing</tt>) which represents a
+--   self-reference.</li>
+--   </ul>
 type TermRef = Reference' LocalTextId (Maybe LocalDefnId)
+
+-- | <ul>
+--   <li>Builtin types are represented as a local text id.</li>
+--   <li>Non-builtin types are represented by a local definition id.</li>
+--   </ul>
 type TypeRef = Reference' LocalTextId LocalDefnId
 type TermLink = Referent' TermRef TypeRef
 type TypeLink = TypeRef
+
+-- | A <a>LocallyIndexedComponent</a> is a vector that has one element per
+--   member of the component (invariant: 1+).
+--   
+--   Each element is a term, which is represented as:
+--   
+--   <ul>
+--   <li>Lookup vectors that map local ids to database ids for texts and
+--   objects referenced by the term.</li>
+--   <li>The term itself, with internal references to local ids (offsets
+--   into the lookup vectors).</li>
+--   <li>The term's type, also with internal references to local id.</li>
+--   </ul>
 type LocallyIndexedComponent = LocallyIndexedComponent' TextId ObjectId
 newtype LocallyIndexedComponent' t d
 LocallyIndexedComponent :: Vector (LocalIds' t d, Term, Type) -> LocallyIndexedComponent' t d
@@ -599,7 +788,7 @@ lookupTermElement :: MonadGet m => Pos -> m (LocalIds, Term, Type)
 lookupTermElementDiscardingType :: MonadGet m => Pos -> m (LocalIds, Term)
 lookupTermElementDiscardingTerm :: MonadGet m => Pos -> m (LocalIds, Type)
 getTType :: MonadGet m => m Type
-getType :: MonadGet m => m r -> m (TypeR r Symbol)
+getType :: forall m r. MonadGet m => m r -> m (TypeR r Symbol)
 putDeclFormat :: MonadPut m => DeclFormat -> m ()
 getDeclFormat :: MonadGet m => m DeclFormat
 getDeclElement :: MonadGet m => m (Decl Symbol)
@@ -644,7 +833,7 @@ putBoolean :: MonadPut m => Bool -> m ()
 getBoolean :: MonadGet m => m Bool
 putTType :: MonadPut m => Type -> m ()
 putDType :: MonadPut m => Type Symbol -> m ()
-putType :: (MonadPut m, Ord v) => (r -> m ()) -> (v -> m ()) -> TypeR r v -> m ()
+putType :: forall m r v. (MonadPut m, Ord v) => (r -> m ()) -> (v -> m ()) -> TypeR r v -> m ()
 putChar :: MonadPut m => Char -> m ()
 getChar :: MonadGet m => m Char
 putMaybe :: MonadPut m => (a -> m ()) -> Maybe a -> m ()
@@ -702,11 +891,16 @@ loadRootCausal :: EDB m => m (Causal m)
 saveBranch :: EDB m => Causal m -> m (BranchObjectId, CausalHashId)
 loadCausalBranchByCausalHash :: EDB m => CausalHash -> m (Maybe (Causal m))
 saveTermComponent :: EDB m => Hash -> [(Term Symbol, Type Symbol)] -> m ObjectId
+loadTermComponent :: EDB m => Hash -> MaybeT m [(Term Symbol, Type Symbol)]
 loadTermByReference :: EDB m => Id -> MaybeT m (Term Symbol)
 loadTypeOfTermByTermReference :: EDB m => Id -> MaybeT m (Type Symbol)
 saveDeclComponent :: EDB m => Hash -> [Decl Symbol] -> m ObjectId
+loadDeclComponent :: EDB m => Hash -> MaybeT m [Decl Symbol]
 loadDeclByReference :: EDB m => Id -> MaybeT m (Decl Symbol)
-getDeclTypeByReference :: EDB m => Id -> m DeclType
+
+-- | Get the <a>DeclType</a> of a <a>Id</a>.
+getDeclTypeById :: EDB m => Id -> m DeclType
+getCycleLen :: EDB m => Hash -> m (Maybe Word64)
 savePatch :: EDB m => PatchHash -> Patch -> m PatchObjectId
 loadPatchById :: EDB m => PatchObjectId -> m Patch
 objectExistsForHash :: DB m => Hash -> m Bool
@@ -723,27 +917,35 @@ before :: DB m => CausalHash -> CausalHash -> m (Maybe Bool)
 lca :: EDB m => CausalHash -> CausalHash -> Connection -> Connection -> m (Maybe CausalHash)
 componentReferencesByPrefix :: EDB m => ObjectType -> Text -> Maybe Pos -> m [Id]
 termReferentsByPrefix :: EDB m => Text -> Maybe Word64 -> m [Id]
-declReferentsByPrefix :: EDB m => Text -> Maybe Pos -> Maybe ConstructorId -> m [(Hash, Pos, Word64, DeclType, [ConstructorId])]
+declReferentsByPrefix :: EDB m => Text -> Maybe Pos -> Maybe ConstructorId -> m [(Hash, Pos, DeclType, [ConstructorId])]
 causalHashesByPrefix :: EDB m => ShortBranchHash -> m (Set CausalHash)
 
 -- | returns a list of known definitions referencing <tt>r</tt>
 dependents :: EDB m => Reference -> m (Set Id)
+
+-- | returns a list of known definitions referencing <tt>h</tt>
+dependentsOfComponent :: EDB m => Hash -> m (Set Id)
 addTypeToIndexForTerm :: EDB m => Id -> Reference -> m ()
 termsHavingType :: EDB m => Reference -> m (Set Id)
 addTypeMentionsToIndexForTerm :: EDB m => Id -> Set Reference -> m ()
 termsMentioningType :: EDB m => Reference -> m (Set Id)
-getCycleLen :: EDB m => Hash -> m Word64
+liftQ :: Err m => ExceptT Integrity m a -> m a
+loadDbBranchByObjectId :: EDB m => BranchObjectId -> m DbBranch
+loadDbPatchById :: EDB m => PatchObjectId -> m Patch
+saveBranchObject :: DB m => BranchHashId -> BranchLocalIds -> LocalBranch -> m BranchObjectId
+saveDbPatch :: EDB m => PatchHash -> PatchFormat -> m PatchObjectId
 data Error
 DecodeError :: DecodeError -> ByteString -> ErrString -> Error
 DatabaseIntegrityError :: Integrity -> Error
 UnknownDependency :: Hash -> Error
-UnknownText :: Text -> Error
 ExpectedBranch :: CausalHash -> BranchHash -> Error
 ExpectedBranch' :: CausalHashId -> Error
 LegacyUnknownCycleLen :: Hash -> Error
 LegacyUnknownConstructorType :: Hash -> Pos -> Error
 NeedTypeForBuiltinMetadata :: Text -> Error
 data DecodeError
+ErrTermFormat :: DecodeError
+ErrDeclFormat :: DecodeError
 ErrTermElement :: Word64 -> DecodeError
 ErrDeclElement :: Word64 -> DecodeError
 ErrFramedArrayLen :: DecodeError

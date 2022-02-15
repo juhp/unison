@@ -678,6 +678,34 @@ Right :: b -> Either a b
 --   Jones and Stephanie Weirich.
 class a ~R# b => Coercible (a :: k) (b :: k)
 
+-- | Promote a function to a monad.
+liftM :: Monad m => (a1 -> r) -> m a1 -> m r
+
+-- | Case analysis for the <a>Either</a> type. If the value is
+--   <tt><a>Left</a> a</tt>, apply the first function to <tt>a</tt>; if it
+--   is <tt><a>Right</a> b</tt>, apply the second function to <tt>b</tt>.
+--   
+--   <h4><b>Examples</b></h4>
+--   
+--   We create two values of type <tt><a>Either</a> <a>String</a>
+--   <a>Int</a></tt>, one using the <a>Left</a> constructor and another
+--   using the <a>Right</a> constructor. Then we apply "either" the
+--   <a>length</a> function (if we have a <a>String</a>) or the "times-two"
+--   function (if we have an <a>Int</a>):
+--   
+--   <pre>
+--   &gt;&gt;&gt; let s = Left "foo" :: Either String Int
+--   
+--   &gt;&gt;&gt; let n = Right 3 :: Either String Int
+--   
+--   &gt;&gt;&gt; either length (*2) s
+--   3
+--   
+--   &gt;&gt;&gt; either length (*2) n
+--   6
+--   </pre>
+either :: (a -> c) -> (b -> c) -> Either a b -> c
+
 -- | <a>forM_</a> is <a>mapM_</a> with its arguments flipped. For a version
 --   that doesn't ignore the results see <a>forM</a>.
 --   
@@ -1357,31 +1385,6 @@ rights :: [Either a b] -> [b]
 --   </pre>
 lefts :: [Either a b] -> [a]
 
--- | Case analysis for the <a>Either</a> type. If the value is
---   <tt><a>Left</a> a</tt>, apply the first function to <tt>a</tt>; if it
---   is <tt><a>Right</a> b</tt>, apply the second function to <tt>b</tt>.
---   
---   <h4><b>Examples</b></h4>
---   
---   We create two values of type <tt><a>Either</a> <a>String</a>
---   <a>Int</a></tt>, one using the <a>Left</a> constructor and another
---   using the <a>Right</a> constructor. Then we apply "either" the
---   <a>length</a> function (if we have a <a>String</a>) or the "times-two"
---   function (if we have an <a>Int</a>):
---   
---   <pre>
---   &gt;&gt;&gt; let s = Left "foo" :: Either String Int
---   
---   &gt;&gt;&gt; let n = Right 3 :: Either String Int
---   
---   &gt;&gt;&gt; either length (*2) s
---   3
---   
---   &gt;&gt;&gt; either length (*2) n
---   6
---   </pre>
-either :: (a -> c) -> (b -> c) -> Either a b -> c
-
 -- | Left-to-right composition
 (>>>) :: forall k cat (a :: k) (b :: k) (c :: k). Category cat => cat a b -> cat b c -> cat a c
 infixr 1 >>>
@@ -1881,9 +1884,6 @@ liftM3 :: Monad m => (a1 -> a2 -> a3 -> r) -> m a1 -> m a2 -> m a3 -> m r
 --   </pre>
 liftM2 :: Monad m => (a1 -> a2 -> r) -> m a1 -> m a2 -> m r
 
--- | Promote a function to a monad.
-liftM :: Monad m => (a1 -> r) -> m a1 -> m r
-
 -- | Conditional execution of <a>Applicative</a> expressions. For example,
 --   
 --   <pre>
@@ -2070,6 +2070,18 @@ maybeToRight :: b -> Maybe a -> Either b a
 --   </pre>
 mapLeft :: (a -> c) -> Either a b -> Either c b
 
+-- | The parameterizable maybe monad, obtained by composing an arbitrary
+--   monad with the <a>Maybe</a> monad.
+--   
+--   Computations are actions that may produce a value or exit.
+--   
+--   The <a>return</a> function yields a computation that produces that
+--   value, while <tt>&gt;&gt;=</tt> sequences two subcomputations, exiting
+--   if either computation does.
+newtype MaybeT (m :: Type -> Type) a
+MaybeT :: m (Maybe a) -> MaybeT (m :: Type -> Type) a
+[runMaybeT] :: MaybeT (m :: Type -> Type) a -> m (Maybe a)
+
 -- | Like <tt>if</tt>, but where the test can be monadic.
 ifM :: Monad m => m Bool -> m a -> m a -> m a
 
@@ -2081,6 +2093,9 @@ whenM :: Monad m => m Bool -> m () -> m ()
 
 -- | A version of <a>mapMaybe</a> that works with a monadic predicate.
 mapMaybeM :: Monad m => (a -> m (Maybe b)) -> [a] -> m [b]
+
+-- | A space efficient, packed, unboxed Unicode text type.
+data Text
 
 -- | The class of monad transformers. Instances should satisfy the
 --   following laws, which state that <a>lift</a> is a monad
@@ -2111,21 +2126,6 @@ encodeUtf8 :: Text -> ByteString
 --   handling of invalid data, use <a>decodeUtf8'</a> or
 --   <a>decodeUtf8With</a>.
 decodeUtf8 :: ByteString -> Text
-
--- | A space efficient, packed, unboxed Unicode text type.
-data Text
-
--- | The parameterizable maybe monad, obtained by composing an arbitrary
---   monad with the <a>Maybe</a> monad.
---   
---   Computations are actions that may produce a value or exit.
---   
---   The <a>return</a> function yields a computation that produces that
---   value, while <tt>&gt;&gt;=</tt> sequences two subcomputations, exiting
---   if either computation does.
-newtype MaybeT (m :: Type -> Type) a
-MaybeT :: m (Maybe a) -> MaybeT (m :: Type -> Type) a
-[runMaybeT] :: MaybeT (m :: Type -> Type) a -> m (Maybe a)
 readUtf8 :: FilePath -> IO Text
 safeReadUtf8 :: FilePath -> IO (Either IOException Text)
 safeReadUtf8StdIn :: IO (Either IOException Text)
@@ -2145,6 +2145,7 @@ throwExceptTWith :: (MonadIO m, Exception e') => (e -> e') -> ExceptT e m a -> m
 module Unison.Util.Map
 bimap :: Ord a' => (a -> a') -> (b -> b') -> Map a b -> Map a' b'
 bitraverse :: (Applicative f, Ord a') => (a -> f a') -> (b -> f b') -> Map a b -> f (Map a' b')
+bitraversed :: (Ord a', Ord k') => Traversal k k' a a' -> Traversal v v' a a' -> Traversal (Map k v) (Map k' v') a a'
 
 -- | Like <a>delete</a>, but returns the value as well.
 deleteLookup :: Ord k => k -> Map k v -> (Maybe v, Map k v)
@@ -2156,6 +2157,12 @@ deleteLookup :: Ord k => k -> Map k v -> (Maybe v, Map k v)
 --   key, the second will overwrite the first.
 foldMapM :: (Ord k, Monad m, Foldable t) => (a -> m (k, v)) -> t a -> m (Map k v)
 unionWithM :: forall m k a. (Monad m, Ord k) => (a -> a -> m a) -> Map k a -> Map k a -> m (Map k a)
+traverseKeys :: (Applicative f, Ord k') => (k -> f k') -> Map k v -> f (Map k' v)
+traverseKeysWith :: (Applicative f, Ord k') => (v -> v -> v) -> (k -> f k') -> Map k v -> f (Map k' v)
+
+-- | <a>swap</a> throws away data if the input contains duplicate values
+swap :: Ord b => Map a b -> Map b a
+valuesVector :: Map k v -> Vector v
 
 module Unison.Util.Set
 

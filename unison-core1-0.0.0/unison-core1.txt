@@ -14,17 +14,29 @@ Resolve :: loc -> String -> Recorded loc
 data Blank loc
 Blank :: Blank loc
 Recorded :: Recorded loc -> Blank loc
+instance GHC.Generics.Generic (Unison.Blank.Recorded loc)
 instance GHC.Base.Functor Unison.Blank.Recorded
 instance GHC.Classes.Ord loc => GHC.Classes.Ord (Unison.Blank.Recorded loc)
 instance GHC.Classes.Eq loc => GHC.Classes.Eq (Unison.Blank.Recorded loc)
 instance GHC.Show.Show loc => GHC.Show.Show (Unison.Blank.Recorded loc)
+instance GHC.Generics.Generic (Unison.Blank.Blank loc)
 instance GHC.Base.Functor Unison.Blank.Blank
 instance GHC.Classes.Ord loc => GHC.Classes.Ord (Unison.Blank.Blank loc)
 instance GHC.Classes.Eq loc => GHC.Classes.Eq (Unison.Blank.Blank loc)
 instance GHC.Show.Show loc => GHC.Show.Show (Unison.Blank.Blank loc)
 
+module Unison.ConstructorType
+data ConstructorType
+Data :: ConstructorType
+Effect :: ConstructorType
+instance GHC.Generics.Generic Unison.ConstructorType.ConstructorType
+instance GHC.Enum.Enum Unison.ConstructorType.ConstructorType
+instance GHC.Show.Show Unison.ConstructorType.ConstructorType
+instance GHC.Classes.Ord Unison.ConstructorType.ConstructorType
+instance GHC.Classes.Eq Unison.ConstructorType.ConstructorType
+
 module Unison.DataDeclaration.ConstructorId
-type ConstructorId = Int
+type ConstructorId = Word64
 
 module Unison.Hash
 
@@ -44,50 +56,9 @@ toByteString :: Hash -> ByteString
 validBase32HexChars :: Set Char
 
 module Unison.Hashable
-data Token h
-Tag :: !Word8 -> Token h
-Bytes :: !ByteString -> Token h
-Int :: !Int64 -> Token h
-Text :: !Text -> Token h
-Double :: !Double -> Token h
-Hashed :: !h -> Token h
-Nat :: !Word64 -> Token h
-class Accumulate h
-accumulate :: Accumulate h => [Token h] -> h
-fromBytes :: Accumulate h => ByteString -> h
-toBytes :: Accumulate h => h -> ByteString
-accumulateToken :: (Accumulate h, Hashable t) => t -> Token h
 accumulate' :: (Accumulate h, Hashable t) => t -> h
-class Hashable t
-tokens :: (Hashable t, Accumulate h) => t -> [Token h]
-class Functor f => Hashable1 f
-
--- | Produce a hash for an `f a`, given a hashing function for <tt>a</tt>.
---   If there is a notion of order-independence in some aspect of a subterm
---   of <tt>f</tt>, then the first argument (`hashUnordered :: [a] -&gt;
---   ([h], a -&gt; h)`) should be used to impose an order, and then apply
---   that order in further hashing. Otherwise the second argument (`hash ::
---   a -&gt; h`) should be used.
---   
---   Example 1: A simple functor with no unordered components. Hashable1
---   instance just uses <tt>hash</tt>:
---   
---   data T a = One a | Two a a deriving Functor
---   
---   instance Hashable1 T where hash1 _ hash t = case t of One a -&gt;
---   accumulate [Tag 0, Hashed (hash a)] Two a a2 -&gt; accumulate [Tag 1,
---   Hashed (hash a), Hashed (hash a2)]
---   
---   Example 2: A functor with unordered components. For hashing, we need
---   to pick a canonical ordering of the unordered components, so we use
---   <tt>hashUnordered</tt>:
---   
---   data U a = U { unordered :: [a], uno :: a, dos :: a } deriving Functor
---   
---   instance Hashable1 U where hash1 hashUnordered _ (U unordered uno dos)
---   = let (hs, hash) = hashUnordered unordered in accumulate $ map Hashed
---   hs ++ [Hashed (hash uno), Hashed (hash dos)]
-hash1 :: (Hashable1 f, Ord h, Accumulate h) => ([a] -> ([h], a -> h)) -> (a -> h) -> f a -> h
+hash :: (Accumulate h, Hashable t) => t -> h
+toBytes :: Accumulate h => h -> ByteString
 instance Unison.Hashable.Hashable a => Unison.Hashable.Hashable [a]
 instance (Unison.Hashable.Hashable a, Unison.Hashable.Hashable b) => Unison.Hashable.Hashable (a, b)
 instance Unison.Hashable.Hashable a => Unison.Hashable.Hashable (Data.Set.Internal.Set a)
@@ -106,17 +77,6 @@ instance Unison.Hashable.Hashable GHC.Types.Bool
 instance Unison.Hashable.Hashable U.Util.Hash.Hash
 instance Unison.Hashable.Accumulate U.Util.Hash.Hash
 
-module Unison.ConstructorType
-data ConstructorType
-Data :: ConstructorType
-Effect :: ConstructorType
-instance GHC.Generics.Generic Unison.ConstructorType.ConstructorType
-instance GHC.Enum.Enum Unison.ConstructorType.ConstructorType
-instance GHC.Show.Show Unison.ConstructorType.ConstructorType
-instance GHC.Classes.Ord Unison.ConstructorType.ConstructorType
-instance GHC.Classes.Eq Unison.ConstructorType.ConstructorType
-instance Unison.Hashable.Hashable Unison.ConstructorType.ConstructorType
-
 module Unison.Kind
 data Kind
 Star :: Kind
@@ -126,7 +86,6 @@ instance GHC.Show.Show Unison.Kind.Kind
 instance GHC.Read.Read Unison.Kind.Kind
 instance GHC.Classes.Ord Unison.Kind.Kind
 instance GHC.Classes.Eq Unison.Kind.Kind
-instance Unison.Hashable.Hashable Unison.Kind.Kind
 
 module Unison.Position
 
@@ -178,15 +137,17 @@ module Unison.Reference
 --   <tt>Reference</tt>s.
 data Reference
 pattern Builtin :: () => Text -> Reference
-pattern Derived :: Hash -> Pos -> Size -> Reference
+pattern Derived :: Hash -> Pos -> Reference
 pattern DerivedId :: () => Id -> Reference
+_DerivedId :: Prism' Reference Id
 
 -- | <tt>Pos</tt> is a position into a cycle of size <tt>Size</tt>, as
 --   cycles are hashed together.
 data Id
-Id :: Hash -> Pos -> Size -> Id
+Id :: Hash -> Pos -> Id
 type Pos = Word64
-type Size = Word64
+type CycleSize = Word64
+type Size = CycleSize
 
 -- | A term reference.
 type TermReference = Reference
@@ -195,36 +156,35 @@ type TermReferenceId = Id
 -- | A type declaration reference.
 type TypeReference = Reference
 type TypeReferenceId = Id
-derivedBase32Hex :: Text -> Pos -> Size -> Reference
-data Component
-members :: Component -> Set Reference
+derivedBase32Hex :: Text -> Pos -> Reference
 component :: Hash -> [k] -> [(k, Id)]
 components :: [(Hash, [k])] -> [(k, Id)]
 groupByComponent :: [(k, Reference)] -> [[(k, Reference)]]
-componentFor :: Reference -> Component
+componentFor :: Hash -> [a] -> [(Id, a)]
+componentFromLength :: Hash -> CycleSize -> Set Id
 unsafeFromText :: Text -> Reference
 idFromText :: Text -> Maybe Id
 isPrefixOf :: ShortHash -> Reference -> Bool
 fromShortHash :: ShortHash -> Maybe Reference
 fromText :: Text -> Either String Reference
-readSuffix :: Text -> Either String (Pos, Size)
+readSuffix :: Text -> Either String Pos
 showShort :: Int -> Reference -> Text
-showSuffix :: Pos -> Size -> Text
+showSuffix :: Pos -> Text
+toHash :: Reference -> Maybe Hash
 toId :: Reference -> Maybe Id
 fromId :: Id -> Reference
 toText :: Reference -> Text
 unsafeId :: Reference -> Id
 toShortHash :: Reference -> ShortHash
+idToHash :: Id -> Hash
 idToShortHash :: Id -> ShortHash
-instance GHC.Generics.Generic Unison.Reference.Id
+instance GHC.Classes.Ord Unison.Reference.Id
+instance GHC.Classes.Eq Unison.Reference.Id
 instance GHC.Generics.Generic Unison.Reference.Reference
 instance GHC.Classes.Ord Unison.Reference.Reference
 instance GHC.Classes.Eq Unison.Reference.Reference
 instance GHC.Show.Show Unison.Reference.Id
 instance GHC.Show.Show Unison.Reference.Reference
-instance Unison.Hashable.Hashable Unison.Reference.Reference
-instance GHC.Classes.Eq Unison.Reference.Id
-instance GHC.Classes.Ord Unison.Reference.Id
 
 
 -- | The constructor reference type.
@@ -269,11 +229,11 @@ reference_ :: Lens (Referent' r) (Referent' r') r r'
 toReference' :: Referent' r -> r
 toTermReference :: Referent' r -> Maybe r
 toTypeReference :: Referent' r -> Maybe r
+instance GHC.Generics.Generic (Unison.Referent'.Referent' r)
 instance GHC.Base.Functor Unison.Referent'.Referent'
 instance GHC.Classes.Eq r => GHC.Classes.Eq (Unison.Referent'.Referent' r)
 instance GHC.Classes.Ord r => GHC.Classes.Ord (Unison.Referent'.Referent' r)
 instance GHC.Show.Show r => GHC.Show.Show (Unison.Referent'.Referent' r)
-instance Unison.Hashable.Hashable r => Unison.Hashable.Hashable (Unison.Referent'.Referent' r)
 
 module Unison.Referent
 
@@ -287,13 +247,12 @@ module Unison.Referent
 type Referent = Referent' Reference
 pattern Ref :: TermReference -> Referent
 pattern Con :: ConstructorReference -> ConstructorType -> Referent
-type ConstructorId = Int
 
 -- | By definition, cannot be a builtin.
 type Id = Referent' Id
 pattern RefId :: Id -> Id
 pattern ConId :: ConstructorReferenceId -> ConstructorType -> Id
-fold :: (r -> a) -> (r -> Int -> ConstructorType -> a) -> Referent' r -> a
+fold :: (r -> a) -> (r -> ConstructorId -> ConstructorType -> a) -> Referent' r -> a
 toReference :: Referent -> Reference
 toReferenceId :: Referent -> Maybe Id
 
@@ -362,7 +321,6 @@ toTextBuilder :: NameSegment -> Builder
 instance GHC.Classes.Ord Unison.NameSegment.NameSegment
 instance GHC.Classes.Eq Unison.NameSegment.NameSegment
 instance Unison.Util.Alphabetical.Alphabetical Unison.NameSegment.NameSegment
-instance Unison.Hashable.Hashable Unison.NameSegment.NameSegment
 instance GHC.Show.Show Unison.NameSegment.NameSegment
 instance Data.String.IsString Unison.NameSegment.NameSegment
 
@@ -445,11 +403,11 @@ visit :: (Traversable f, Applicative g, Ord v) => (Term f v a -> Maybe (g (Term 
 --   results.
 visit' :: (Traversable f, Monad g, Ord v) => (f (Term f v a) -> g (f (Term f v a))) -> Term f v a -> g (Term f v a)
 
--- | <a>visit</a> specialized to the <tt>Identity</tt> effect.
+-- | <a>visit</a> specialized to the <a>Identity</a> effect.
 visitPure :: (Traversable f, Ord v) => (Term f v a -> Maybe (Term f v a)) -> Term f v a -> Term f v a
 changeVars :: (Foldable f, Functor f, Var v) => Map v v -> Term f v a -> Term f v a
 allVars :: Foldable f => Term f v a -> [v]
-subterms :: (Ord v, Traversable f) => Term f v a -> [Term f v a]
+subterms :: Traversable f => Term f v a -> [Term f v a]
 annotateBound :: (Ord v, Foldable f, Functor f) => Term f v a -> Term f v (a, Set v)
 rebuildUp :: (Ord v, Foldable f, Functor f) => (f (Term f v a) -> f (Term f v a)) -> Term f v a -> Term f v a
 rebuildUp' :: (Ord v, Foldable f, Functor f) => (Term f v a -> Term f v a) -> Term f v a -> Term f v a
@@ -457,7 +415,7 @@ reannotateUp :: (Ord v, Foldable f, Functor f, Monoid b) => (Term f v a -> b) ->
 rewriteDown :: (Traversable f, Ord v) => (Term f v a -> Term f v a) -> Term f v a -> Term f v a
 transform :: (Ord v, Foldable g, Functor f) => (forall a. f a -> g a) -> Term f v a -> Term g v a
 transformM :: (Ord v, Monad m, Traversable g) => (forall a. f a -> m (g a)) -> Term f v a -> m (Term g v a)
-foreachSubterm :: (Traversable f, Applicative g, Ord v) => (Term f v a -> g b) -> Term f v a -> g [b]
+foreachSubterm :: (Traversable f, Applicative g) => (Term f v a -> g b) -> Term f v a -> g [b]
 freeVarOccurrences :: (Traversable f, Ord v) => Set v -> Term f v a -> [(v, a)]
 
 -- | <a>True</a> if <tt>v</tt> is a member of the set of free variables of
@@ -490,6 +448,10 @@ data FindAction x
 Found :: x -> FindAction x
 Prune :: FindAction x
 Continue :: FindAction x
+baseFunctor_ :: Applicative m => (f (Term f v a) -> m (f (Term f v a))) -> Term f v a -> m (Term f v a)
+
+-- | Setter' (Term f v a) (Term f v a)
+rewriteDown_ :: (Traversable f, Monad m, Ord v) => (Term f v a -> m (Term f v a)) -> Term f v a -> m (Term f v a)
 
 -- | Replace the annotation with the given argument.
 annotate :: a -> Term f v a -> Term f v a
@@ -507,38 +469,30 @@ cycle :: Term f v () -> Term f v ()
 cycle' :: a -> Term f v a -> Term f v a
 cycler :: (Functor f, Foldable f, Var v) => [v] -> Term f (V v) () -> Term f (V v) ()
 pattern Abs' :: (Foldable f, Functor f, Var v) => Subst f v a -> Term f v a
+pattern Abs'' :: forall f v a. v -> Term f v a -> Term f v a
 pattern AbsN' :: forall f v a. [v] -> Term f v a -> Term f v a
 pattern Var' :: forall f v a. v -> Term f v a
-pattern Cycle' :: forall f v a. [v] -> Term f v a -> Term f v a
+pattern Cycle' :: forall f v a. [v] -> f (Term f v a) -> Term f v a
 pattern CycleA' :: forall f v a. a -> [(a, v)] -> Term f v a -> Term f v a
 pattern Tm' :: f (Term f v a) -> Term f v a
 components :: Var v => [(v, Term f v a)] -> [[(v, Term f v a)]]
 orderedComponents :: Var v => [(v, Term f v a)] -> [[(v, Term f v a)]]
-
--- | We ignore annotations in the <a>Term</a>, as these should never affect
---   the meaning of the term.
-hash :: forall f v a h. (Functor f, Hashable1 f, Eq v, Show v, Ord h, Accumulate h) => Term f v a -> h
-hashComponents :: (Functor f, Hashable1 f, Foldable f, Eq v, Show v, Var v, Ord h, Accumulate h) => (h -> Word64 -> Word64 -> Term f v ()) -> Map v (Term f v a) -> [(h, [(v, Term f v a)])]
+instance GHC.Generics.Generic (Unison.ABT.ABT f v r)
 instance Data.Traversable.Traversable f => Data.Traversable.Traversable (Unison.ABT.ABT f v)
 instance Data.Foldable.Foldable f => Data.Foldable.Foldable (Unison.ABT.ABT f v)
 instance GHC.Base.Functor f => GHC.Base.Functor (Unison.ABT.ABT f v)
+instance GHC.Generics.Generic (Unison.ABT.Term f v a)
 instance GHC.Base.Functor Unison.ABT.V
 instance GHC.Show.Show v => GHC.Show.Show (Unison.ABT.V v)
 instance GHC.Classes.Ord v => GHC.Classes.Ord (Unison.ABT.V v)
 instance GHC.Classes.Eq v => GHC.Classes.Eq (Unison.ABT.V v)
+instance GHC.Base.Functor Unison.ABT.FindAction
 instance GHC.Show.Show x => GHC.Show.Show (Unison.ABT.FindAction x)
-instance Data.Foldable.Foldable f => Data.Foldable.Foldable (Unison.ABT.Component f)
-instance Data.Traversable.Traversable f => Data.Traversable.Traversable (Unison.ABT.Component f)
-instance GHC.Base.Functor f => GHC.Base.Functor (Unison.ABT.Component f)
-instance (Unison.Hashable.Hashable1 f, GHC.Base.Functor f) => Unison.Hashable.Hashable1 (Unison.ABT.Component f)
 instance Unison.ABT.Var v => Unison.ABT.Var (Unison.ABT.V v)
 instance (Data.Foldable.Foldable f, GHC.Base.Functor f, Prelude.Extras.Eq1 f, Unison.ABT.Var v) => GHC.Classes.Eq (Unison.ABT.Term f v a)
 instance (Data.Foldable.Foldable f, GHC.Base.Functor f, Prelude.Extras.Ord1 f, Unison.ABT.Var v) => GHC.Classes.Ord (Unison.ABT.Term f v a)
 instance GHC.Base.Functor f => GHC.Base.Functor (Unison.ABT.Term f v)
 instance (Prelude.Extras.Show1 f, GHC.Show.Show v) => GHC.Show.Show (Unison.ABT.Term f v a)
-
-module Unison.Reference.Util
-hashComponents :: (Functor f, Hashable1 f, Foldable f, Eq v, Show v, Var v) => (Id -> Term f v ()) -> Map v (Term f v a) -> Map v (Id, Term f v a)
 
 module Unison.ABT.Normalized
 data ABT f v
@@ -672,6 +626,7 @@ instance GHC.Classes.Eq Unison.Var.Type
 
 module Unison.Var.RefNamed
 refNamed :: Var v => Reference -> v
+refIdNamed :: Var v => Id -> v
 
 module Unison.Symbol
 data Symbol
@@ -1289,6 +1244,7 @@ Effect :: a -> a -> F a
 Effects :: [a] -> F a
 Forall :: a -> F a
 IntroOuter :: a -> F a
+_Ref :: Prism' (F a) Reference
 
 -- | Types are represented as ABTs over the base functor F, with variables
 --   in <tt>v</tt>
@@ -1322,7 +1278,7 @@ pattern IntroOuterNamed' :: v -> Term F v a -> Term F v a
 pattern ForallsNamed' :: [v] -> Type v a -> Type v a
 pattern ForallNamed' :: v -> Term F v a -> Term F v a
 pattern Var' :: forall f v a. v -> Term f v a
-pattern Cycle' :: forall f v a. [v] -> Term f v a -> Term f v a
+pattern Cycle' :: forall f v a. [v] -> f (Term f v a) -> Term f v a
 pattern Abs' :: (Foldable f, Functor f, Var v) => Subst f v a -> Term f v a
 unPure :: Ord v => Type v a -> Maybe (Type v a)
 unArrows :: Type v a -> Maybe [Type v a]
@@ -1515,13 +1471,15 @@ instance GHC.Base.Functor Unison.Pattern.Pattern
 instance GHC.Generics.Generic (Unison.Pattern.Pattern loc)
 instance GHC.Classes.Ord loc => GHC.Classes.Ord (Unison.Pattern.Pattern loc)
 instance GHC.Show.Show (Unison.Pattern.Pattern loc)
-instance Unison.Hashable.Hashable (Unison.Pattern.Pattern p)
 instance GHC.Classes.Eq (Unison.Pattern.Pattern loc)
-instance Unison.Hashable.Hashable Unison.Pattern.SeqOp
 
 module Unison.Term
 data MatchCase loc a
 MatchCase :: Pattern loc -> Maybe a -> a -> MatchCase loc a
+[matchPattern] :: MatchCase loc a -> Pattern loc
+[matchGuard] :: MatchCase loc a -> Maybe a
+[matchBody] :: MatchCase loc a -> a
+matchPattern_ :: Lens' (MatchCase loc a) (Pattern loc)
 
 -- | Base functor for terms in the Unison language We need <tt>typeVar</tt>
 --   because the term and type variables may differ.
@@ -1549,6 +1507,13 @@ Let :: IsTop -> a -> a -> F typeVar typeAnn patternAnn a
 Match :: a -> [MatchCase patternAnn a] -> F typeVar typeAnn patternAnn a
 TermLink :: Referent -> F typeVar typeAnn patternAnn a
 TypeLink :: Reference -> F typeVar typeAnn patternAnn a
+_Ref :: Prism' (F tv ta pa a) Reference
+_Match :: Prism' (F tv ta pa a) (a, [MatchCase pa a])
+_Constructor :: Prism' (F tv ta pa a) ConstructorReference
+_Request :: Prism' (F tv ta pa a) ConstructorReference
+_Ann :: Prism' (F tv ta pa a) (a, Term F tv ta)
+_TermLink :: Prism' (F tv ta pa a) Referent
+_TypeLink :: Prism' (F tv ta pa a) Reference
 type IsTop = Bool
 
 -- | Like `Term v`, but with an annotation of type <tt>a</tt> at every
@@ -1597,7 +1562,7 @@ substTypeVar :: (Ord v, Var vt) => vt -> Type vt b -> Term' vt v a -> Term' vt v
 renameTypeVar :: (Ord v, Var vt) => vt -> vt -> Term' vt v a -> Term' vt v a
 generalizeTypeSignatures :: (Var vt, Var v) => Term' vt v a -> Term' vt v a
 pattern Var' :: forall f v a. v -> Term f v a
-pattern Cycle' :: forall f v a. [v] -> Term f v a -> Term f v a
+pattern Cycle' :: forall f v a. [v] -> f (Term f v a) -> Term f v a
 pattern Abs' :: (Foldable f, Functor f, Var v) => Subst f v a -> Term f v a
 pattern Int' :: Int64 -> Term (F typeVar typeAnn patternAnn) v a
 pattern Nat' :: Word64 -> Term (F typeVar typeAnn patternAnn) v a
@@ -1745,7 +1710,7 @@ betaReduce :: Var v => Term0 v -> Term0 v
 betaNormalForm :: Var v => Term0 v -> Term0 v
 etaNormalForm :: Ord v => Term0 v -> Term0 v
 etaReduceEtaVars :: Var v => Term0 v -> Term0 v
-unhashComponent :: forall v a. Var v => Map Reference (Term v a) -> Map Reference (v, Term v a)
+unhashComponent :: forall v a. Var v => Map Id (Term v a) -> Map Id (v, Term v a)
 fromReferent :: Ord v => a -> Referent -> Term2 vt at ap v a
 instance Data.Traversable.Traversable (Unison.Term.MatchCase loc)
 instance GHC.Generics.Generic1 (Unison.Term.MatchCase loc)
@@ -1805,13 +1770,15 @@ generateRecordAccessors :: (Semigroup a, Var v) => [(v, a)] -> v -> Reference ->
 --   keys of the input map; have been replaced with the corresponding
 --   output <tt>v</tt>s in the output <a>Decl</a>s, which are fresh with
 --   respect to all input Decls.
-unhashComponent :: forall v a. Var v => Map Reference (Decl v a) -> Map Reference (v, Decl v a)
+unhashComponent :: forall v a. Var v => Map Id (Decl v a) -> Map Id (v, Decl v a)
 mkDataDecl' :: Modifier -> a -> [v] -> [(a, v, Type v a)] -> DataDeclaration v a
 mkEffectDecl' :: Modifier -> a -> [v] -> [(a, v, Type v a)] -> EffectDeclaration v a
 typeOfConstructor :: DataDeclaration v a -> ConstructorId -> Maybe (Type v a)
 withEffectDeclM :: Functor f => (DataDeclaration v a -> f (DataDeclaration v' a')) -> EffectDeclaration v a -> f (EffectDeclaration v' a')
 amap :: (a -> a2) -> Decl v a -> Decl v a2
 updateDependencies :: Ord v => Map Reference Reference -> Decl v a -> Decl v a
+constructors_ :: Lens' (DataDeclaration v a) [(a, v, Type v a)]
+asDataDecl_ :: Iso' (EffectDeclaration v a) (DataDeclaration v a)
 instance GHC.Show.Show Unison.DataDeclaration.Modifier
 instance GHC.Classes.Ord Unison.DataDeclaration.Modifier
 instance GHC.Classes.Eq Unison.DataDeclaration.Modifier

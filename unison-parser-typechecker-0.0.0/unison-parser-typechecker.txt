@@ -5,70 +5,35 @@
 @package unison-parser-typechecker
 @version 0.0.0
 
-module Unison.Codebase.Causal
+module Unison.Codebase.Causal.Type
 data Causal m h e
-One :: RawHash h -> e -> Causal m h e
+UnsafeOne :: RawHash h -> e -> Causal m h e
 [currentHash] :: Causal m h e -> RawHash h
 [head] :: Causal m h e -> e
-Cons :: RawHash h -> e -> (RawHash h, m (Causal m h e)) -> Causal m h e
+UnsafeCons :: RawHash h -> e -> (RawHash h, m (Causal m h e)) -> Causal m h e
 [currentHash] :: Causal m h e -> RawHash h
 [head] :: Causal m h e -> e
 [tail] :: Causal m h e -> (RawHash h, m (Causal m h e))
-Merge :: RawHash h -> e -> Map (RawHash h) (m (Causal m h e)) -> Causal m h e
+UnsafeMerge :: RawHash h -> e -> Map (RawHash h) (m (Causal m h e)) -> Causal m h e
 [currentHash] :: Causal m h e -> RawHash h
 [head] :: Causal m h e -> e
 [tails] :: Causal m h e -> Map (RawHash h) (m (Causal m h e))
-data Raw h e
-RawOne :: e -> Raw h e
-RawCons :: e -> RawHash h -> Raw h e
-RawMerge :: e -> Set (RawHash h) -> Raw h e
 newtype RawHash a
 RawHash :: Hash -> RawHash a
 [unRawHash] :: RawHash a -> Hash
-
--- | Focus the current head, keeping the hash up to date.
-head_ :: Hashable e => Lens' (Causal m h e) e
-one :: Hashable e => e -> Causal m h e
-cons :: (Applicative m, Hashable e) => e -> Causal m h e -> Causal m h e
-cons' :: Hashable e => e -> RawHash h -> m (Causal m h e) -> Causal m h e
-consDistinct :: (Applicative m, Eq e, Hashable e) => e -> Causal m h e -> Causal m h e
-uncons :: Applicative m => Causal m h e -> m (Maybe (e, Causal m h e))
-hash :: Hashable e => e -> Hash
-predecessors :: Causal m h e -> Seq (m (Causal m h e))
-type Deserialize m h e = RawHash h -> m (Raw h e)
-type Serialize m h e = RawHash h -> Raw h e -> m ()
-cachedRead :: MonadIO m => Cache (RawHash h) (Causal m h e) -> Deserialize m h e -> RawHash h -> m (Causal m h e)
-threeWayMerge :: forall m h e. (Monad m, Hashable e) => (Maybe e -> e -> e -> m e) -> Causal m h e -> Causal m h e -> m (Causal m h e)
-threeWayMerge' :: forall m h e. (Monad m, Hashable e) => (Causal m h e -> Causal m h e -> m (Maybe (Causal m h e))) -> (Maybe e -> e -> e -> m e) -> Causal m h e -> Causal m h e -> m (Causal m h e)
-squashMerge' :: forall m h e. (Monad m, Hashable e, Eq e) => (Causal m h e -> Causal m h e -> m (Maybe (Causal m h e))) -> (e -> m e) -> (Maybe e -> e -> e -> m e) -> Causal m h e -> Causal m h e -> m (Causal m h e)
-lca :: Monad m => Causal m h e -> Causal m h e -> m (Maybe (Causal m h e))
-stepDistinct :: (Applicative m, Eq e, Hashable e) => (e -> e) -> Causal m h e -> Causal m h e
-stepDistinctM :: (Applicative m, Functor n, Eq e, Hashable e) => (e -> n e) -> Causal m h e -> n (Causal m h e)
-sync :: forall m h e. Monad m => (RawHash h -> m Bool) -> Serialize (StateT (Set (RawHash h)) m) h e -> Causal m h e -> StateT (Set (RawHash h)) m ()
-transform :: Functor m => (forall a. m a -> n a) -> Causal m h e -> Causal n h e
-unsafeMapHashPreserving :: Functor m => (e -> e2) -> Causal m h e -> Causal m h e2
+pattern One :: RawHash h -> e -> Causal m h e
+pattern Cons :: RawHash h -> e -> (RawHash h, m (Causal m h e)) -> Causal m h e
+pattern Merge :: RawHash h -> e -> Map (RawHash h) (m (Causal m h e)) -> Causal m h e
 before :: Monad m => Causal m h e -> Causal m h e -> m Bool
-beforeHash :: forall m h e. Monad m => Word -> RawHash h -> Causal m h e -> m Bool
-instance GHC.Generics.Generic (Unison.Codebase.Causal.RawHash a)
-instance GHC.Classes.Ord (Unison.Codebase.Causal.RawHash a)
-instance GHC.Classes.Eq (Unison.Codebase.Causal.RawHash a)
-instance GHC.Show.Show a => GHC.Show.Show (Unison.Codebase.Causal.FoldHistoryResult a)
-instance GHC.Classes.Ord a => GHC.Classes.Ord (Unison.Codebase.Causal.FoldHistoryResult a)
-instance GHC.Classes.Eq a => GHC.Classes.Eq (Unison.Codebase.Causal.FoldHistoryResult a)
-instance GHC.Show.Show e => GHC.Show.Show (Unison.Codebase.Causal.Causal m h e)
-instance GHC.Classes.Eq (Unison.Codebase.Causal.Causal m h a)
-instance GHC.Classes.Ord (Unison.Codebase.Causal.Causal m h a)
-instance GHC.Show.Show (Unison.Codebase.Causal.RawHash a)
-instance Unison.Hashable.Hashable (Unison.Codebase.Causal.RawHash h)
-
-module Unison.Codebase.Causal.FoldHistory
-data FoldHistoryResult a
-Satisfied :: a -> FoldHistoryResult a
-Unsatisfied :: a -> FoldHistoryResult a
-foldHistoryUntil :: forall m h e a. Monad m => (a -> e -> (a, Bool)) -> a -> Causal m h e -> m (FoldHistoryResult a)
-instance GHC.Show.Show a => GHC.Show.Show (Unison.Codebase.Causal.FoldHistory.FoldHistoryResult a)
-instance GHC.Classes.Ord a => GHC.Classes.Ord (Unison.Codebase.Causal.FoldHistory.FoldHistoryResult a)
-instance GHC.Classes.Eq a => GHC.Classes.Eq (Unison.Codebase.Causal.FoldHistory.FoldHistoryResult a)
+predecessors :: Causal m h e -> Seq (m (Causal m h e))
+lca :: Monad m => Causal m h e -> Causal m h e -> m (Maybe (Causal m h e))
+instance GHC.Generics.Generic (Unison.Codebase.Causal.Type.RawHash a)
+instance GHC.Classes.Ord (Unison.Codebase.Causal.Type.RawHash a)
+instance GHC.Classes.Eq (Unison.Codebase.Causal.Type.RawHash a)
+instance GHC.Show.Show e => GHC.Show.Show (Unison.Codebase.Causal.Type.Causal m h e)
+instance GHC.Classes.Eq (Unison.Codebase.Causal.Type.Causal m h a)
+instance GHC.Classes.Ord (Unison.Codebase.Causal.Type.Causal m h a)
+instance GHC.Show.Show (Unison.Codebase.Causal.Type.RawHash a)
 
 module Unison.Codebase.CodeLookup
 data CodeLookup v m a
@@ -383,8 +348,6 @@ instance GHC.Classes.Eq Unison.Codebase.TermEdit.Typing
 instance GHC.Show.Show Unison.Codebase.TermEdit.TermEdit
 instance GHC.Classes.Ord Unison.Codebase.TermEdit.TermEdit
 instance GHC.Classes.Eq Unison.Codebase.TermEdit.TermEdit
-instance Unison.Hashable.Hashable Unison.Codebase.TermEdit.TermEdit
-instance Unison.Hashable.Hashable Unison.Codebase.TermEdit.Typing
 
 module Unison.Codebase.TypeEdit
 data TypeEdit
@@ -395,7 +358,6 @@ toReference :: TypeEdit -> Maybe Reference
 instance GHC.Show.Show Unison.Codebase.TypeEdit.TypeEdit
 instance GHC.Classes.Ord Unison.Codebase.TypeEdit.TypeEdit
 instance GHC.Classes.Eq Unison.Codebase.TypeEdit.TypeEdit
-instance Unison.Hashable.Hashable Unison.Codebase.TypeEdit.TypeEdit
 
 module Unison.Codebase.Patch
 data Patch
@@ -428,7 +390,6 @@ updateType :: Reference -> TypeEdit -> Patch -> Patch
 conflicts :: Patch -> Patch
 instance GHC.Base.Semigroup Unison.Codebase.Patch.Patch
 instance GHC.Base.Monoid Unison.Codebase.Patch.Patch
-instance Unison.Hashable.Hashable Unison.Codebase.Patch.Patch
 instance GHC.Base.Semigroup Unison.Codebase.Patch.PatchDiff
 instance GHC.Base.Monoid Unison.Codebase.Patch.PatchDiff
 instance GHC.Show.Show Unison.Codebase.Patch.Patch
@@ -459,6 +420,88 @@ NoDatabaseFile :: ReadRepo -> CodebasePath -> GitSqliteCodebaseError
 UnrecognizedSchemaVersion :: ReadRepo -> CodebasePath -> SchemaVersion -> GitSqliteCodebaseError
 instance GHC.Show.Show Unison.Codebase.SqliteCodebase.GitError.GitSqliteCodebaseError
 
+module Unison.Hashing.V2.Tokenizable
+
+-- | Tokenizable converts a value into a set of hashing tokens which will
+--   later be accumulated into a Hash. Be very careful when adding or
+--   altering instances of this typeclass, changing the hash of a value is
+--   a major breaking change and requires a complete codebase migration.
+--   
+--   If you simply want to provide a convenience instance for a type which
+--   wraps some Hashable type, write an instance of <tt>Hashable</tt> which
+--   calls through to the inner instance instead.
+--   
+--   E.g. If I want to be able to hash a <tt>TaggedBranch</tt> using its
+--   Branch0 hashable instance:
+--   
+--   @@ data TaggedBranch = TaggedBranch String Branch
+--   
+--   instance Hashable TaggedBranch where hash (TaggedBranch _ b) = hash b
+--   @@
+class Tokenizable t
+tokens :: (Tokenizable t, Accumulate h) => t -> [Token h]
+class Accumulate h
+accumulate :: Accumulate h => [Token h] -> h
+fromBytes :: Accumulate h => ByteString -> h
+toBytes :: Accumulate h => h -> ByteString
+class Hashable1 f
+
+-- | Produce a hash for an `f a`, given a hashing function for <tt>a</tt>.
+--   If there is a notion of order-independence in some aspect of a subterm
+--   of <tt>f</tt>, then the first argument (`hashUnordered :: [a] -&gt;
+--   ([h], a -&gt; h)`) should be used to impose an order, and then apply
+--   that order in further hashing. Otherwise the second argument (`hash ::
+--   a -&gt; h`) should be used.
+--   
+--   Example 1: A simple functor with no unordered components. Hashable1
+--   instance just uses <tt>hash</tt>:
+--   
+--   data T a = One a | Two a a deriving Functor
+--   
+--   instance Hashable1 T where hash1 _ hash t = case t of One a -&gt;
+--   accumulate [Tag 0, Hashed (hash a)] Two a a2 -&gt; accumulate [Tag 1,
+--   Hashed (hash a), Hashed (hash a2)]
+--   
+--   Example 2: A functor with unordered components. For hashing, we need
+--   to pick a canonical ordering of the unordered components, so we use
+--   <tt>hashUnordered</tt>:
+--   
+--   data U a = U { unordered :: [a], uno :: a, dos :: a } deriving Functor
+--   
+--   instance Hashable1 U where hash1 hashUnordered _ (U unordered uno dos)
+--   = let (hs, hash) = hashUnordered unordered in accumulate $ map Hashed
+--   hs ++ [Hashed (hash uno), Hashed (hash dos)]
+hash1 :: (Hashable1 f, Ord h, Accumulate h) => ([a] -> ([h], a -> h)) -> (a -> h) -> f a -> h
+data Token h
+Tag :: !Word8 -> Token h
+Bytes :: !ByteString -> Token h
+Int :: !Int64 -> Token h
+Text :: !Text -> Token h
+Double :: !Double -> Token h
+Hashed :: !h -> Token h
+Nat :: !Word64 -> Token h
+
+-- | Tokenize then accumulate a type into a Hash.
+hashTokenizable :: (Tokenizable t, Accumulate h) => t -> h
+accumulateToken :: (Accumulate h, Tokenizable t) => t -> Token h
+instance Unison.Hashing.V2.Tokenizable.Tokenizable a => Unison.Hashing.V2.Tokenizable.Tokenizable [a]
+instance (Unison.Hashing.V2.Tokenizable.Tokenizable a, Unison.Hashing.V2.Tokenizable.Tokenizable b) => Unison.Hashing.V2.Tokenizable.Tokenizable (a, b)
+instance Unison.Hashing.V2.Tokenizable.Tokenizable a => Unison.Hashing.V2.Tokenizable.Tokenizable (Data.Set.Internal.Set a)
+instance (Unison.Hashing.V2.Tokenizable.Tokenizable k, Unison.Hashing.V2.Tokenizable.Tokenizable v) => Unison.Hashing.V2.Tokenizable.Tokenizable (Data.Map.Internal.Map k v)
+instance (Unison.Hashing.V2.Tokenizable.Tokenizable a, Unison.Hashing.V2.Tokenizable.Tokenizable b) => Unison.Hashing.V2.Tokenizable.Tokenizable (Unison.Util.Relation.Relation a b)
+instance (Unison.Hashing.V2.Tokenizable.Tokenizable d1, Unison.Hashing.V2.Tokenizable.Tokenizable d2, Unison.Hashing.V2.Tokenizable.Tokenizable d3) => Unison.Hashing.V2.Tokenizable.Tokenizable (Unison.Util.Relation3.Relation3 d1 d2 d3)
+instance (Unison.Hashing.V2.Tokenizable.Tokenizable d1, Unison.Hashing.V2.Tokenizable.Tokenizable d2, Unison.Hashing.V2.Tokenizable.Tokenizable d3, Unison.Hashing.V2.Tokenizable.Tokenizable d4) => Unison.Hashing.V2.Tokenizable.Tokenizable (Unison.Util.Relation4.Relation4 d1 d2 d3 d4)
+instance Unison.Hashing.V2.Tokenizable.Tokenizable ()
+instance Unison.Hashing.V2.Tokenizable.Tokenizable GHC.Types.Double
+instance Unison.Hashing.V2.Tokenizable.Tokenizable Data.Text.Internal.Text
+instance Unison.Hashing.V2.Tokenizable.Tokenizable GHC.Types.Char
+instance Unison.Hashing.V2.Tokenizable.Tokenizable Data.ByteString.Internal.ByteString
+instance Unison.Hashing.V2.Tokenizable.Tokenizable GHC.Word.Word64
+instance Unison.Hashing.V2.Tokenizable.Tokenizable GHC.Int.Int64
+instance Unison.Hashing.V2.Tokenizable.Tokenizable GHC.Types.Bool
+instance Unison.Hashing.V2.Tokenizable.Tokenizable U.Util.Hash.Hash
+instance Unison.Hashing.V2.Tokenizable.Accumulate U.Util.Hash.Hash
+
 module Unison.Hashing.V2.Reference
 
 -- | Either a builtin or a user defined (hashed) top-level declaration.
@@ -469,100 +512,107 @@ module Unison.Hashing.V2.Reference
 --   <tt>Reference</tt>s.
 data Reference
 pattern Builtin :: () => Text -> Reference
-pattern Derived :: Hash -> Pos -> Size -> Reference
+pattern Derived :: Hash -> Pos -> Reference
 pattern DerivedId :: () => Id -> Reference
 
 -- | <tt>Pos</tt> is a position into a cycle of size <tt>Size</tt>, as
 --   cycles are hashed together.
 data Id
-Id :: Hash -> Pos -> Size -> Id
-type Pos = Word64
-type Size = Word64
-derivedBase32Hex :: Text -> Pos -> Size -> Reference
-data Component
-members :: Component -> Set Reference
+Id :: Hash -> Pos -> Id
 components :: [(Hash, [k])] -> [(k, Id)]
-groupByComponent :: [(k, Reference)] -> [[(k, Reference)]]
-componentFor :: Reference -> Component
-unsafeFromText :: Text -> Reference
-idFromText :: Text -> Maybe Id
-isPrefixOf :: ShortHash -> Reference -> Bool
-fromShortHash :: ShortHash -> Maybe Reference
-fromText :: Text -> Either String Reference
-readSuffix :: Text -> Either String (Pos, Size)
-showShort :: Int -> Reference -> Text
-showSuffix :: Pos -> Size -> Text
-toId :: Reference -> Maybe Id
-toText :: Reference -> Text
-unsafeId :: Reference -> Id
-toShortHash :: Reference -> ShortHash
-idToShortHash :: Id -> ShortHash
-instance GHC.Generics.Generic Unison.Hashing.V2.Reference.Id
-instance GHC.Generics.Generic Unison.Hashing.V2.Reference.Reference
+instance GHC.Classes.Ord Unison.Hashing.V2.Reference.Id
+instance GHC.Classes.Eq Unison.Hashing.V2.Reference.Id
 instance GHC.Classes.Ord Unison.Hashing.V2.Reference.Reference
 instance GHC.Classes.Eq Unison.Hashing.V2.Reference.Reference
 instance GHC.Show.Show Unison.Hashing.V2.Reference.Id
 instance GHC.Show.Show Unison.Hashing.V2.Reference.Reference
-instance Unison.Hashable.Hashable Unison.Hashing.V2.Reference.Reference
-instance GHC.Classes.Eq Unison.Hashing.V2.Reference.Id
-instance GHC.Classes.Ord Unison.Hashing.V2.Reference.Id
+instance Unison.Hashing.V2.Tokenizable.Tokenizable Unison.Hashing.V2.Reference.Reference
+
+module Unison.Hashing.V2.Referent
+data Referent
+pattern Ref :: () => Reference -> Referent
+pattern Con :: () => Reference -> ConstructorId -> Referent
+type ConstructorId = Word64
+instance GHC.Classes.Eq Unison.Hashing.V2.Referent.Referent
+instance GHC.Classes.Ord Unison.Hashing.V2.Referent.Referent
+instance GHC.Show.Show Unison.Hashing.V2.Referent.Referent
+instance Unison.Hashing.V2.Tokenizable.Tokenizable Unison.Hashing.V2.Referent.Referent
+
+module Unison.Hashing.V2.TermEdit
+data TermEdit
+Replace :: Referent -> TermEdit
+Deprecate :: TermEdit
+instance GHC.Show.Show Unison.Hashing.V2.TermEdit.TermEdit
+instance GHC.Classes.Ord Unison.Hashing.V2.TermEdit.TermEdit
+instance GHC.Classes.Eq Unison.Hashing.V2.TermEdit.TermEdit
+instance Unison.Hashing.V2.Tokenizable.Tokenizable Unison.Hashing.V2.TermEdit.TermEdit
+
+module Unison.Hashing.V2.Kind
+data Kind
+Star :: Kind
+Arrow :: Kind -> Kind -> Kind
+instance GHC.Generics.Generic Unison.Hashing.V2.Kind.Kind
+instance GHC.Show.Show Unison.Hashing.V2.Kind.Kind
+instance GHC.Read.Read Unison.Hashing.V2.Kind.Kind
+instance GHC.Classes.Ord Unison.Hashing.V2.Kind.Kind
+instance GHC.Classes.Eq Unison.Hashing.V2.Kind.Kind
+instance Unison.Hashing.V2.Tokenizable.Tokenizable Unison.Hashing.V2.Kind.Kind
+
+module Unison.Hashing.V2.Hashable
+
+-- | This typeclass provides a mechanism for obtaining a content-based hash
+--   for Unison types &amp; terms. Be wary that Unison requires that these
+--   hashes be deterministic, any change to a Hashable instance requires a
+--   full codebase migration and should not be taken lightly.
+class Hashable t
+hash :: Hashable t => t -> Hash
+instance Unison.Hashing.V2.Tokenizable.Tokenizable a => Unison.Hashing.V2.Hashable.Hashable [a]
+instance Unison.Hashing.V2.Tokenizable.Tokenizable a => Unison.Hashing.V2.Hashable.Hashable (Data.Set.Internal.Set a)
+instance Unison.Hashing.V2.Hashable.Hashable GHC.Int.Int64
+
+module Unison.Hashing.V2.Causal
+data Causal
+Causal :: Hash -> Set Hash -> Causal
+[branchHash] :: Causal -> Hash
+[parents] :: Causal -> Set Hash
+hashCausal :: Causal -> Hash
+instance Unison.Hashing.V2.Tokenizable.Tokenizable Unison.Hashing.V2.Causal.Causal
+
+module Unison.Hashing.V2.Branch
+newtype NameSegment
+NameSegment :: Text -> NameSegment
+data Raw
+Raw :: Map NameSegment (Map Referent MdValues) -> Map NameSegment (Map Reference MdValues) -> Map NameSegment Hash -> Map NameSegment Hash -> Raw
+[terms] :: Raw -> Map NameSegment (Map Referent MdValues)
+[types] :: Raw -> Map NameSegment (Map Reference MdValues)
+[patches] :: Raw -> Map NameSegment Hash
+[children] :: Raw -> Map NameSegment Hash
+newtype MdValues
+MdValues :: Set MetadataValue -> MdValues
+hashBranch :: Raw -> Hash
+instance Unison.Hashing.V2.Tokenizable.Tokenizable Unison.Hashing.V2.Branch.MdValues
+instance GHC.Show.Show Unison.Hashing.V2.Branch.MdValues
+instance GHC.Classes.Ord Unison.Hashing.V2.Branch.MdValues
+instance GHC.Classes.Eq Unison.Hashing.V2.Branch.MdValues
+instance GHC.Show.Show Unison.Hashing.V2.Branch.NameSegment
+instance GHC.Classes.Ord Unison.Hashing.V2.Branch.NameSegment
+instance GHC.Classes.Eq Unison.Hashing.V2.Branch.NameSegment
+instance Unison.Hashing.V2.Tokenizable.Tokenizable Unison.Hashing.V2.Branch.Raw
+instance Unison.Hashing.V2.Tokenizable.Tokenizable Unison.Hashing.V2.Branch.NameSegment
+
+module Unison.Hashing.V2.ABT
+
+-- | At each level in the tree, we store the set of free variables and a
+--   value of type <tt>a</tt>. Variables are of type <tt>v</tt>.
+data Term (f :: Type -> Type) v a
+
+-- | We ignore annotations in the <a>Term</a>, as these should never affect
+--   the meaning of the term.
+hash :: forall f v a h. (Functor f, Hashable1 f, Eq v, Show v, Ord h, Accumulate h) => Term f v a -> h
+hashComponents :: (Functor f, Hashable1 f, Foldable f, Eq v, Show v, Var v, Ord h, Accumulate h) => (h -> Word64 -> Term f v ()) -> Map v (Term f v a) -> [(h, [(v, Term f v a)])]
 
 module Unison.Hashing.V2.Reference.Util
 hashComponents :: (Functor f, Hashable1 f, Foldable f, Eq v, Show v, Var v) => (Id -> Term f v ()) -> Map v (Term f v a) -> Map v (Id, Term f v a)
-
-module Unison.Hashing.V2.Referent
-
--- | Specifies a term.
---   
---   Either a term <a>Reference</a>, a data constructor, or an effect
---   constructor.
---   
---   Slightly odd naming. This is the "referent of term name in the
---   codebase", rather than the target of a Reference.
-type Referent = Referent' Reference
-type ConstructorId = Int
-pattern Ref :: Reference -> Referent
-pattern Con :: Reference -> ConstructorId -> ConstructorType -> Referent
-
--- | Cannot be a builtin.
-type Id = Referent' Id
-toShortHash :: Referent -> ShortHash
-toShortHashId :: Id -> ShortHash
-patternShortHash :: Reference -> ConstructorId -> ShortHash
-showShort :: Int -> Referent -> Text
-toText :: Referent -> Text
-ctorTypeText :: ConstructorType -> Text
-pattern EffectCtor :: (Eq a, IsString a) => a
-pattern DataCtor :: (Eq a, IsString a) => a
-toString :: Referent -> String
-isConstructor :: Referent -> Bool
-toTermReference :: Referent -> Maybe Reference
-toReference :: Referent -> Reference
-fromId :: Id -> Referent
-toTypeReference :: Referent -> Maybe Reference
-isPrefixOf :: ShortHash -> Referent -> Bool
-unsafeFromText :: Text -> Referent
-fromText :: Text -> Maybe Referent
-fold :: (r -> a) -> (r -> ConstructorId -> ConstructorType -> a) -> Referent' r -> a
-
-module Unison.Hashing.V2.LabeledDependency
-derivedTerm :: Id -> LabeledDependency
-derivedType :: Id -> LabeledDependency
-termRef :: Reference -> LabeledDependency
-typeRef :: Reference -> LabeledDependency
-referent :: Referent -> LabeledDependency
-dataConstructor :: Reference -> ConstructorId -> LabeledDependency
-effectConstructor :: Reference -> ConstructorId -> LabeledDependency
-fold :: (Reference -> a) -> (Referent -> a) -> LabeledDependency -> a
-referents :: Foldable f => f Referent -> Set LabeledDependency
-
--- | Left TypeRef | Right TermRef
-toReference :: LabeledDependency -> Either Reference Reference
-data LabeledDependency
-partition :: Foldable t => t LabeledDependency -> ([Reference], [Referent])
-instance GHC.Show.Show Unison.Hashing.V2.LabeledDependency.LabeledDependency
-instance GHC.Classes.Ord Unison.Hashing.V2.LabeledDependency.LabeledDependency
-instance GHC.Classes.Eq Unison.Hashing.V2.LabeledDependency.LabeledDependency
 
 module Unison.Hashing.V2.Type
 
@@ -582,7 +632,6 @@ Forall :: a -> F a
 IntroOuter :: a -> F a
 bindExternal :: Var v => [(v, Reference)] -> Type v a -> Type v a
 bindReferences :: Var v => Set v -> Map Name Reference -> Type v a -> ResolutionResult v a (Type v a)
-dependencies :: Ord v => Type v a -> Set Reference
 toReference :: (Var v, Show v) => Type v a -> Reference
 toReferenceMentions :: (Var v, Show v) => Type v a -> Set Reference
 booleanRef :: Reference
@@ -596,10 +645,9 @@ textRef :: Reference
 instance Data.Traversable.Traversable Unison.Hashing.V2.Type.F
 instance GHC.Base.Functor Unison.Hashing.V2.Type.F
 instance Data.Foldable.Foldable Unison.Hashing.V2.Type.F
-instance Unison.Hashable.Hashable1 Unison.Hashing.V2.Type.F
+instance Unison.Hashing.V2.Tokenizable.Hashable1 Unison.Hashing.V2.Type.F
 
 module Unison.Hashing.V2.Pattern
-type ConstructorId = Int
 data Pattern loc
 Unbound :: loc -> Pattern loc
 Var :: loc -> Pattern loc
@@ -609,10 +657,10 @@ Nat :: loc -> !Word64 -> Pattern loc
 Float :: loc -> !Double -> Pattern loc
 Text :: loc -> !Text -> Pattern loc
 Char :: loc -> !Char -> Pattern loc
-Constructor :: loc -> !Reference -> !Int -> [Pattern loc] -> Pattern loc
+Constructor :: loc -> !Reference -> !ConstructorId -> [Pattern loc] -> Pattern loc
 As :: loc -> Pattern loc -> Pattern loc
 EffectPure :: loc -> Pattern loc -> Pattern loc
-EffectBind :: loc -> !Reference -> !Int -> [Pattern loc] -> Pattern loc -> Pattern loc
+EffectBind :: loc -> !Reference -> !ConstructorId -> [Pattern loc] -> Pattern loc -> Pattern loc
 SequenceLiteral :: loc -> [Pattern loc] -> Pattern loc
 SequenceOp :: loc -> Pattern loc -> !SeqOp -> Pattern loc -> Pattern loc
 data SeqOp
@@ -634,9 +682,9 @@ instance GHC.Base.Functor Unison.Hashing.V2.Pattern.Pattern
 instance GHC.Generics.Generic (Unison.Hashing.V2.Pattern.Pattern loc)
 instance GHC.Classes.Ord loc => GHC.Classes.Ord (Unison.Hashing.V2.Pattern.Pattern loc)
 instance GHC.Show.Show (Unison.Hashing.V2.Pattern.Pattern loc)
-instance Unison.Hashable.Hashable (Unison.Hashing.V2.Pattern.Pattern p)
+instance Unison.Hashing.V2.Tokenizable.Tokenizable (Unison.Hashing.V2.Pattern.Pattern p)
 instance GHC.Classes.Eq (Unison.Hashing.V2.Pattern.Pattern loc)
-instance Unison.Hashable.Hashable Unison.Hashing.V2.Pattern.SeqOp
+instance Unison.Hashing.V2.Tokenizable.Tokenizable Unison.Hashing.V2.Pattern.SeqOp
 
 module Unison.Hashing.V2.Term
 
@@ -672,8 +720,9 @@ TermLink :: Referent -> F typeVar typeAnn patternAnn a
 TypeLink :: Reference -> F typeVar typeAnn patternAnn a
 data MatchCase loc a
 MatchCase :: Pattern loc -> Maybe a -> a -> MatchCase loc a
-hashComponents :: Var v => Map v (Term v a) -> Map v (Id, Term v a)
 hashClosedTerm :: Var v => Term v a -> Id
+hashComponents :: forall v a. Var v => Map v (Term v a, Type v a) -> Map v (Id, Term v a, Type v a)
+hashComponentsWithoutTypes :: Var v => Map v (Term v a) -> Map v (Id, Term v a)
 instance Data.Traversable.Traversable (Unison.Hashing.V2.Term.MatchCase loc)
 instance GHC.Generics.Generic1 (Unison.Hashing.V2.Term.MatchCase loc)
 instance GHC.Generics.Generic (Unison.Hashing.V2.Term.MatchCase loc a)
@@ -686,7 +735,7 @@ instance GHC.Generics.Generic1 (Unison.Hashing.V2.Term.F typeVar typeAnn pattern
 instance GHC.Generics.Generic (Unison.Hashing.V2.Term.F typeVar typeAnn patternAnn a)
 instance GHC.Base.Functor (Unison.Hashing.V2.Term.F typeVar typeAnn patternAnn)
 instance Data.Foldable.Foldable (Unison.Hashing.V2.Term.F typeVar typeAnn patternAnn)
-instance Unison.Var.Var v => Unison.Hashable.Hashable1 (Unison.Hashing.V2.Term.F v a p)
+instance Unison.Var.Var v => Unison.Hashing.V2.Tokenizable.Hashable1 (Unison.Hashing.V2.Term.F v a p)
 
 module Unison.Hashing.V2.DataDeclaration
 data DataDeclaration v a
@@ -702,12 +751,6 @@ type Decl v a = Either (EffectDeclaration v a) (DataDeclaration v a)
 data Modifier
 Structural :: Modifier
 Unique :: Text -> Modifier
-asDataDecl :: Decl v a -> DataDeclaration v a
-constructorType :: Decl v a -> ConstructorType
-constructorTypes :: DataDeclaration v a -> [Type v a]
-declDependencies :: Ord v => Decl v a -> Set Reference
-dependencies :: Ord v => DataDeclaration v a -> Set Reference
-bindReferences :: Var v => Set v -> Map Name Reference -> DataDeclaration v a -> ResolutionResult v a (DataDeclaration v a)
 
 -- | compute the hashes of these user defined types and update any free
 --   vars corresponding to these decls with the resulting hashes
@@ -727,138 +770,25 @@ instance GHC.Base.Functor (Unison.Hashing.V2.DataDeclaration.DataDeclaration v)
 instance GHC.Base.Functor (Unison.Hashing.V2.DataDeclaration.EffectDeclaration v)
 instance Data.Foldable.Foldable Unison.Hashing.V2.DataDeclaration.F
 instance GHC.Base.Functor Unison.Hashing.V2.DataDeclaration.F
-instance Unison.Hashable.Hashable1 Unison.Hashing.V2.DataDeclaration.F
-instance Unison.Hashable.Hashable Unison.Hashing.V2.DataDeclaration.Modifier
+instance Unison.Hashing.V2.Tokenizable.Hashable1 Unison.Hashing.V2.DataDeclaration.F
+instance Unison.Hashing.V2.Tokenizable.Tokenizable Unison.Hashing.V2.DataDeclaration.Modifier
 
-module Unison.Hashing.V2.Convert
-type ResolutionResult v a r = Either Seq ResolutionFailure v a r
-hashDecls :: Var v => Map v (DataDeclaration v a) -> ResolutionResult v a [(v, Id, DataDeclaration v a)]
-hashClosedTerm :: Var v => Term v a -> Id
-hashTermComponents :: Var v => Map v (Term v a) -> Map v (Id, Term v a)
-typeToReference :: Var v => Type v a -> Reference
-typeToReferenceMentions :: Var v => Type v a -> Set Reference
+module Unison.Hashing.V2.TypeEdit
+data TypeEdit
+Replace :: Reference -> TypeEdit
+Deprecate :: TypeEdit
+instance GHC.Show.Show Unison.Hashing.V2.TypeEdit.TypeEdit
+instance GHC.Classes.Ord Unison.Hashing.V2.TypeEdit.TypeEdit
+instance GHC.Classes.Eq Unison.Hashing.V2.TypeEdit.TypeEdit
+instance Unison.Hashing.V2.Tokenizable.Tokenizable Unison.Hashing.V2.TypeEdit.TypeEdit
 
-module Unison.Builtin.Decls
-lookupDeclRef :: Text -> Reference
-lookupEffectRef :: Text -> Reference
-unitRef :: Reference
-pairRef :: Reference
-optionalRef :: Reference
-eitherRef :: Reference
-testResultRef :: Reference
-linkRef :: Reference
-docRef :: Reference
-ioErrorRef :: Reference
-stdHandleRef :: Reference
-failureRef :: Reference
-ioFailureRef :: Reference
-tlsFailureRef :: Reference
-exceptionRef :: Reference
-tlsSignedCertRef :: Reference
-tlsPrivateKeyRef :: Reference
-isPropagatedRef :: Reference
-isTestRef :: Reference
-fileModeRef :: Reference
-filePathRef :: Reference
-bufferModeRef :: Reference
-seekModeRef :: Reference
-seqViewRef :: Reference
-pairCtorRef :: Referent
-unitCtorRef :: Referent
-constructorId :: Reference -> Text -> Maybe Int
-noneId :: ConstructorId
-someId :: ConstructorId
-okConstructorId :: ConstructorId
-failConstructorId :: ConstructorId
-docBlobId :: ConstructorId
-docLinkId :: ConstructorId
-docSignatureId :: ConstructorId
-docSourceId :: ConstructorId
-docEvaluateId :: ConstructorId
-docJoinId :: ConstructorId
-linkTermId :: ConstructorId
-linkTypeId :: ConstructorId
-eitherRightId :: ConstructorId
-eitherLeftId :: ConstructorId
-isPropagatedConstructorId :: ConstructorId
-isTestConstructorId :: ConstructorId
-bufferModeNoBufferingId :: ConstructorId
-bufferModeLineBufferingId :: ConstructorId
-bufferModeBlockBufferingId :: ConstructorId
-bufferModeSizedBlockBufferingId :: ConstructorId
-seqViewEmpty :: ConstructorId
-seqViewElem :: ConstructorId
-okConstructorReferent :: Referent
-failConstructorReferent :: Referent
-
--- | parse some builtin data types, and resolve their free variables using
---   | builtinTypes' and those types defined herein
-builtinDataDecls :: [(Symbol, Id, DataDeclaration Symbol ())]
-builtinEffectDecls :: [(Symbol, Id, EffectDeclaration Symbol ())]
-pattern UnitRef :: Reference
-pattern PairRef :: Reference
-pattern EitherRef :: Reference
-pattern OptionalRef :: Reference
-pattern OptionalNone' :: Term (F typeVar typeAnn patternAnn) v a
-pattern OptionalSome' :: Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a
-pattern TupleType' :: Var v => [Type v a] -> Type v a
-pattern TupleTerm' :: [Term2 vt at ap v a] -> Term2 vt at ap v a
-pattern TuplePattern :: [Pattern loc] -> Pattern loc
-pattern EitherLeft' :: Term2 vt at ap v a -> Term2 vt at ap v a
-pattern EitherRight' :: Term2 vt at ap v a -> Term2 vt at ap v a
-pattern EitherLeftId :: ConstructorId
-pattern EitherRightId :: ConstructorId
-unLeftTerm :: Term2 vt at ap v a -> Maybe (Term2 vt at ap v a)
-unRightTerm :: Term2 vt at ap v a -> Maybe (Term2 vt at ap v a)
-pattern DocRef :: Reference
-pattern DocJoin :: Seq (Term (F typeVar typeAnn patternAnn) v a) -> Term (F typeVar typeAnn patternAnn) v a
-pattern DocBlob :: Text -> Term (F typeVar typeAnn patternAnn) v a
-pattern DocLink :: Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a
-pattern DocSource :: Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a
-pattern DocSignature :: Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a
-pattern DocEvaluate :: Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a
-pattern Doc :: Term (F typeVar typeAnn patternAnn) v a
-pattern DocSignatureId :: ConstructorId
-pattern DocBlobId :: ConstructorId
-pattern DocLinkId :: ConstructorId
-pattern DocSourceId :: ConstructorId
-pattern DocEvaluateId :: ConstructorId
-pattern DocJoinId :: ConstructorId
-pattern LinkTermId :: ConstructorId
-pattern LinkTypeId :: ConstructorId
-pattern LinkRef :: Reference
-pattern LinkTerm :: Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a
-pattern LinkType :: Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a
-unitType :: Ord v => a -> Type v a
-pairType :: Ord v => a -> Type v a
-optionalType :: Ord v => a -> Type v a
-testResultType :: Ord v => a -> Type v a
-eitherType :: Ord v => a -> Type v a
-ioErrorType :: Ord v => a -> Type v a
-fileModeType :: Ord v => a -> Type v a
-filePathType :: Ord v => a -> Type v a
-bufferModeType :: Ord v => a -> Type v a
-seekModeType :: Ord v => a -> Type v a
-stdHandleType :: Ord v => a -> Type v a
-failureType :: Ord v => a -> Type v a
-exceptionType :: Ord v => a -> Type v a
-tlsSignedCertType :: Var v => a -> Type v a
-unitTerm :: Var v => a -> Term v a
-tupleConsTerm :: (Ord v, Semigroup a) => Term2 vt at ap v a -> Term2 vt at ap v a -> Term2 vt at ap v a
-tupleTerm :: (Var v, Monoid a) => [Term v a] -> Term v a
-forceTerm :: Var v => a -> a -> Term v a -> Term v a
-delayTerm :: Var v => a -> Term v a -> Term v a
-unTupleTerm :: Term2 vt at ap v a -> Maybe [Term2 vt at ap v a]
-unTupleType :: Var v => Type v a -> Maybe [Type v a]
-unTuplePattern :: Pattern loc -> Maybe [Pattern loc]
-unUnitRef :: Reference -> Bool
-unPairRef :: Reference -> Bool
-unOptionalRef :: Reference -> Bool
-
-module Unison.Builtin.Terms
-builtinTermsSrc :: a -> [(Symbol, Term Symbol a, Type Symbol a)]
-v :: Var v => Text -> v
-builtinTermsRef :: a -> Map Symbol Id
+module Unison.Hashing.V2.Patch
+data Patch
+Patch :: Map Referent (Set TermEdit) -> Map Reference (Set TypeEdit) -> Patch
+[termEdits] :: Patch -> Map Referent (Set TermEdit)
+[typeEdits] :: Patch -> Map Reference (Set TypeEdit)
+hashPatch :: Patch -> Hash
+instance Unison.Hashing.V2.Tokenizable.Tokenizable Unison.Hashing.V2.Patch.Patch
 
 module Unison.Lexer.Pos
 data Pos
@@ -939,13 +869,13 @@ SparseVector :: !bits -> !Vector a -> SparseVector bits a
 [indices] :: SparseVector bits a -> !bits
 [elements] :: SparseVector bits a -> !Vector a
 map :: (Unbox a, Unbox b) => (a -> b) -> SparseVector bits a -> SparseVector bits b
-mask :: (Unbox a, FiniteBits bits) => bits -> SparseVector bits a -> SparseVector bits a
+mask :: forall a bits. (Unbox a, FiniteBits bits) => bits -> SparseVector bits a -> SparseVector bits a
 zipWith :: (Unbox a, Unbox b, Unbox c, FiniteBits bits) => (a -> b -> c) -> SparseVector bits a -> SparseVector bits b -> SparseVector bits c
 _1 :: (Unbox a, Unbox b) => SparseVector bits (a, b) -> SparseVector bits a
 _2 :: (Unbox a, Unbox b) => SparseVector bits (a, b) -> SparseVector bits b
 unzip :: (Unbox a, Unbox b) => SparseVector bits (a, b) -> (SparseVector bits a, SparseVector bits b)
 choose :: (FiniteBits bits, Unbox a) => bits -> SparseVector bits a -> SparseVector bits a -> SparseVector bits a
-merge :: (FiniteBits bits, Unbox a) => SparseVector bits a -> SparseVector bits a -> SparseVector bits a
+merge :: forall a bits. (FiniteBits bits, Unbox a) => SparseVector bits a -> SparseVector bits a -> SparseVector bits a
 eq :: a -> a -> Bool
 
 module Unison.Runtime.Vector
@@ -1069,26 +999,6 @@ instance GHC.Base.Semigroup (Unison.Typechecker.TypeLookup.TypeLookup v a)
 instance GHC.Base.Monoid (Unison.Typechecker.TypeLookup.TypeLookup v a)
 instance GHC.Base.Functor (Unison.Typechecker.TypeLookup.TypeLookup v)
 
-module Unison.Builtin
-codeLookup :: Applicative m => CodeLookup Symbol m Ann
-constructorType :: Reference -> Maybe ConstructorType
-names :: NamesWithHistory
-names0 :: Names
-builtinDataDecls :: [(Symbol, (Id, DataDeclaration))]
-builtinEffectDecls :: [(Symbol, (Id, EffectDeclaration))]
-builtinConstructorType :: Map Reference ConstructorType
-builtinTypeDependents :: Reference -> Set Reference
-builtinTypes :: [(Name, Reference)]
-builtinTermsByType :: Relation Reference Referent
-builtinTermsByTypeMention :: Relation Reference Referent
-intrinsicTermReferences :: Set Reference
-intrinsicTypeReferences :: Set Reference
-isBuiltinType :: Reference -> Bool
-typeOf :: a -> (Type -> a) -> Reference -> a
-typeLookup :: TypeLookup Symbol Ann
-termRefTypes :: Map Reference Type
-instance GHC.Show.Show Unison.Builtin.BuiltinDSL
-
 module Unison.Typechecker.TypeVar
 data TypeVar b v
 Universal :: v -> TypeVar b v
@@ -1143,60 +1053,6 @@ pattern TypecheckedUnisonFile :: Map v (Reference, DataDeclaration v a) -> Map v
 instance (GHC.Show.Show v, GHC.Show.Show a) => GHC.Show.Show (Unison.UnisonFile.Type.UnisonFile v a)
 instance (GHC.Show.Show v, GHC.Show.Show a) => GHC.Show.Show (Unison.UnisonFile.Type.TypecheckedUnisonFile v a)
 instance GHC.Classes.Ord v => GHC.Base.Functor (Unison.UnisonFile.Type.TypecheckedUnisonFile v)
-
-module Unison.UnisonFile
-data UnisonFile v a
-UnisonFileId :: Map v (Id, DataDeclaration v a) -> Map v (Id, EffectDeclaration v a) -> [(v, Term v a)] -> Map WatchKind [(v, Term v a)] -> UnisonFile v a
-[dataDeclarationsId] :: UnisonFile v a -> Map v (Id, DataDeclaration v a)
-[effectDeclarationsId] :: UnisonFile v a -> Map v (Id, EffectDeclaration v a)
-[terms] :: UnisonFile v a -> [(v, Term v a)]
-[watches] :: UnisonFile v a -> Map WatchKind [(v, Term v a)]
-pattern UnisonFile :: Map v (Reference, DataDeclaration v a) -> Map v (Reference, EffectDeclaration v a) -> [(v, Term v a)] -> Map WatchKind [(v, Term v a)] -> UnisonFile v a
-allWatches :: UnisonFile v a -> [(v, Term v a)]
-dataDeclarations :: UnisonFile v a -> Map v (Reference, DataDeclaration v a)
-declsToTypeLookup :: Var v => UnisonFile v a -> TypeLookup v a
-dependencies :: (Monoid a, Var v) => UnisonFile v a -> Set Reference
-effectDeclarations :: UnisonFile v a -> Map v (Reference, EffectDeclaration v a)
-typecheckingTerm :: (Var v, Monoid a) => UnisonFile v a -> Term v a
-watchesOfKind :: WatchKind -> UnisonFile v a -> [(v, Term v a)]
-
--- | A UnisonFile after typechecking. Terms are split into groups by cycle
---   and the type of each term is known.
-data TypecheckedUnisonFile v a
-TypecheckedUnisonFileId :: Map v (Id, DataDeclaration v a) -> Map v (Id, EffectDeclaration v a) -> [[(v, Term v a, Type v a)]] -> [(WatchKind, [(v, Term v a, Type v a)])] -> Map v (Id, Maybe WatchKind, Term v a, Type v a) -> TypecheckedUnisonFile v a
-[dataDeclarationsId'] :: TypecheckedUnisonFile v a -> Map v (Id, DataDeclaration v a)
-[effectDeclarationsId'] :: TypecheckedUnisonFile v a -> Map v (Id, EffectDeclaration v a)
-[topLevelComponents'] :: TypecheckedUnisonFile v a -> [[(v, Term v a, Type v a)]]
-[watchComponents] :: TypecheckedUnisonFile v a -> [(WatchKind, [(v, Term v a, Type v a)])]
-[hashTermsId] :: TypecheckedUnisonFile v a -> Map v (Id, Maybe WatchKind, Term v a, Type v a)
-
--- | A mapping of all terms in the file by their var name. The returned
---   terms refer to other definitions in the file by their var, not by
---   reference. Includes test watches.
-allTerms :: Ord v => TypecheckedUnisonFile v a -> Map v (Term v a)
-dataDeclarations' :: TypecheckedUnisonFile v a -> Map v (Reference, DataDeclaration v a)
-discardTypes :: TypecheckedUnisonFile v a -> UnisonFile v a
-effectDeclarations' :: TypecheckedUnisonFile v a -> Map v (Reference, EffectDeclaration v a)
-hashConstructors :: forall v a. Ord v => TypecheckedUnisonFile v a -> Map v Id
-hashTerms :: TypecheckedUnisonFile v a -> Map v (Reference, Maybe WatchKind, Term v a, Type v a)
-indexByReference :: TypecheckedUnisonFile v a -> (Map Id (Term v a, Type v a), Map Id (Decl v a))
-lookupDecl :: Ord v => v -> TypecheckedUnisonFile v a -> Maybe (Id, Decl v a)
-nonEmpty :: TypecheckedUnisonFile v a -> Bool
-termSignatureExternalLabeledDependencies :: Ord v => TypecheckedUnisonFile v a -> Set LabeledDependency
-
--- | the top level components (no watches) plus test watches.
-topLevelComponents :: TypecheckedUnisonFile v a -> [[(v, Term v a, Type v a)]]
-typecheckedUnisonFile :: forall v a. Var v => Map v (Id, DataDeclaration v a) -> Map v (Id, EffectDeclaration v a) -> [[(v, Term v a, Type v a)]] -> [(WatchKind, [(v, Term v a, Type v a)])] -> TypecheckedUnisonFile v a
-
-module Unison.UnisonFile.Names
-toNames :: Var v => UnisonFile v a -> Names
-typecheckedToNames :: Var v => TypecheckedUnisonFile v a -> Names
-typecheckedUnisonFile0 :: Ord v => TypecheckedUnisonFile v a
-bindNames :: Var v => Names -> UnisonFile v a -> ResolutionResult v a (UnisonFile v a)
-environmentFor :: forall v a. Var v => Names -> Map v (DataDeclaration v a) -> Map v (EffectDeclaration v a) -> ResolutionResult v a (Either [Error v a] (Env v a))
-
-module Unison.Codebase.CodeLookup.Util
-fromTypecheckedUnisonFile :: forall m v a. (Var v, Monad m) => TypecheckedUnisonFile v a -> CodeLookup v m a
 
 module Unison.Util.Convert
 class Convert a b
@@ -1766,6 +1622,359 @@ instance (GHC.Classes.Ord v, GHC.Show.Show v) => Text.Megaparsec.Error.ShowError
 instance GHC.Base.Semigroup Unison.Parser.UniqueName
 instance GHC.Base.Monoid Unison.Parser.UniqueName
 
+module Unison.Codebase.Path.Parse
+parsePath' :: String -> Either String Path'
+parsePathImpl' :: String -> Either String (Path', String)
+parseSplit' :: (String -> Either String NameSegment) -> String -> Either String Split'
+definitionNameSegment :: String -> Either String NameSegment
+parseHQSplit :: String -> Either String HQSplit
+parseHQSplit' :: String -> Either String HQSplit'
+parseShortHashOrHQSplit' :: String -> Either String (Either ShortHash HQSplit')
+wordyNameSegment :: String -> Either String NameSegment
+
+module Unison.Util.Star3
+data Star3 fact d1 d2 d3
+Star3 :: Set fact -> Relation fact d1 -> Relation fact d2 -> Relation fact d3 -> Star3 fact d1 d2 d3
+[fact] :: Star3 fact d1 d2 d3 -> Set fact
+[d1] :: Star3 fact d1 d2 d3 -> Relation fact d1
+[d2] :: Star3 fact d1 d2 d3 -> Relation fact d2
+[d3] :: Star3 fact d1 d2 d3 -> Relation fact d3
+toList :: (Ord fact, Ord d1, Ord d2, Ord d3) => Star3 fact d1 d2 d3 -> [(fact, d1, d2, d3)]
+difference :: (Ord fact, Ord d1, Ord d2, Ord d3) => Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
+d23s :: (Ord fact, Ord d2, Ord d3) => Star3 fact d1 d2 d3 -> [(fact, d2, d3)]
+d23s' :: (Ord fact, Ord d2, Ord d3) => Star3 fact d1 d2 d3 -> [(d2, d3)]
+d12s :: (Ord fact, Ord d1, Ord d2) => Star3 fact d1 d2 d3 -> [(fact, d1, d2)]
+d13s :: (Ord fact, Ord d1, Ord d3) => Star3 fact d1 d2 d3 -> [(fact, d1, d3)]
+mapD1 :: (Ord fact, Ord d1, Ord d1a) => (d1 -> d1a) -> Star3 fact d1 d2 d3 -> Star3 fact d1a d2 d3
+mapD2 :: (Ord fact, Ord d2, Ord d2a) => (d2 -> d2a) -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2a d3
+mapD3 :: (Ord fact, Ord d3, Ord d3a) => (d3 -> d3a) -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3a
+fromList :: (Ord fact, Ord d1, Ord d2, Ord d3) => [(fact, d1, d2, d3)] -> Star3 fact d1 d2 d3
+selectFact :: (Ord fact, Ord d1, Ord d2, Ord d3) => Set fact -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
+select1D3 :: (Ord fact, Ord d1, Ord d2, Ord d3) => d3 -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
+selectD3 :: (Ord fact, Ord d1, Ord d2, Ord d3) => Set d3 -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
+deletePrimaryD1 :: (Ord fact, Ord d1, Ord d2, Ord d3) => (fact, d1) -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
+lookupD1 :: (Ord fact, Ord d1) => d1 -> Star3 fact d1 d2 d3 -> Set fact
+insertD1 :: (Ord fact, Ord d1) => (fact, d1) -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
+memberD1 :: (Ord fact, Ord d1) => (fact, d1) -> Star3 fact d1 d2 d3 -> Bool
+memberD2 :: (Ord fact, Ord d2) => (fact, d2) -> Star3 fact d1 d2 d3 -> Bool
+memberD3 :: (Ord fact, Ord d3) => (fact, d3) -> Star3 fact d1 d2 d3 -> Bool
+insert :: (Ord fact, Ord d1, Ord d2, Ord d3) => (fact, d1, d2, d3) -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
+insertD23 :: (Ord fact, Ord d1, Ord d2, Ord d3) => (fact, d2, d3) -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
+deleteD3 :: (Ord fact, Ord d1, Ord d2, Ord d3) => (fact, d3) -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
+deleteD2 :: (Ord fact, Ord d1, Ord d2, Ord d3) => (fact, d2) -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
+
+-- | Given a possibly-invalid Star3, which may contain the given fact in
+--   its fact set that are not related to any d1, d2, or d3, return a valid
+--   Star3, with this fact possibly removed.
+garbageCollect :: Ord fact => fact -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
+deleteFact :: (Ord fact, Ord d1, Ord d2, Ord d3) => Set fact -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
+replaceFacts :: (Ord fact, Ord d1, Ord d2, Ord d3) => (fact -> fact -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3) -> Map fact fact -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
+replaceFact :: (Ord fact, Ord d1, Ord d2, Ord d3) => fact -> fact -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
+instance (GHC.Show.Show fact, GHC.Show.Show d1, GHC.Show.Show d2, GHC.Show.Show d3) => GHC.Show.Show (Unison.Util.Star3.Star3 fact d1 d2 d3)
+instance (GHC.Classes.Ord fact, GHC.Classes.Ord d1, GHC.Classes.Ord d2, GHC.Classes.Ord d3) => GHC.Classes.Ord (Unison.Util.Star3.Star3 fact d1 d2 d3)
+instance (GHC.Classes.Eq fact, GHC.Classes.Eq d1, GHC.Classes.Eq d2, GHC.Classes.Eq d3) => GHC.Classes.Eq (Unison.Util.Star3.Star3 fact d1 d2 d3)
+instance (GHC.Classes.Ord fact, GHC.Classes.Ord d1, GHC.Classes.Ord d2, GHC.Classes.Ord d3) => GHC.Base.Semigroup (Unison.Util.Star3.Star3 fact d1 d2 d3)
+instance (GHC.Classes.Ord fact, GHC.Classes.Ord d1, GHC.Classes.Ord d2, GHC.Classes.Ord d3) => GHC.Base.Monoid (Unison.Util.Star3.Star3 fact d1 d2 d3)
+
+module Unison.Codebase.Metadata
+type Type = Reference
+type Value = Reference
+type Metadata = Map Type (Set Value)
+type Star a n = Star3 a n Type (Type, Value)
+type R4 a n = Relation4 a n Type Value
+starToR4 :: (Ord r, Ord n) => Star r n -> Relation4 r n Type Value
+hasMetadata :: Ord a => a -> Type -> Value -> Star a n -> Bool
+hasMetadataWithType' :: Ord a => a -> Type -> R4 a n -> Bool
+hasMetadataWithType :: Ord a => a -> Type -> Star a n -> Bool
+inserts :: (Ord a, Ord n) => [(a, Type, Value)] -> Star a n -> Star a n
+insertWithMetadata :: (Ord a, Ord n) => (a, Metadata) -> Star a n -> Star a n
+insert :: (Ord a, Ord n) => (a, Type, Value) -> Star a n -> Star a n
+delete :: (Ord a, Ord n) => (a, Type, Value) -> Star a n -> Star a n
+merge :: Metadata -> Metadata -> Metadata
+append :: Metadata -> Metadata -> Metadata
+empty :: Metadata
+singleton :: Type -> Value -> Metadata
+toRelation :: Star3 a n x y -> Relation a n
+
+module Unison.Codebase.Branch.Raw
+type Star r n = Star r n
+type EditHash = Hash
+data Raw
+Raw :: Star Referent NameSegment -> Star Reference NameSegment -> Map NameSegment Hash -> Map NameSegment EditHash -> Raw
+[_termsR] :: Raw -> Star Referent NameSegment
+[_typesR] :: Raw -> Star Reference NameSegment
+[_childrenR] :: Raw -> Map NameSegment Hash
+[_editsR] :: Raw -> Map NameSegment EditHash
+
+module Unison.Codebase.Branch.Type
+
+-- | A node in the Unison namespace hierarchy along with its history.
+newtype Branch m
+Branch :: UnwrappedBranch m -> Branch m
+[_history] :: Branch m -> UnwrappedBranch m
+type UnwrappedBranch m = Causal m Raw (Branch0 m)
+type Hash = RawHash Raw
+type EditHash = Hash
+type Star r n = Star r n
+head :: Branch m -> Branch0 m
+headHash :: Branch m -> Hash
+
+-- | A node in the Unison namespace hierarchy.
+--   
+--   <a>_terms</a> and <a>_types</a> are the declarations at this level.
+--   <a>_children</a> are the nodes one level below us. <a>_edits</a> are
+--   the <a>Patch</a>s stored at this node in the code.
+--   
+--   The <tt>deep*</tt> fields are derived from the four above.
+data Branch0 m
+Branch0 :: Star Referent NameSegment -> Star Reference NameSegment -> Map NameSegment (Branch m) -> Map NameSegment (EditHash, m Patch) -> Relation Referent Name -> Relation Reference Name -> R4 Referent Name -> R4 Reference Name -> Set Path -> Map Name EditHash -> Branch0 m
+[_terms] :: Branch0 m -> Star Referent NameSegment
+[_types] :: Branch0 m -> Star Reference NameSegment
+
+-- | Note the <a>Branch</a> here, not <a>Branch0</a>. Every level in the
+--   tree has a history.
+[_children] :: Branch0 m -> Map NameSegment (Branch m)
+[_edits] :: Branch0 m -> Map NameSegment (EditHash, m Patch)
+[deepTerms] :: Branch0 m -> Relation Referent Name
+[deepTypes] :: Branch0 m -> Relation Reference Name
+[deepTermMetadata] :: Branch0 m -> R4 Referent Name
+[deepTypeMetadata] :: Branch0 m -> R4 Reference Name
+[deepPaths] :: Branch0 m -> Set Path
+[deepEdits] :: Branch0 m -> Map Name EditHash
+history :: Iso' (Branch m) (UnwrappedBranch m)
+edits :: Lens' (Branch0 m) (Map NameSegment (EditHash, m Patch))
+instance GHC.Classes.Ord (Unison.Codebase.Branch.Type.Branch m)
+instance GHC.Classes.Eq (Unison.Codebase.Branch.Type.Branch m)
+instance GHC.Classes.Eq (Unison.Codebase.Branch.Type.Branch0 m)
+
+module Unison.Hashing.V2.Convert
+type ResolutionResult v a r = Either Seq ResolutionFailure v a r
+hashBranch0 :: Branch0 m -> Hash
+hashCausal :: Hashable e => e -> Set (RawHash h) -> Hash
+hashDataDecls :: Var v => Map v (DataDeclaration v a) -> ResolutionResult v a [(v, Id, DataDeclaration v a)]
+hashDecls :: Var v => Map v (Decl v a) -> ResolutionResult v a [(v, Id, Decl v a)]
+hashPatch :: Patch -> Hash
+hashClosedTerm :: Var v => Term v a -> Id
+hashTermComponents :: forall v a. Var v => Map v (Term v a, Type v a) -> Map v (Id, Term v a, Type v a)
+
+-- | This shouldn't be used when storing terms in the codebase, as it
+--   doesn't incorporate the type into the hash. this should only be used
+--   in cases where you just need a way to identify some terms that you
+--   have, but won't be saving them.
+hashTermComponentsWithoutTypes :: forall v a. Var v => Map v (Term v a) -> Map v (Id, Term v a)
+typeToReference :: Var v => Type v a -> Reference
+typeToReferenceMentions :: Var v => Type v a -> Set Reference
+
+module Unison.Codebase.Causal
+data Causal m h e
+pattern One :: RawHash h -> e -> Causal m h e
+pattern Cons :: RawHash h -> e -> (RawHash h, m (Causal m h e)) -> Causal m h e
+pattern Merge :: RawHash h -> e -> Map (RawHash h) (m (Causal m h e)) -> Causal m h e
+newtype RawHash a
+RawHash :: Hash -> RawHash a
+[unRawHash] :: RawHash a -> Hash
+
+-- | Focus the current head, keeping the hash up to date.
+head_ :: Hashable e => Lens' (Causal m h e) e
+one :: Hashable e => e -> Causal m h e
+cons :: (Applicative m, Hashable e) => e -> Causal m h e -> Causal m h e
+consDistinct :: (Applicative m, Eq e, Hashable e) => e -> Causal m h e -> Causal m h e
+uncons :: Applicative m => Causal m h e -> m (Maybe (e, Causal m h e))
+predecessors :: Causal m h e -> Seq (m (Causal m h e))
+threeWayMerge :: forall m h e. (Monad m, Hashable e) => (Maybe e -> e -> e -> m e) -> Causal m h e -> Causal m h e -> m (Causal m h e)
+threeWayMerge' :: forall m h e. (Monad m, Hashable e) => (Causal m h e -> Causal m h e -> m (Maybe (Causal m h e))) -> (Maybe e -> e -> e -> m e) -> Causal m h e -> Causal m h e -> m (Causal m h e)
+squashMerge' :: forall m h e. (Monad m, Hashable e, Eq e) => (Causal m h e -> Causal m h e -> m (Maybe (Causal m h e))) -> (e -> m e) -> (Maybe e -> e -> e -> m e) -> Causal m h e -> Causal m h e -> m (Causal m h e)
+lca :: Monad m => Causal m h e -> Causal m h e -> m (Maybe (Causal m h e))
+stepDistinct :: (Applicative m, Eq e, Hashable e) => (e -> e) -> Causal m h e -> Causal m h e
+stepDistinctM :: (Applicative m, Functor n, Eq e, Hashable e) => (e -> n e) -> Causal m h e -> n (Causal m h e)
+transform :: Functor m => (forall a. m a -> n a) -> Causal m h e -> Causal n h e
+unsafeMapHashPreserving :: Functor m => (e -> e2) -> Causal m h e -> Causal m h e2
+before :: Monad m => Causal m h e -> Causal m h e -> m Bool
+beforeHash :: forall m h e. Monad m => Word -> RawHash h -> Causal m h e -> m Bool
+instance GHC.Show.Show a => GHC.Show.Show (Unison.Codebase.Causal.FoldHistoryResult a)
+instance GHC.Classes.Ord a => GHC.Classes.Ord (Unison.Codebase.Causal.FoldHistoryResult a)
+instance GHC.Classes.Eq a => GHC.Classes.Eq (Unison.Codebase.Causal.FoldHistoryResult a)
+
+module Unison.Codebase.Causal.FoldHistory
+data FoldHistoryResult a
+Satisfied :: a -> FoldHistoryResult a
+Unsatisfied :: a -> FoldHistoryResult a
+foldHistoryUntil :: forall m h e a. Monad m => (a -> e -> (a, Bool)) -> a -> Causal m h e -> m (FoldHistoryResult a)
+instance GHC.Show.Show a => GHC.Show.Show (Unison.Codebase.Causal.FoldHistory.FoldHistoryResult a)
+instance GHC.Classes.Ord a => GHC.Classes.Ord (Unison.Codebase.Causal.FoldHistory.FoldHistoryResult a)
+instance GHC.Classes.Eq a => GHC.Classes.Eq (Unison.Codebase.Causal.FoldHistory.FoldHistoryResult a)
+
+module Unison.Builtin.Decls
+lookupDeclRef :: Text -> Reference
+lookupEffectRef :: Text -> Reference
+unitRef :: Reference
+pairRef :: Reference
+optionalRef :: Reference
+eitherRef :: Reference
+testResultRef :: Reference
+linkRef :: Reference
+docRef :: Reference
+ioErrorRef :: Reference
+stdHandleRef :: Reference
+failureRef :: Reference
+ioFailureRef :: Reference
+tlsFailureRef :: Reference
+exceptionRef :: Reference
+tlsSignedCertRef :: Reference
+tlsPrivateKeyRef :: Reference
+isPropagatedRef :: Reference
+isTestRef :: Reference
+fileModeRef :: Reference
+filePathRef :: Reference
+bufferModeRef :: Reference
+seekModeRef :: Reference
+seqViewRef :: Reference
+pairCtorRef :: Referent
+unitCtorRef :: Referent
+constructorId :: Reference -> Text -> Maybe ConstructorId
+noneId :: ConstructorId
+someId :: ConstructorId
+okConstructorId :: ConstructorId
+failConstructorId :: ConstructorId
+docBlobId :: ConstructorId
+docLinkId :: ConstructorId
+docSignatureId :: ConstructorId
+docSourceId :: ConstructorId
+docEvaluateId :: ConstructorId
+docJoinId :: ConstructorId
+linkTermId :: ConstructorId
+linkTypeId :: ConstructorId
+eitherRightId :: ConstructorId
+eitherLeftId :: ConstructorId
+isPropagatedConstructorId :: ConstructorId
+isTestConstructorId :: ConstructorId
+bufferModeNoBufferingId :: ConstructorId
+bufferModeLineBufferingId :: ConstructorId
+bufferModeBlockBufferingId :: ConstructorId
+bufferModeSizedBlockBufferingId :: ConstructorId
+seqViewEmpty :: ConstructorId
+seqViewElem :: ConstructorId
+okConstructorReferent :: Referent
+failConstructorReferent :: Referent
+
+-- | parse some builtin data types, and resolve their free variables using
+--   | builtinTypes' and those types defined herein
+builtinDataDecls :: [(Symbol, Id, DataDeclaration Symbol ())]
+builtinEffectDecls :: [(Symbol, Id, EffectDeclaration Symbol ())]
+pattern UnitRef :: Reference
+pattern PairRef :: Reference
+pattern EitherRef :: Reference
+pattern OptionalRef :: Reference
+pattern OptionalNone' :: Term (F typeVar typeAnn patternAnn) v a
+pattern OptionalSome' :: Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a
+pattern TupleType' :: Var v => [Type v a] -> Type v a
+pattern TupleTerm' :: [Term2 vt at ap v a] -> Term2 vt at ap v a
+pattern TuplePattern :: [Pattern loc] -> Pattern loc
+pattern EitherLeft' :: Term2 vt at ap v a -> Term2 vt at ap v a
+pattern EitherRight' :: Term2 vt at ap v a -> Term2 vt at ap v a
+pattern EitherLeftId :: ConstructorId
+pattern EitherRightId :: ConstructorId
+unLeftTerm :: Term2 vt at ap v a -> Maybe (Term2 vt at ap v a)
+unRightTerm :: Term2 vt at ap v a -> Maybe (Term2 vt at ap v a)
+pattern DocRef :: Reference
+pattern DocJoin :: Seq (Term (F typeVar typeAnn patternAnn) v a) -> Term (F typeVar typeAnn patternAnn) v a
+pattern DocBlob :: Text -> Term (F typeVar typeAnn patternAnn) v a
+pattern DocLink :: Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a
+pattern DocSource :: Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a
+pattern DocSignature :: Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a
+pattern DocEvaluate :: Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a
+pattern Doc :: Term (F typeVar typeAnn patternAnn) v a
+pattern DocSignatureId :: ConstructorId
+pattern DocBlobId :: ConstructorId
+pattern DocLinkId :: ConstructorId
+pattern DocSourceId :: ConstructorId
+pattern DocEvaluateId :: ConstructorId
+pattern DocJoinId :: ConstructorId
+pattern LinkTermId :: ConstructorId
+pattern LinkTypeId :: ConstructorId
+pattern LinkRef :: Reference
+pattern LinkTerm :: Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a
+pattern LinkType :: Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a
+unitType :: Ord v => a -> Type v a
+pairType :: Ord v => a -> Type v a
+optionalType :: Ord v => a -> Type v a
+testResultType :: Ord v => a -> Type v a
+eitherType :: Ord v => a -> Type v a
+ioErrorType :: Ord v => a -> Type v a
+fileModeType :: Ord v => a -> Type v a
+filePathType :: Ord v => a -> Type v a
+bufferModeType :: Ord v => a -> Type v a
+seekModeType :: Ord v => a -> Type v a
+stdHandleType :: Ord v => a -> Type v a
+failureType :: Ord v => a -> Type v a
+exceptionType :: Ord v => a -> Type v a
+tlsSignedCertType :: Var v => a -> Type v a
+unitTerm :: Var v => a -> Term v a
+tupleConsTerm :: (Ord v, Semigroup a) => Term2 vt at ap v a -> Term2 vt at ap v a -> Term2 vt at ap v a
+tupleTerm :: (Var v, Monoid a) => [Term v a] -> Term v a
+forceTerm :: Var v => a -> a -> Term v a -> Term v a
+delayTerm :: Var v => a -> Term v a -> Term v a
+unTupleTerm :: Term2 vt at ap v a -> Maybe [Term2 vt at ap v a]
+unTupleType :: Var v => Type v a -> Maybe [Type v a]
+unTuplePattern :: Pattern loc -> Maybe [Pattern loc]
+unUnitRef :: Reference -> Bool
+unPairRef :: Reference -> Bool
+unOptionalRef :: Reference -> Bool
+
+module Unison.UnisonFile
+data UnisonFile v a
+UnisonFileId :: Map v (Id, DataDeclaration v a) -> Map v (Id, EffectDeclaration v a) -> [(v, Term v a)] -> Map WatchKind [(v, Term v a)] -> UnisonFile v a
+[dataDeclarationsId] :: UnisonFile v a -> Map v (Id, DataDeclaration v a)
+[effectDeclarationsId] :: UnisonFile v a -> Map v (Id, EffectDeclaration v a)
+[terms] :: UnisonFile v a -> [(v, Term v a)]
+[watches] :: UnisonFile v a -> Map WatchKind [(v, Term v a)]
+pattern UnisonFile :: Map v (Reference, DataDeclaration v a) -> Map v (Reference, EffectDeclaration v a) -> [(v, Term v a)] -> Map WatchKind [(v, Term v a)] -> UnisonFile v a
+allWatches :: UnisonFile v a -> [(v, Term v a)]
+dataDeclarations :: UnisonFile v a -> Map v (Reference, DataDeclaration v a)
+declsToTypeLookup :: Var v => UnisonFile v a -> TypeLookup v a
+dependencies :: (Monoid a, Var v) => UnisonFile v a -> Set Reference
+effectDeclarations :: UnisonFile v a -> Map v (Reference, EffectDeclaration v a)
+typecheckingTerm :: (Var v, Monoid a) => UnisonFile v a -> Term v a
+watchesOfKind :: WatchKind -> UnisonFile v a -> [(v, Term v a)]
+
+-- | A UnisonFile after typechecking. Terms are split into groups by cycle
+--   and the type of each term is known.
+data TypecheckedUnisonFile v a
+TypecheckedUnisonFileId :: Map v (Id, DataDeclaration v a) -> Map v (Id, EffectDeclaration v a) -> [[(v, Term v a, Type v a)]] -> [(WatchKind, [(v, Term v a, Type v a)])] -> Map v (Id, Maybe WatchKind, Term v a, Type v a) -> TypecheckedUnisonFile v a
+[dataDeclarationsId'] :: TypecheckedUnisonFile v a -> Map v (Id, DataDeclaration v a)
+[effectDeclarationsId'] :: TypecheckedUnisonFile v a -> Map v (Id, EffectDeclaration v a)
+[topLevelComponents'] :: TypecheckedUnisonFile v a -> [[(v, Term v a, Type v a)]]
+[watchComponents] :: TypecheckedUnisonFile v a -> [(WatchKind, [(v, Term v a, Type v a)])]
+[hashTermsId] :: TypecheckedUnisonFile v a -> Map v (Id, Maybe WatchKind, Term v a, Type v a)
+
+-- | A mapping of all terms in the file by their var name. The returned
+--   terms refer to other definitions in the file by their var, not by
+--   reference. Includes test watches.
+allTerms :: Ord v => TypecheckedUnisonFile v a -> Map v (Term v a)
+dataDeclarations' :: TypecheckedUnisonFile v a -> Map v (Reference, DataDeclaration v a)
+discardTypes :: TypecheckedUnisonFile v a -> UnisonFile v a
+effectDeclarations' :: TypecheckedUnisonFile v a -> Map v (Reference, EffectDeclaration v a)
+hashConstructors :: forall v a. Ord v => TypecheckedUnisonFile v a -> Map v Id
+hashTerms :: TypecheckedUnisonFile v a -> Map v (Reference, Maybe WatchKind, Term v a, Type v a)
+indexByReference :: TypecheckedUnisonFile v a -> (Map Id (Term v a, Type v a), Map Id (Decl v a))
+lookupDecl :: Ord v => v -> TypecheckedUnisonFile v a -> Maybe (Id, Decl v a)
+nonEmpty :: TypecheckedUnisonFile v a -> Bool
+termSignatureExternalLabeledDependencies :: Ord v => TypecheckedUnisonFile v a -> Set LabeledDependency
+
+-- | the top level components (no watches) plus test watches.
+topLevelComponents :: TypecheckedUnisonFile v a -> [[(v, Term v a, Type v a)]]
+typecheckedUnisonFile :: forall v a. Var v => Map v (Id, DataDeclaration v a) -> Map v (Id, EffectDeclaration v a) -> [[(v, Term v a, Type v a)]] -> [(WatchKind, [(v, Term v a, Type v a)])] -> TypecheckedUnisonFile v a
+
+module Unison.UnisonFile.Names
+toNames :: Var v => UnisonFile v a -> Names
+typecheckedToNames :: Var v => TypecheckedUnisonFile v a -> Names
+typecheckedUnisonFile0 :: Ord v => TypecheckedUnisonFile v a
+bindNames :: Var v => Names -> UnisonFile v a -> ResolutionResult v a (UnisonFile v a)
+environmentFor :: forall v a. Var v => Names -> Map v (DataDeclaration v a) -> Map v (EffectDeclaration v a) -> ResolutionResult v a (Either [Error v a] (Env v a))
+
+module Unison.Codebase.CodeLookup.Util
+fromTypecheckedUnisonFile :: forall m v a. (Var v, Monad m) => TypecheckedUnisonFile v a -> CodeLookup v m a
+
 module Unison.TypeParser
 type TypeP v = P v (Type v Ann)
 valueType :: Var v => TypeP v
@@ -1884,80 +2093,46 @@ instance GHC.Base.Functor (Unison.FileParser.Stanza v)
 instance Data.Traversable.Traversable (Unison.FileParser.Stanza v)
 instance Data.Foldable.Foldable (Unison.FileParser.Stanza v)
 
-module Unison.Codebase.Path.Parse
-parsePath' :: String -> Either String Path'
-parsePathImpl' :: String -> Either String (Path', String)
-parseSplit' :: (String -> Either String NameSegment) -> String -> Either String Split'
-definitionNameSegment :: String -> Either String NameSegment
-parseHQSplit :: String -> Either String HQSplit
-parseHQSplit' :: String -> Either String HQSplit'
-parseShortHashOrHQSplit' :: String -> Either String (Either ShortHash HQSplit')
-wordyNameSegment :: String -> Either String NameSegment
+module Unison.Builtin.Terms
+builtinTermsRef :: Map Symbol Id
+builtinTermsSrc :: a -> [(Symbol, Term Symbol a, Type Symbol a)]
 
-module Unison.Util.Star3
-data Star3 fact d1 d2 d3
-Star3 :: Set fact -> Relation fact d1 -> Relation fact d2 -> Relation fact d3 -> Star3 fact d1 d2 d3
-[fact] :: Star3 fact d1 d2 d3 -> Set fact
-[d1] :: Star3 fact d1 d2 d3 -> Relation fact d1
-[d2] :: Star3 fact d1 d2 d3 -> Relation fact d2
-[d3] :: Star3 fact d1 d2 d3 -> Relation fact d3
-toList :: (Ord fact, Ord d1, Ord d2, Ord d3) => Star3 fact d1 d2 d3 -> [(fact, d1, d2, d3)]
-difference :: (Ord fact, Ord d1, Ord d2, Ord d3) => Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
-d23s :: (Ord fact, Ord d2, Ord d3) => Star3 fact d1 d2 d3 -> [(fact, d2, d3)]
-d23s' :: (Ord fact, Ord d2, Ord d3) => Star3 fact d1 d2 d3 -> [(d2, d3)]
-d12s :: (Ord fact, Ord d1, Ord d2) => Star3 fact d1 d2 d3 -> [(fact, d1, d2)]
-d13s :: (Ord fact, Ord d1, Ord d3) => Star3 fact d1 d2 d3 -> [(fact, d1, d3)]
-mapD1 :: (Ord fact, Ord d1, Ord d1a) => (d1 -> d1a) -> Star3 fact d1 d2 d3 -> Star3 fact d1a d2 d3
-mapD2 :: (Ord fact, Ord d2, Ord d2a) => (d2 -> d2a) -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2a d3
-mapD3 :: (Ord fact, Ord d3, Ord d3a) => (d3 -> d3a) -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3a
-fromList :: (Ord fact, Ord d1, Ord d2, Ord d3) => [(fact, d1, d2, d3)] -> Star3 fact d1 d2 d3
-selectFact :: (Ord fact, Ord d1, Ord d2, Ord d3) => Set fact -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
-select1D3 :: (Ord fact, Ord d1, Ord d2, Ord d3) => d3 -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
-selectD3 :: (Ord fact, Ord d1, Ord d2, Ord d3) => Set d3 -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
-deletePrimaryD1 :: (Ord fact, Ord d1, Ord d2, Ord d3) => (fact, d1) -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
-lookupD1 :: (Ord fact, Ord d1) => d1 -> Star3 fact d1 d2 d3 -> Set fact
-insertD1 :: (Ord fact, Ord d1) => (fact, d1) -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
-memberD1 :: (Ord fact, Ord d1) => (fact, d1) -> Star3 fact d1 d2 d3 -> Bool
-memberD2 :: (Ord fact, Ord d2) => (fact, d2) -> Star3 fact d1 d2 d3 -> Bool
-memberD3 :: (Ord fact, Ord d3) => (fact, d3) -> Star3 fact d1 d2 d3 -> Bool
-insert :: (Ord fact, Ord d1, Ord d2, Ord d3) => (fact, d1, d2, d3) -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
-insertD23 :: (Ord fact, Ord d1, Ord d2, Ord d3) => (fact, d2, d3) -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
-deleteD3 :: (Ord fact, Ord d1, Ord d2, Ord d3) => (fact, d3) -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
-deleteD2 :: (Ord fact, Ord d1, Ord d2, Ord d3) => (fact, d2) -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
+module Unison.Builtin
+codeLookup :: Applicative m => CodeLookup Symbol m Ann
+constructorType :: Reference -> Maybe ConstructorType
+names :: NamesWithHistory
+names0 :: Names
+builtinDataDecls :: [(Symbol, (Id, DataDeclaration))]
+builtinEffectDecls :: [(Symbol, (Id, EffectDeclaration))]
+builtinConstructorType :: Map Reference ConstructorType
+builtinTypeDependents :: Reference -> Set Reference
+builtinTypeDependentsOfComponent :: Hash -> Set Reference
+builtinTypes :: [(Name, Reference)]
+builtinTermsByType :: Relation Reference Referent
+builtinTermsByTypeMention :: Relation Reference Referent
+intrinsicTermReferences :: Set Reference
+intrinsicTypeReferences :: Set Reference
+isBuiltinType :: Reference -> Bool
+typeOf :: a -> (Type -> a) -> Reference -> a
+typeLookup :: TypeLookup Symbol Ann
+termRefTypes :: Map Reference Type
+instance GHC.Show.Show Unison.Builtin.BuiltinDSL
 
--- | Given a possibly-invalid Star3, which may contain the given fact in
---   its fact set that are not related to any d1, d2, or d3, return a valid
---   Star3, with this fact possibly removed.
-garbageCollect :: Ord fact => fact -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
-deleteFact :: (Ord fact, Ord d1, Ord d2, Ord d3) => Set fact -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
-replaceFacts :: (Ord fact, Ord d1, Ord d2, Ord d3) => (fact -> fact -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3) -> Map fact fact -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
-replaceFact :: (Ord fact, Ord d1, Ord d2, Ord d3) => fact -> fact -> Star3 fact d1 d2 d3 -> Star3 fact d1 d2 d3
-instance (GHC.Show.Show fact, GHC.Show.Show d1, GHC.Show.Show d2, GHC.Show.Show d3) => GHC.Show.Show (Unison.Util.Star3.Star3 fact d1 d2 d3)
-instance (GHC.Classes.Ord fact, GHC.Classes.Ord d1, GHC.Classes.Ord d2, GHC.Classes.Ord d3) => GHC.Classes.Ord (Unison.Util.Star3.Star3 fact d1 d2 d3)
-instance (GHC.Classes.Eq fact, GHC.Classes.Eq d1, GHC.Classes.Eq d2, GHC.Classes.Eq d3) => GHC.Classes.Eq (Unison.Util.Star3.Star3 fact d1 d2 d3)
-instance (GHC.Classes.Ord fact, GHC.Classes.Ord d1, GHC.Classes.Ord d2, GHC.Classes.Ord d3) => GHC.Base.Semigroup (Unison.Util.Star3.Star3 fact d1 d2 d3)
-instance (GHC.Classes.Ord fact, GHC.Classes.Ord d1, GHC.Classes.Ord d2, GHC.Classes.Ord d3) => GHC.Base.Monoid (Unison.Util.Star3.Star3 fact d1 d2 d3)
-instance (Unison.Hashable.Hashable fact, Unison.Hashable.Hashable d1, Unison.Hashable.Hashable d2, Unison.Hashable.Hashable d3) => Unison.Hashable.Hashable (Unison.Util.Star3.Star3 fact d1 d2 d3)
-
-module Unison.Codebase.Metadata
-type Type = Reference
-type Value = Reference
-type Metadata = Map Type (Set Value)
-type Star a n = Star3 a n Type (Type, Value)
-type R4 a n = Relation4 a n Type Value
-starToR4 :: (Ord r, Ord n) => Star r n -> Relation4 r n Type Value
-hasMetadata :: Ord a => a -> Type -> Value -> Star a n -> Bool
-hasMetadataWithType' :: Ord a => a -> Type -> R4 a n -> Bool
-hasMetadataWithType :: Ord a => a -> Type -> Star a n -> Bool
-inserts :: (Ord a, Ord n) => [(a, Type, Value)] -> Star a n -> Star a n
-insertWithMetadata :: (Ord a, Ord n) => (a, Metadata) -> Star a n -> Star a n
-insert :: (Ord a, Ord n) => (a, Type, Value) -> Star a n -> Star a n
-delete :: (Ord a, Ord n) => (a, Type, Value) -> Star a n -> Star a n
-merge :: Metadata -> Metadata -> Metadata
-append :: Metadata -> Metadata -> Metadata
-empty :: Metadata
-singleton :: Type -> Value -> Metadata
-toRelation :: Star3 a n x y -> Relation a n
+module Unison.Codebase.Branch.BranchDiff
+type Star r n = Star r n
+data BranchDiff
+BranchDiff :: Star Referent NameSegment -> Star Referent NameSegment -> Star Reference NameSegment -> Star Reference NameSegment -> Map NameSegment PatchDiff -> BranchDiff
+[addedTerms] :: BranchDiff -> Star Referent NameSegment
+[removedTerms] :: BranchDiff -> Star Referent NameSegment
+[addedTypes] :: BranchDiff -> Star Reference NameSegment
+[removedTypes] :: BranchDiff -> Star Reference NameSegment
+[changedPatches] :: BranchDiff -> Map NameSegment PatchDiff
+diff0 :: Monad m => Branch0 m -> Branch0 m -> m BranchDiff
+instance GHC.Show.Show Unison.Codebase.Branch.BranchDiff.BranchDiff
+instance GHC.Classes.Ord Unison.Codebase.Branch.BranchDiff.BranchDiff
+instance GHC.Classes.Eq Unison.Codebase.Branch.BranchDiff.BranchDiff
+instance GHC.Base.Semigroup Unison.Codebase.Branch.BranchDiff.BranchDiff
+instance GHC.Base.Monoid Unison.Codebase.Branch.BranchDiff.BranchDiff
 
 module Unison.Codebase.Branch
 
@@ -1965,13 +2140,6 @@ module Unison.Codebase.Branch
 newtype Branch m
 Branch :: UnwrappedBranch m -> Branch m
 [_history] :: Branch m -> UnwrappedBranch m
-data BranchDiff
-BranchDiff :: Star Referent NameSegment -> Star Referent NameSegment -> Star TypeReference NameSegment -> Star TypeReference NameSegment -> Map NameSegment PatchDiff -> BranchDiff
-[addedTerms] :: BranchDiff -> Star Referent NameSegment
-[removedTerms] :: BranchDiff -> Star Referent NameSegment
-[addedTypes] :: BranchDiff -> Star TypeReference NameSegment
-[removedTypes] :: BranchDiff -> Star TypeReference NameSegment
-[changedPatches] :: BranchDiff -> Map NameSegment PatchDiff
 type UnwrappedBranch m = Causal m Raw (Branch0 m)
 
 -- | A node in the Unison namespace hierarchy.
@@ -1982,26 +2150,22 @@ type UnwrappedBranch m = Causal m Raw (Branch0 m)
 --   
 --   The <tt>deep*</tt> fields are derived from the four above.
 data Branch0 m
-Branch0 :: Star Referent NameSegment -> Star TypeReference NameSegment -> Map NameSegment (Branch m) -> Map NameSegment (EditHash, m Patch) -> Relation Referent Name -> Relation TypeReference Name -> R4 Referent Name -> R4 TypeReference Name -> Set Path -> Map Name EditHash -> Branch0 m
+Branch0 :: Star Referent NameSegment -> Star Reference NameSegment -> Map NameSegment (Branch m) -> Map NameSegment (EditHash, m Patch) -> Relation Referent Name -> Relation Reference Name -> R4 Referent Name -> R4 Reference Name -> Set Path -> Map Name EditHash -> Branch0 m
 [_terms] :: Branch0 m -> Star Referent NameSegment
-[_types] :: Branch0 m -> Star TypeReference NameSegment
+[_types] :: Branch0 m -> Star Reference NameSegment
 
 -- | Note the <a>Branch</a> here, not <a>Branch0</a>. Every level in the
 --   tree has a history.
 [_children] :: Branch0 m -> Map NameSegment (Branch m)
 [_edits] :: Branch0 m -> Map NameSegment (EditHash, m Patch)
 [deepTerms] :: Branch0 m -> Relation Referent Name
-[deepTypes] :: Branch0 m -> Relation TypeReference Name
+[deepTypes] :: Branch0 m -> Relation Reference Name
 [deepTermMetadata] :: Branch0 m -> R4 Referent Name
-[deepTypeMetadata] :: Branch0 m -> R4 TypeReference Name
+[deepTypeMetadata] :: Branch0 m -> R4 Reference Name
 [deepPaths] :: Branch0 m -> Set Path
 [deepEdits] :: Branch0 m -> Map Name EditHash
 data Raw
-Raw :: Star Referent NameSegment -> Star TypeReference NameSegment -> Map NameSegment Hash -> Map NameSegment EditHash -> Raw
-[_termsR] :: Raw -> Star Referent NameSegment
-[_typesR] :: Raw -> Star TypeReference NameSegment
-[_childrenR] :: Raw -> Map NameSegment Hash
-[_editsR] :: Raw -> Map NameSegment EditHash
+Raw :: Star Referent NameSegment -> Star Reference NameSegment -> Map NameSegment Hash -> Map NameSegment EditHash -> Raw
 type Star r n = Star r n
 type Hash = RawHash Raw
 type EditHash = Hash
@@ -2018,7 +2182,6 @@ discardHistory :: Applicative m => Branch m -> Branch m
 
 -- | Discards the history of a Branch0's children, recursively
 discardHistory0 :: Applicative m => Branch0 m -> Branch0 m
-toCausalRaw :: Branch m -> Raw Raw Raw
 transform :: Functor m => (forall a. m a -> n a) -> Branch m -> Branch n
 
 -- | Checks whether a branch is empty AND has no history.
@@ -2033,7 +2196,6 @@ isEmpty0 :: Branch0 m -> Bool
 isOne :: Branch m -> Bool
 before :: Monad m => Branch m -> Branch m -> m Bool
 lca :: Monad m => Branch m -> Branch m -> m (Maybe (Branch m))
-diff0 :: Monad m => Branch0 m -> Branch0 m -> m BranchDiff
 history :: Iso' (Branch m) (UnwrappedBranch m)
 head :: Branch m -> Branch0 m
 headHash :: Branch m -> Hash
@@ -2121,9 +2283,6 @@ types :: Lens' (Branch0 m) (Star TypeReference NameSegment)
 edits :: Lens' (Branch0 m) (Map NameSegment (EditHash, m Patch))
 deepReferents :: Branch0 m -> Set Referent
 deepTypeReferences :: Branch0 m -> Set TypeReference
-cachedRead :: forall m. MonadIO m => Cache m -> Deserialize m Raw Raw -> (EditHash -> m Patch) -> Hash -> m (Branch m)
-type Cache m = Cache (RawHash Raw) (UnwrappedBranch m)
-sync :: Monad m => (Hash -> m Bool) -> Serialize m Raw Raw -> (EditHash -> m Patch -> m ()) -> Branch m -> m ()
 
 -- | <tt>head <a>consBranchSnapshot</a> base</tt> Cons's the current state
 --   of <tt>head</tt> onto <tt>base</tt> as-is. Consider whether you really
@@ -2133,23 +2292,15 @@ sync :: Monad m => (Hash -> m Bool) -> Serialize m Raw Raw -> (EditHash -> m Pat
 --   new state as a new causal step (or returns the existing base if there
 --   are no)
 consBranchSnapshot :: forall m. Monad m => Branch m -> Branch m -> Branch m
-instance GHC.Show.Show Unison.Codebase.Branch.BranchDiff
-instance GHC.Classes.Ord Unison.Codebase.Branch.BranchDiff
-instance GHC.Classes.Eq Unison.Codebase.Branch.BranchDiff
-instance GHC.Classes.Ord (Unison.Codebase.Branch.Branch m)
-instance GHC.Classes.Eq (Unison.Codebase.Branch.Branch m)
 instance GHC.Classes.Eq Unison.Codebase.Branch.ActionLocation
-instance Control.Lens.Empty.AsEmpty (Unison.Codebase.Branch.Branch m)
-instance GHC.Classes.Eq (Unison.Codebase.Branch.Branch0 m)
-instance Unison.Hashable.Hashable (Unison.Codebase.Branch.Branch0 m)
-instance GHC.Base.Semigroup Unison.Codebase.Branch.BranchDiff
-instance GHC.Base.Monoid Unison.Codebase.Branch.BranchDiff
+instance Control.Lens.Empty.AsEmpty (Unison.Codebase.Branch.Type.Branch m)
+instance Unison.Hashing.V2.Hashable.Hashable (Unison.Codebase.Branch.Type.Branch0 m)
 
 module Unison.Codebase.Type
 
 -- | Abstract interface to a user's codebase.
 data Codebase m v a
-Codebase :: (Id -> m (Maybe (Term v a))) -> (Id -> m (Maybe (Type v a))) -> (Id -> m (Maybe (Decl v a))) -> (Id -> Term v a -> Type v a -> m ()) -> (Id -> Decl v a -> m ()) -> m (Either GetRootBranchError (Branch m)) -> m Bool -> (Branch m -> m ()) -> m (IO (), IO (Set Hash)) -> (Hash -> m (Maybe (Branch m))) -> (Branch m -> m ()) -> (Hash -> m Bool) -> (EditHash -> m (Maybe Patch)) -> (EditHash -> Patch -> m ()) -> (EditHash -> m Bool) -> (Reference -> m (Set Id)) -> (CodebasePath -> SyncMode -> Branch m -> m ()) -> (CodebasePath -> SyncMode -> Branch m -> m ()) -> (forall r. ReadRemoteNamespace -> GitBranchBehavior -> ((Branch m, CodebasePath) -> m r) -> m (Either GitError r)) -> (Branch m -> WriteRepo -> PushGitBranchOpts -> m (Either GitError ())) -> (WatchKind -> m [Id]) -> (WatchKind -> Id -> m (Maybe (Term v a))) -> (WatchKind -> Id -> Term v a -> m ()) -> m () -> m [Entry Hash] -> (Text -> Branch m -> Branch m -> m ()) -> (Reference -> m (Set Id)) -> (Reference -> m (Set Id)) -> m Int -> (ShortHash -> m (Set Id)) -> (ShortHash -> m (Set Id)) -> (ShortHash -> m (Set Id)) -> m Int -> (ShortBranchHash -> m (Set Hash)) -> Maybe (Hash -> Hash -> m (Maybe Hash)) -> Maybe (Hash -> Hash -> m Bool) -> Codebase m v a
+Codebase :: (Id -> m (Maybe (Term v a))) -> (Id -> m (Maybe (Type v a))) -> (Id -> m (Maybe (Decl v a))) -> (Id -> Term v a -> Type v a -> m ()) -> (Id -> Decl v a -> m ()) -> (Hash -> m (Maybe [(Term v a, Type v a)])) -> (Hash -> m (Maybe [Decl v a])) -> (Hash -> m (Maybe CycleSize)) -> m (Either GetRootBranchError (Branch m)) -> m Bool -> (Branch m -> m ()) -> m (IO (), IO (Set Hash)) -> (Hash -> m (Maybe (Branch m))) -> (Branch m -> m ()) -> (Hash -> m Bool) -> (EditHash -> m (Maybe Patch)) -> (EditHash -> Patch -> m ()) -> (EditHash -> m Bool) -> (Reference -> m (Set Id)) -> (Hash -> m (Set Id)) -> (CodebasePath -> SyncMode -> Branch m -> m ()) -> (CodebasePath -> SyncMode -> Branch m -> m ()) -> (forall r. ReadRemoteNamespace -> GitBranchBehavior -> ((Branch m, CodebasePath) -> m r) -> m (Either GitError r)) -> (Branch m -> WriteRepo -> PushGitBranchOpts -> m (Either GitError ())) -> (WatchKind -> m [Id]) -> (WatchKind -> Id -> m (Maybe (Term v a))) -> (WatchKind -> Id -> Term v a -> m ()) -> m () -> m [Entry Hash] -> (Text -> Branch m -> Branch m -> m ()) -> (Reference -> m (Set Id)) -> (Reference -> m (Set Id)) -> m Int -> (ShortHash -> m (Set Id)) -> (ShortHash -> m (Set Id)) -> (ShortHash -> m (Set Id)) -> m Int -> (ShortBranchHash -> m (Set Hash)) -> Maybe (Hash -> Hash -> m (Maybe Hash)) -> Maybe (Hash -> Hash -> m Bool) -> Codebase m v a
 
 -- | Get a user-defined term from the codebase.
 --   
@@ -2181,6 +2332,9 @@ Codebase :: (Id -> m (Maybe (Term v a))) -> (Id -> m (Maybe (Type v a))) -> (Id 
 --   already exist. The implementation may choose to delay the put until
 --   all of the type declaration's references are stored as well.
 [putTypeDeclaration] :: Codebase m v a -> Id -> Decl v a -> m ()
+[getTermComponentWithTypes] :: Codebase m v a -> Hash -> m (Maybe [(Term v a, Type v a)])
+[getDeclComponent] :: Codebase m v a -> Hash -> m (Maybe [Decl v a])
+[getComponentLength] :: Codebase m v a -> Hash -> m (Maybe CycleSize)
 
 -- | Get the root branch.
 [getRootBranch] :: Codebase m v a -> m (Either GetRootBranchError (Branch m))
@@ -2218,6 +2372,7 @@ Codebase :: (Id -> m (Maybe (Term v a))) -> (Id -> m (Maybe (Type v a))) -> (Id 
 -- | Get the set of user-defined terms and type declarations that depend on
 --   the given term, type declaration, or builtin type.
 [dependentsImpl] :: Codebase m v a -> Reference -> m (Set Id)
+[dependentsOfComponentImpl] :: Codebase m v a -> Hash -> m (Set Id)
 
 -- | Copy a branch and all of its dependencies from the given codebase into
 --   this one.
@@ -2330,52 +2485,56 @@ decltype1to2 :: ConstructorType -> DeclType
 watchKind1to2 :: WatchKind -> WatchKind
 watchKind2to1 :: WatchKind -> WatchKind
 term1to2 :: Hash -> Term Symbol Ann -> Term Symbol
-term2to1 :: forall m. Monad m => Hash -> (Hash -> m Size) -> (Reference -> m ConstructorType) -> Term Symbol -> m (Term Symbol Ann)
-decl2to1 :: Monad m => Hash -> (Hash -> m Size) -> Decl Symbol -> m (Decl Symbol Ann)
+term2to1 :: forall m. Monad m => Hash -> (Reference -> m ConstructorType) -> Term Symbol -> m (Term Symbol Ann)
+decl2to1 :: Hash -> Decl Symbol -> Decl Symbol Ann
 decl1to2 :: Hash -> Decl Symbol a -> Decl Symbol
 symbol2to1 :: Symbol -> Symbol
 symbol1to2 :: Symbol -> Symbol
 shortHashSuffix1to2 :: Text -> Pos
 abt2to1 :: Functor f => Term f v a -> Term f v a
 abt1to2 :: Functor f => Term f v a -> Term f v a
-rreference2to1 :: Applicative m => Hash -> (Hash -> m Size) -> Reference' Text (Maybe Hash) -> m Reference
+rreference2to1 :: Hash -> Reference' Text (Maybe Hash) -> Reference
 rreference1to2 :: Hash -> Reference -> Reference' Text (Maybe Hash)
-rreferenceid2to1 :: Functor m => Hash -> (Hash -> m Size) -> Id' (Maybe Hash) -> m Id
+rreferenceid2to1 :: Hash -> Id' (Maybe Hash) -> Id
 rreferenceid1to2 :: Hash -> Id -> Id' (Maybe Hash)
 hash1to2 :: Hash -> Hash
 branchHash1to2 :: Hash -> CausalHash
 branchHash2to1 :: CausalHash -> Hash
 patchHash1to2 :: EditHash -> PatchHash
-reference2to1 :: Applicative m => (Hash -> m Size) -> Reference -> m Reference
+reference2to1 :: Reference -> Reference
 reference1to2 :: Reference -> Reference
 referenceid1to2 :: Id -> Id
-referenceid2to1 :: Functor m => (Hash -> m Size) -> Id -> m Id
-rreferent2to1 :: Applicative m => Hash -> (Hash -> m Size) -> (Reference -> m ConstructorType) -> ReferentH -> m Referent
+referenceid2to1 :: Id -> Id
+rreferent2to1 :: Applicative m => Hash -> (Reference -> m ConstructorType) -> ReferentH -> m Referent
 rreferent1to2 :: Hash -> Referent -> ReferentH
-referent2to1 :: Applicative m => (Hash -> m Size) -> (Reference -> m ConstructorType) -> Referent -> m Referent
+referent2to1 :: Applicative m => (Reference -> m ConstructorType) -> Referent -> m Referent
 referent1to2 :: Referent -> Referent
-referentid2to1 :: Applicative m => (Hash -> m Size) -> (Reference -> m ConstructorType) -> Id -> m Id
+referentid2to1 :: Applicative m => (Reference -> m ConstructorType) -> Id -> m Id
 hash2to1 :: Hash -> Hash
 causalHash2to1 :: CausalHash -> RawHash Raw
 causalHash1to2 :: RawHash Raw -> CausalHash
-ttype2to1 :: Monad m => (Hash -> m Size) -> Type Symbol -> m (Type Symbol Ann)
-dtype2to1 :: Monad m => Hash -> (Hash -> m Size) -> Type Symbol -> m (Type Symbol Ann)
-type2to1' :: Monad m => (r -> m Reference) -> TypeR r Symbol -> m (Type Symbol Ann)
+ttype2to1 :: Type Symbol -> Type Symbol Ann
+dtype2to1 :: Hash -> Type Symbol -> Type Symbol Ann
+type2to1' :: (r -> Reference) -> TypeR r Symbol -> Type Symbol Ann
 dtype1to2 :: Hash -> Type Symbol a -> TypeD Symbol
 ttype1to2 :: Type Symbol a -> TypeT Symbol
 type1to2' :: (Reference -> r) -> Type Symbol a -> TypeR r Symbol
 
 -- | forces loading v1 branches even if they may not exist
-causalbranch2to1 :: Monad m => (String -> Hash -> m Size) -> (Reference -> m ConstructorType) -> Causal m -> m (Branch m)
-causalbranch2to1' :: Monad m => (String -> Hash -> m Size) -> (Reference -> m ConstructorType) -> Causal m -> m (UnwrappedBranch m)
+causalbranch2to1 :: Monad m => (Reference -> m ConstructorType) -> Causal m -> m (Branch m)
+causalbranch2to1' :: Monad m => (Reference -> m ConstructorType) -> Causal m -> m (UnwrappedBranch m)
 causalbranch1to2 :: forall m. Monad m => Branch m -> Causal m
-patch2to1 :: forall m. Monad m => (String -> Hash -> m Size) -> Patch -> m Patch
+patch2to1 :: Patch -> Patch
 patch1to2 :: Patch -> Patch
 edithash2to1 :: PatchHash -> EditHash
 edithash1to2 :: EditHash -> PatchHash
 namesegment2to1 :: NameSegment -> NameSegment
 namesegment1to2 :: NameSegment -> NameSegment
-branch2to1 :: Monad m => (String -> Hash -> m Size) -> (Reference -> m ConstructorType) -> Branch m -> m (Branch0 m)
+branch2to1 :: Monad m => (Reference -> m ConstructorType) -> Branch m -> m (Branch0 m)
+
+module Unison.Codebase.SqliteCodebase.MigrateSchema12.DbHelpers
+dbBranchHash :: EDB m => DbBranch -> m Hash
+dbPatchHash :: forall m. EDB m => Patch -> m Hash
 
 module Unison.Codebase.SqliteCodebase.Branch.Dependencies
 type Branches m = [(Hash, m (Branch m))]
@@ -2920,7 +3079,7 @@ newtype Context v loc
 Context :: [(Element v loc, Info v loc)] -> Context v loc
 type ActualArgCount = Int
 type ExpectedArgCount = Int
-type ConstructorId = Int
+type ConstructorId = Word64
 
 -- | Elements of an ordered algorithmic context
 data Element v loc
@@ -3248,9 +3407,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5c5K loc_a5c5L. Lens' (Env v_a5c5K loc_a5c5L) (TypeLookup v_a5c5K loc_a5c5L)
-termsByShortname :: forall v_a5c5K loc_a5c5L. Lens' (Env v_a5c5K loc_a5c5L) (Map Name [NamedReference v_a5c5K loc_a5c5L])
-ambientAbilities :: forall v_a5c5K loc_a5c5L. Lens' (Env v_a5c5K loc_a5c5L) [Type v_a5c5K loc_a5c5L]
+typeLookup :: forall v_a5hJy loc_a5hJz. Lens' (Env v_a5hJy loc_a5hJz) (TypeLookup v_a5hJy loc_a5hJz)
+termsByShortname :: forall v_a5hJy loc_a5hJz. Lens' (Env v_a5hJy loc_a5hJz) (Map Name [NamedReference v_a5hJy loc_a5hJz])
+ambientAbilities :: forall v_a5hJy loc_a5hJz. Lens' (Env v_a5hJy loc_a5hJz) [Type v_a5hJy loc_a5hJz]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.
@@ -3751,6 +3910,7 @@ unsafeGetTerm :: (HasCallStack, Monad m) => Codebase m v a -> Id -> m (Term v a)
 
 -- | Like <a>unsafeGetTerm</a>, but returns the type of the term, too.
 unsafeGetTermWithType :: (HasCallStack, Monad m) => Codebase m v a -> Id -> m (Term v a, Type v a)
+getTermComponentWithTypes :: Codebase m v a -> Hash -> m (Maybe [(Term v a, Type v a)])
 
 -- | Get the type of a term.
 --   
@@ -3799,6 +3959,7 @@ getTypeDeclaration :: Codebase m v a -> Id -> m (Maybe (Decl v a))
 -- | Like <a>getTypeDeclaration</a>, for when the type declaration is known
 --   to exist in the codebase.
 unsafeGetTypeDeclaration :: (HasCallStack, Monad m) => Codebase m v a -> Id -> m (Decl v a)
+getDeclComponent :: Codebase m v a -> Hash -> m (Maybe [Decl v a])
 
 -- | Enqueue the put of a type declaration into the codebase, if it doesn't
 --   already exist. The implementation may choose to delay the put until
@@ -3917,6 +4078,7 @@ branchHashLength :: Codebase m v a -> m Int
 -- | Get the set of terms, type declarations, and builtin types that depend
 --   on the given term, type declaration, or builtin type.
 dependents :: Functor m => Codebase m v a -> Reference -> m (Set Reference)
+dependentsOfComponent :: Functor f => Codebase f v a -> Hash -> f (Set Reference)
 
 -- | Copy a branch and all of its dependencies from the given codebase into
 --   this one.
@@ -3956,12 +4118,28 @@ getCodebaseDir :: MonadIO m => Maybe CodebasePath -> m CodebasePath
 type CodebasePath = FilePath
 type SyncToDir m = CodebasePath -> SyncMode -> Branch m -> m ()
 addDefsToCodebase :: forall m v a. (Monad m, Var v, Show a) => Codebase m v a -> TypecheckedUnisonFile v a -> m ()
+componentReferencesForReference :: Monad m => Codebase m v a -> Reference -> m (Set Reference)
 
 -- | Write all of UCM's dependencies (builtins types and an empty
 --   namespace) into the codebase
 installUcmDependencies :: forall m. Monad m => Codebase m Symbol Ann -> m ()
 toCodeLookup :: Monad m => Codebase m Symbol Ann -> CodeLookup Symbol m Ann
 typeLookupForDependencies :: (Monad m, BuiltinAnnotation a) => Codebase m Symbol a -> Set Reference -> m (TypeLookup Symbol a)
+unsafeGetComponentLength :: (HasCallStack, Monad m) => Codebase m v a -> Hash -> m CycleSize
+
+module Unison.Codebase.SqliteCodebase.MigrateSchema12
+migrateSchema12 :: forall a m v. (MonadUnliftIO m, Var v) => Connection -> Codebase m v a -> m ()
+instance GHC.Show.Show Unison.Codebase.SqliteCodebase.MigrateSchema12.Entity
+instance GHC.Classes.Ord Unison.Codebase.SqliteCodebase.MigrateSchema12.Entity
+instance GHC.Classes.Eq Unison.Codebase.SqliteCodebase.MigrateSchema12.Entity
+instance Data.Traversable.Traversable Unison.Codebase.SqliteCodebase.MigrateSchema12.SomeReference
+instance Data.Foldable.Foldable Unison.Codebase.SqliteCodebase.MigrateSchema12.SomeReference
+instance GHC.Show.Show ref => GHC.Show.Show (Unison.Codebase.SqliteCodebase.MigrateSchema12.SomeReference ref)
+instance GHC.Classes.Ord ref => GHC.Classes.Ord (Unison.Codebase.SqliteCodebase.MigrateSchema12.SomeReference ref)
+instance GHC.Generics.Generic (Unison.Codebase.SqliteCodebase.MigrateSchema12.SomeReference ref)
+instance GHC.Base.Functor Unison.Codebase.SqliteCodebase.MigrateSchema12.SomeReference
+instance GHC.Classes.Eq ref => GHC.Classes.Eq (Unison.Codebase.SqliteCodebase.MigrateSchema12.SomeReference ref)
+instance GHC.Generics.Generic Unison.Codebase.SqliteCodebase.MigrateSchema12.MigrationState
 
 module Unison.Codebase.Init.Type
 data Init m v a

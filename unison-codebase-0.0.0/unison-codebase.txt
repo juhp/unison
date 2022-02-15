@@ -62,12 +62,13 @@ type Id = Id' Hash
 data Reference' t h
 ReferenceBuiltin :: t -> Reference' t h
 ReferenceDerived :: Id' h -> Reference' t h
+_ReferenceDerived :: Prism (Reference' t h) (Reference' t h') (Id' h) (Id' h')
 pattern Derived :: h -> Pos -> Reference' t h
 type Pos = Word64
 data Id' h
 Id :: h -> Pos -> Id' h
-t :: Traversal (Reference' t h) (Reference' t' h) t t'
-h :: Traversal (Reference' t h) (Reference' t h') h h'
+t_ :: Traversal (Reference' t h) (Reference' t' h) t t'
+h_ :: Traversal (Reference' t h) (Reference' t h') h h'
 idH :: Lens (Id' h) (Id' h') h h'
 instance Data.Traversable.Traversable U.Codebase.Reference.Id'
 instance Data.Foldable.Foldable U.Codebase.Reference.Id'
@@ -180,16 +181,25 @@ instance GHC.Base.Functor U.Codebase.Decl.F
 module U.Codebase.Referent
 type Referent = Referent' Reference Reference
 type ReferentH = Referent' (Reference' Text (Maybe Hash)) (Reference' Text Hash)
-data Referent' rTm rTp
-Ref :: rTm -> Referent' rTm rTp
-Con :: rTp -> ConstructorId -> Referent' rTm rTp
+data Referent' termRef typeRef
+Ref :: termRef -> Referent' termRef typeRef
+Con :: typeRef -> ConstructorId -> Referent' termRef typeRef
+refs_ :: Traversal (Referent' ref ref) (Referent' ref' ref') ref ref'
+typeRef_ :: Traversal (Referent' typeRef termRef) (Referent' typeRef' termRef) typeRef typeRef'
+termRef_ :: Traversal (Referent' typeRef termRef) (Referent' typeRef termRef') termRef termRef'
+_Ref :: Prism (Referent' tmr tyr) (Referent' tmr' tyr) tmr tmr'
+_Con :: Prism (Referent' tmr tyr) (Referent' tmr tyr') (tyr, ConstructorId) (tyr', ConstructorId)
 type Id = Id' Hash Hash
 data Id' hTm hTp
 RefId :: Id' hTm -> Id' hTm hTp
 ConId :: Id' hTp -> ConstructorId -> Id' hTm hTp
-instance (GHC.Show.Show rTm, GHC.Show.Show rTp) => GHC.Show.Show (U.Codebase.Referent.Referent' rTm rTp)
-instance (GHC.Classes.Ord rTm, GHC.Classes.Ord rTp) => GHC.Classes.Ord (U.Codebase.Referent.Referent' rTm rTp)
-instance (GHC.Classes.Eq rTm, GHC.Classes.Eq rTp) => GHC.Classes.Eq (U.Codebase.Referent.Referent' rTm rTp)
+instance Data.Traversable.Traversable (U.Codebase.Referent.Referent' termRef)
+instance Data.Foldable.Foldable (U.Codebase.Referent.Referent' termRef)
+instance GHC.Base.Functor (U.Codebase.Referent.Referent' termRef)
+instance GHC.Generics.Generic (U.Codebase.Referent.Referent' termRef typeRef)
+instance (GHC.Show.Show termRef, GHC.Show.Show typeRef) => GHC.Show.Show (U.Codebase.Referent.Referent' termRef typeRef)
+instance (GHC.Classes.Ord termRef, GHC.Classes.Ord typeRef) => GHC.Classes.Ord (U.Codebase.Referent.Referent' termRef typeRef)
+instance (GHC.Classes.Eq termRef, GHC.Classes.Eq typeRef) => GHC.Classes.Eq (U.Codebase.Referent.Referent' termRef typeRef)
 instance (GHC.Show.Show hTm, GHC.Show.Show hTp) => GHC.Show.Show (U.Codebase.Referent.Id' hTm hTp)
 instance (GHC.Classes.Ord hTm, GHC.Classes.Ord hTp) => GHC.Classes.Ord (U.Codebase.Referent.Id' hTm hTp)
 instance (GHC.Classes.Eq hTm, GHC.Classes.Eq hTp) => GHC.Classes.Eq (U.Codebase.Referent.Id' hTm hTp)
@@ -263,10 +273,10 @@ PNat :: !Word64 -> Pattern t r
 PFloat :: !Double -> Pattern t r
 PText :: !t -> Pattern t r
 PChar :: !Char -> Pattern t r
-PConstructor :: !r -> !Int -> [Pattern t r] -> Pattern t r
+PConstructor :: !r -> !ConstructorId -> [Pattern t r] -> Pattern t r
 PAs :: Pattern t r -> Pattern t r
 PEffectPure :: Pattern t r -> Pattern t r
-PEffectBind :: !r -> !Int -> [Pattern t r] -> Pattern t r -> Pattern t r
+PEffectBind :: !r -> !ConstructorId -> [Pattern t r] -> Pattern t r -> Pattern t r
 PSequenceLiteral :: [Pattern t r] -> Pattern t r
 PSequenceOp :: Pattern t r -> !SeqOp -> Pattern t r -> Pattern t r
 data SeqOp
@@ -305,6 +315,7 @@ instance GHC.Classes.Eq U.Codebase.TypeEdit.TypeEdit
 module U.Codebase.Branch
 newtype NameSegment
 NameSegment :: Text -> NameSegment
+[unNameSegment] :: NameSegment -> Text
 type MetadataType = Reference
 type MetadataValue = Reference
 data MdValues

@@ -1,12 +1,11 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span id="%24maxtag_5uoGOfBfFsH0ELMnlUHYwk"><span id="%24tag2con_5uoGOfBfFsH0ELMnlUHYwk"><span id="%24con2tag_5uoGOfBfFsH0ELMnlUHYwk"></span></span></span><span class="hs-comment">{- ORMOLU_DISABLE -}</span><span> </span><span class="hs-comment">-- Remove this when the file is ready to be auto-formatted</span><span>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span id="%24maxtag_LFKGrZPm3Rg1QDRXyQSEGn"><span id="%24tag2con_LFKGrZPm3Rg1QDRXyQSEGn"><span id="%24con2tag_LFKGrZPm3Rg1QDRXyQSEGn"></span></span></span><span class="hs-comment">{- ORMOLU_DISABLE -}</span><span> </span><span class="hs-comment">-- Remove this when the file is ready to be auto-formatted</span><span>
 </span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DeriveGeneric #-}</span><span>
 </span><span id="line-3"></span><span>
 </span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Unison.ConstructorType</span><span> </span><span class="hs-keyword">where</span><span>
 </span><span id="line-5"></span><span>
 </span><span id="line-6"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Unison.Prelude</span></span><span>
-</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Unison.Hashable.html"><span class="hs-identifier">Unison.Hashable</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Hashable.html#Hashable"><span class="hs-identifier">Hashable</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Hashable.html#Token"><span class="hs-identifier">Token</span></a></span><span class="hs-special">(</span><span class="annot"><a href="Unison.Hashable.html#Tag"><span class="hs-identifier">Tag</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Hashable.html#tokens"><span class="hs-identifier">tokens</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-8"></span><span>
-</span><span id="line-9"></span><span id="local-6989586621679192143"><span id="local-6989586621679192144"></span></span><span class="hs-keyword">data</span><span> </span><span id="ConstructorType"><span class="annot"><a href="Unison.ConstructorType.html#ConstructorType"><span class="hs-identifier hs-var">ConstructorType</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Data"><span class="annot"><a href="Unison.ConstructorType.html#Data"><span class="hs-identifier hs-var">Data</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="Effect"><span class="annot"><a href="Unison.ConstructorType.html#Effect"><span class="hs-identifier hs-var">Effect</span></a></span></span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679192137"><span id="local-6989586621679192139"><span class="annot"><span class="annottext">ConstructorType -&gt; ConstructorType -&gt; Bool
+</span><span id="line-7"></span><span>
+</span><span id="line-8"></span><span id="local-6989586621679194885"><span id="local-6989586621679194886"></span></span><span class="hs-keyword">data</span><span> </span><span id="ConstructorType"><span class="annot"><a href="Unison.ConstructorType.html#ConstructorType"><span class="hs-identifier hs-var">ConstructorType</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Data"><span class="annot"><a href="Unison.ConstructorType.html#Data"><span class="hs-identifier hs-var">Data</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="Effect"><span class="annot"><a href="Unison.ConstructorType.html#Effect"><span class="hs-identifier hs-var">Effect</span></a></span></span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679194879"><span id="local-6989586621679194881"><span class="annot"><span class="annottext">ConstructorType -&gt; ConstructorType -&gt; Bool
 (ConstructorType -&gt; ConstructorType -&gt; Bool)
 -&gt; (ConstructorType -&gt; ConstructorType -&gt; Bool)
 -&gt; Eq ConstructorType
@@ -15,7 +14,7 @@ forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
 $c/= :: ConstructorType -&gt; ConstructorType -&gt; Bool
 == :: ConstructorType -&gt; ConstructorType -&gt; Bool
 $c== :: ConstructorType -&gt; ConstructorType -&gt; Bool
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679192121"><span id="local-6989586621679192123"><span id="local-6989586621679192125"><span id="local-6989586621679192127"><span id="local-6989586621679192129"><span id="local-6989586621679192131"><span id="local-6989586621679192133"><span class="annot"><span class="annottext">Eq ConstructorType
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679194863"><span id="local-6989586621679194865"><span id="local-6989586621679194867"><span id="local-6989586621679194869"><span id="local-6989586621679194871"><span id="local-6989586621679194873"><span id="local-6989586621679194875"><span class="annot"><span class="annottext">Eq ConstructorType
 Eq ConstructorType
 -&gt; (ConstructorType -&gt; ConstructorType -&gt; Ordering)
 -&gt; (ConstructorType -&gt; ConstructorType -&gt; Bool)
@@ -53,7 +52,7 @@ $c&lt; :: ConstructorType -&gt; ConstructorType -&gt; Bool
 compare :: ConstructorType -&gt; ConstructorType -&gt; Ordering
 $ccompare :: ConstructorType -&gt; ConstructorType -&gt; Ordering
 $cp1Ord :: Eq ConstructorType
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679192114"><span id="local-6989586621679192116"><span id="local-6989586621679192118"><span class="annot"><span class="annottext">Int -&gt; ConstructorType -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679194856"><span id="local-6989586621679194858"><span id="local-6989586621679194860"><span class="annot"><span class="annottext">Int -&gt; ConstructorType -&gt; ShowS
 [ConstructorType] -&gt; ShowS
 ConstructorType -&gt; String
 (Int -&gt; ConstructorType -&gt; ShowS)
@@ -68,7 +67,7 @@ show :: ConstructorType -&gt; String
 $cshow :: ConstructorType -&gt; String
 showsPrec :: Int -&gt; ConstructorType -&gt; ShowS
 $cshowsPrec :: Int -&gt; ConstructorType -&gt; ShowS
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679192097"><span id="local-6989586621679192099"><span id="local-6989586621679192101"><span id="local-6989586621679192103"><span id="local-6989586621679192105"><span id="local-6989586621679192107"><span id="local-6989586621679192109"><span id="local-6989586621679192111"><span class="annot"><span class="annottext">Int -&gt; ConstructorType
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679194839"><span id="local-6989586621679194841"><span id="local-6989586621679194843"><span id="local-6989586621679194845"><span id="local-6989586621679194847"><span id="local-6989586621679194849"><span id="local-6989586621679194851"><span id="local-6989586621679194853"><span class="annot"><span class="annottext">Int -&gt; ConstructorType
 ConstructorType -&gt; Int
 ConstructorType -&gt; [ConstructorType]
 ConstructorType -&gt; ConstructorType
@@ -123,20 +122,4 @@ forall a.
 $cto :: forall x. Rep ConstructorType x -&gt; ConstructorType
 $cfrom :: forall x. ConstructorType -&gt; Rep ConstructorType x
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">)</span><span>
-</span><span id="line-10"></span><span>
-</span><span id="line-11"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Unison.Hashable.html#Hashable"><span class="hs-identifier hs-type">Hashable</span></a></span><span> </span><span class="annot"><a href="Unison.ConstructorType.html#ConstructorType"><span class="hs-identifier hs-type">ConstructorType</span></a></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-12"></span><span>  </span><span id="local-6989586621679192090"><span class="annot"><span class="annottext">tokens :: ConstructorType -&gt; [Token h]
-</span><a href="#local-6989586621679192090"><span class="hs-identifier hs-var hs-var hs-var hs-var">tokens</span></a></span></span><span> </span><span id="local-6989586621679192089"><span class="annot"><span class="annottext">ConstructorType
-</span><a href="#local-6989586621679192089"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Word8 -&gt; Token h
-forall h. Word8 -&gt; Token h
-</span><a href="Unison.Hashable.html#Tag"><span class="hs-identifier hs-var">Tag</span></a></span><span> </span><span class="annot"><span class="annottext">(Word8 -&gt; Token h) -&gt; (Int -&gt; Word8) -&gt; Int -&gt; Token h
-forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
-</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Word8
-forall a b. (Integral a, Num b) =&gt; a -&gt; b
-</span><span class="hs-identifier hs-var">fromIntegral</span></span><span> </span><span class="annot"><span class="annottext">(Int -&gt; Token h) -&gt; Int -&gt; Token h
-forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">ConstructorType -&gt; Int
-forall a. Enum a =&gt; a -&gt; Int
-</span><span class="hs-identifier hs-var">fromEnum</span></span><span> </span><span class="annot"><span class="annottext">ConstructorType
-</span><a href="#local-6989586621679192089"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">]</span><span>
-</span><span id="line-13"></span></pre></body></html>
+</span><span id="line-9"></span></pre></body></html>

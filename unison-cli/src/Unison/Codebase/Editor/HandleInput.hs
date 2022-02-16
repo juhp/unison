@@ -2081,132 +2081,32 @@ oink selection unisonFile = do
   -- FIXME recompute (parts of?) slurp name resolution with new unison file
 
   unisonFile2 <-
-    hydrateUnisonFileTerms loadTermComponent unisonFile1 uterms_v uterm_r0_ns0 uterm_v_r0 udecl_r0_r1 uterm_r0_r1
+    hydrateUnisonFileTerms
+      loadTermComponent
+      typecheck
+      unisonFile1
+      uterms_v
+      uterm_r0_ns0
+      uterm_v_r0
+      udecl_r0_r1 -- FIXME
+      uterm_r0_r1
 
-  pulledOutMates :: Map TermReferenceId (Term v Ann, Type v Ann) <-
-    -- FIXME pretty sure this could be Map.fromAscList
-    fmap Map.fromList do
-      let notBeingUpdated :: (TermReferenceId, (Term v Ann, Type v Ann)) -> Bool
-          notBeingUpdated (ref, _) =
-            Set.disjoint uterms_v (Set.map Name.toVar (uterm_r0_ns0 ref))
-      foldMapM
-        (\hash -> filter notBeingUpdated <$> loadTermComponent hash)
-        (Set.mapMaybe (Reference.toHash . uterm_v_r0) uterms_v)
+  -- let -- replace generated names with their originals, wherever possible
+  --     -- FIXME think a little bit about if that works - they can't overlap right? printf debug a little
+  --     terms :: Map v (TermReferenceId, Maybe WK.WatchKind, Term v Ann, Type v Ann)
+  --     terms =
+  --       Map.mapKeys (\v -> fromMaybe v (recoverTermName v)) (UF.hashTermsId unisonFile)
+  -- pure
+  --   Structure
+  --     { structureTerms =
+  --         -- named added terms
+  --         -- named updated terms
+  --         -- nameless updated terms
+  --         undefined,
+  --       structureTypes = undefined
+  --     }
 
-  let -- The mapping induced by the updates in the slurp
-      mapref :: TermReference -> TermReference
-      mapref =
-        \ref -> Map.findWithDefault ref ref m
-        where
-            m :: Map TermReference TermReference
-            m =
-              foldl' (\acc var -> Map.insert (uterm_v_r0 var) (uterm_v_r1 var) acc) Map.empty uterms_v
-
-      typeReferenceMapping :: TypeReference -> TypeReference
-      typeReferenceMapping =
-        \ref -> Map.findWithDefault ref ref m
-        where
-          m :: Map TypeReference TypeReference
-          m =
-            foldl'
-              (\acc var -> Map.insert (udecl_v_r0 var) (udecl_v_r1 var) acc)
-              Map.empty
-              udecls_v
-
-  -- foo#old = ... bar#old ...
-  -- bar#old = ... foo#old ...
-  --
-  -- foo#new = bar#old + 30
-  -- bar#old = ... foo#new ...
-
-  if Map.null pulledOutMates
-    then pure undefined -- Structure -- no more work to do
-    else do
-      -- in mates, perform ref->ref replacement, for all new ->ref that are being updated
-      -- FIXME what about old type? currently just passing it along...
-      -- FIXME substitute new types per update too, right?
-      -- FIXME what about constructor references?
-      let extraTerms1 :: Map TermReferenceId (Term v Ann, Type v Ann)
-          extraTerms1 = Map.map substitute pulledOutMates
-            where
-              substitute :: (Term v Ann, Type v Ann) -> (Term v Ann, Type v Ann)
-              substitute (term, typ) =
-                (substituteTerm term, typ)
-              substituteTerm :: Term v Ann -> Term v Ann
-              substituteTerm =
-                ABT.rebuildUp \case
-                  Term.Ref ref -> Term.Ref (mapref ref)
-                  Term.Ann ann ty -> Term.Ann ann (substituteType ty)
-                  term -> term
-              substituteType :: Type v Ann -> Type v Ann
-              substituteType =
-                ABT.rebuildUp \case
-                  Type.Ref ref -> Type.Ref (typeReferenceMapping ref)
-                  ty -> ty
-
-      let -- gather together all terms from both the typechecked unison file, and the ones we just pulled out
-          allTerms :: Map TermReferenceId (Term v Ann)
-          allTerms =
-            Map.union
-              (Map.map fst extraTerms1)
-              (Map.fromList (mapMaybe project (Map.elems (UF.hashTermsId unisonFile))))
-            where
-              project ::
-                (TermReferenceId, Maybe WK.WatchKind, Term v Ann, Type v Ann) ->
-                Maybe (TermReferenceId, Term v Ann)
-              project (refId, watchKind, term, _typ) = do
-                guard (isNothing watchKind) -- throw away watches; FIXME is this right?
-                Just (refId, term)
-
-      let allTermsUnhashed :: Map TermReferenceId (v, Term v Ann)
-          allTermsUnhashed =
-            Term.unhashComponent allTerms
-
-      let recoverTermName :: v -> Maybe v
-          recoverTermName =
-            \v -> Map.lookup v m1
-            where
-              m0 :: Map TermReferenceId v
-              m0 =
-                Map.foldlWithKey' (\acc v (ref, _, _, _) -> Map.insert ref v acc) Map.empty (UF.hashTermsId unisonFile)
-
-              m1 :: Map v v
-              m1 =
-                Map.foldlWithKey' (\acc ref (v, _term) -> Map.insert v (m0 Map.! ref) acc) Map.empty allTermsUnhashed
-
-      traceShowM ("allTermsUnhashed = " ++ show allTermsUnhashed)
-
-      -- FIXME can skip typechecking if types don't change
-      let fileToTypecheck :: UF.UnisonFile v Ann
-          fileToTypecheck =
-            UF.UnisonFileId
-              { -- FIXME should pull out decls/effects too
-                UF.dataDeclarationsId = UF.dataDeclarationsId' unisonFile,
-                UF.effectDeclarationsId = UF.effectDeclarationsId' unisonFile,
-                UF.terms = Map.elems allTermsUnhashed,
-                UF.watches = Map.empty
-              }
-
-      result <- eval (TypecheckFile fileToTypecheck [])
-      case runIdentity (Result.toMaybe result) of
-        Just (Right unisonFile') -> do
-          let -- replace generated names with their originals, wherever possible
-              -- FIXME think a little bit about if that works - they can't overlap right? printf debug a little
-              terms :: Map v (TermReferenceId, Maybe WK.WatchKind, Term v Ann, Type v Ann)
-              terms =
-                Map.mapKeys (\v -> fromMaybe v (recoverTermName v)) (UF.hashTermsId unisonFile)
-          pure
-            Structure
-              { structureTerms =
-                  -- named added terms
-                  -- named updated terms
-                  -- nameless updated terms
-                  undefined
-              , structureTypes = undefined
-              }
-        -- fall back on original unisonFile I guess?
-        _ ->
-          pure undefined -- Structure
+  undefined
   where
     loadDeclComponent :: Hash -> Action' m v [(TypeReferenceId, Decl v Ann)]
     loadDeclComponent hash =
@@ -2216,6 +2116,13 @@ oink selection unisonFile = do
     loadTermComponent hash = do
       termsAndTypes <- eval (LoadTermComponentWithTypes hash) <&> maybe [] (Reference.componentFor hash)
       pure (map (\(ref, (term, _type)) -> (ref, term)) termsAndTypes)
+
+    typecheck :: UF.UnisonFile v Ann -> Action' m v (Maybe (TypecheckedUnisonFile v Ann))
+    typecheck file = do
+      result <- eval (TypecheckFile file [])
+      pure case runIdentity (Result.toMaybe result) of
+        Just (Right file1) -> Just file1
+        _ -> Nothing
 
 -- | "Hydrate" the decls in a typechecked unison file by pulling some decls out of the codebase re-hash with the slurp,
 -- so that:
@@ -2258,72 +2165,74 @@ hydrateUnisonFileDecls ::
   Map TypeReference TypeReference ->
   m (TypecheckedUnisonFile v Ann)
 hydrateUnisonFileDecls loadDeclComponent unisonFile udecls_v udecl_r0_ns0 udecl_v_r0 udecl_r0_r1 = do
-  extraDecls :: Map TypeReferenceId (Decl v Ann) <-
-    -- FIXME pretty sure this could be Map.fromAscList
-    fmap Map.fromList do
-      let notBeingUpdated :: (TypeReferenceId, Decl v Ann) -> Bool
-          notBeingUpdated (ref0, _) =
-            Set.disjoint udecls_v (Set.map Name.toVar (udecl_r0_ns0 ref0))
-      foldMapM
-        (\hash -> filter notBeingUpdated <$> loadDeclComponent hash)
-        (Set.mapMaybe (Reference.toHash . udecl_v_r0) udecls_v)
-
+  extraDecls <- loadExtraDecls
   pure
     if Map.null extraDecls
       then unisonFile
-      else
-        let extraDecls1 :: Map TypeReferenceId (Decl v Ann)
-            extraDecls1 =
-              Map.map substituteDecl extraDecls
-
-            allDecls :: Map TypeReferenceId (Decl v Ann)
-            allDecls =
-              -- Even though Map.union is left-biased, the order isn't important here. All decls have different refs.
-              -- Why? Because we threw away the refs that were being updated (see notBeingUpdated above).
-              Map.union extraDecls1 (UF.tcDeclarationsById unisonFile)
-
-            allDeclsUnhashed :: Map TypeReferenceId (v, Decl v Ann)
-            allDeclsUnhashed =
-              DD.unhashComponent allDecls
-
-            restoreName :: v -> v
-            restoreName =
-              \v -> Map.findWithDefault v (m0 Map.! v) m1
-              where
-                m0 :: Map v TypeReferenceId
-                m0 =
-                  Map.remap (\(r, (v, _)) -> (v, r)) allDeclsUnhashed
-
-                m1 :: Map TypeReferenceId v
-                m1 =
-                  Map.union (f (UF.dataDeclarationsId' unisonFile)) (f (UF.effectDeclarationsId' unisonFile))
-                  where
-                    f :: forall decl. Map v (TypeReferenceId, decl) -> Map TypeReferenceId v
-                    f =
-                      Map.remap (\(v, (r, _)) -> (r, v))
-
-            (effects, datas) =
-              allDeclsUnhashed
-                & Map.elems
-                & Map.fromList
-                & Hashing.hashDecls
-                & \case
-                  Left _resolutionFailure -> (UF.effectDeclarationsId' unisonFile, UF.dataDeclarationsId' unisonFile)
-                  Right decls ->
-                    decls
-                      & map untangle
-                      & partitionEithers
-                      & \(xs, ys) -> (Map.fromList xs, Map.fromList ys)
-              where
-                untangle = \case
-                  (v, ref, Left e) -> Left (restoreName v, (ref, e))
-                  (v, ref, Right d) -> Right (restoreName v, (ref, d))
-         in unisonFile
-              { UF.dataDeclarationsId' = datas,
-                UF.effectDeclarationsId' = effects
-              }
-
+      else hydrateDecls unisonFile extraDecls
   where
+    loadExtraDecls :: m (Map TypeReferenceId (Decl v Ann))
+    loadExtraDecls =
+      -- FIXME pretty sure this could be Map.fromAscList
+      fmap Map.fromList do
+        let notBeingUpdated (ref0, _) =
+              Set.disjoint udecls_v (Set.map Name.toVar (udecl_r0_ns0 ref0))
+        foldMapM
+          (\hash -> filter notBeingUpdated <$> loadDeclComponent hash)
+          (Set.mapMaybe (Reference.toHash . udecl_v_r0) udecls_v)
+
+    hydrateDecls ::
+      TypecheckedUnisonFile v Ann ->
+      Map TypeReferenceId (Decl v Ann) ->
+      TypecheckedUnisonFile v Ann
+    hydrateDecls unisonFile extraDecls =
+      unisonFile
+        { UF.dataDeclarationsId' = datas,
+          UF.effectDeclarationsId' = effects
+        }
+      where
+        allUnhashedDecls :: Map TypeReferenceId (v, Decl v Ann)
+        allUnhashedDecls =
+          extraDecls
+            & Map.map substituteDecl
+            -- Even though Map.union is left-biased, the order isn't important here. All decls have different refs.
+            -- Why? Because we threw away the refs that were being updated (see notBeingUpdated above).
+            & Map.union (UF.tcDeclarationsById unisonFile)
+            & DD.unhashComponent
+
+        restoreName :: v -> v
+        restoreName =
+          \v -> Map.findWithDefault v (m0 Map.! v) m1
+          where
+            m0 :: Map v TypeReferenceId
+            m0 =
+              Map.remap (\(r, (v, _)) -> (v, r)) allUnhashedDecls
+
+            m1 :: Map TypeReferenceId v
+            m1 =
+              Map.union (f (UF.dataDeclarationsId' unisonFile)) (f (UF.effectDeclarationsId' unisonFile))
+              where
+                f :: forall decl. Map v (TypeReferenceId, decl) -> Map TypeReferenceId v
+                f =
+                  Map.remap (\(v, (r, _)) -> (r, v))
+
+        (effects, datas) =
+          allUnhashedDecls
+            & Map.elems
+            & Map.fromList
+            & Hashing.hashDecls
+            & \case
+              Left _resolutionFailure -> (UF.effectDeclarationsId' unisonFile, UF.dataDeclarationsId' unisonFile)
+              Right decls ->
+                decls
+                  & map untangle
+                  & partitionEithers
+                  & \(xs, ys) -> (Map.fromList xs, Map.fromList ys)
+          where
+            untangle = \case
+              (v, ref, Left e) -> Left (restoreName v, (ref, e))
+              (v, ref, Right d) -> Right (restoreName v, (ref, d))
+
     substituteDecl :: Decl v a -> Decl v a
     substituteDecl =
       over DD.types_ (ABT.rebuildUp substituteType)
@@ -2337,8 +2246,10 @@ hydrateUnisonFileDecls loadDeclComponent unisonFile udecls_v udecl_r0_ns0 udecl_
       ty -> ty
 
 hydrateUnisonFileTerms ::
+  forall m v.
   (Monad m, Var v) =>
   (Hash -> m [(TermReferenceId, Term v Ann)]) ->
+  (UF.UnisonFile v Ann -> m (Maybe (TypecheckedUnisonFile v Ann))) ->
   TypecheckedUnisonFile v Ann ->
   Set v ->
   (TermReferenceId -> Set Name) ->
@@ -2346,85 +2257,76 @@ hydrateUnisonFileTerms ::
   Map TypeReference TypeReference ->
   Map TermReference TermReference ->
   m (TypecheckedUnisonFile v Ann)
-hydrateUnisonFileTerms loadTermComponent unisonFile uterms_v uterm_r0_ns0 uterm_v_r0 udecl_r0_r1 uterm_r0_r1 = do
-  extraTerms :: Map TermReferenceId (Term v Ann, Type v Ann) <-
-    -- FIXME pretty sure this could be Map.fromAscList
-    fmap Map.fromList do
-      let notBeingUpdated :: (TermReferenceId, Term v Ann) -> Bool
-          notBeingUpdated (ref, _) =
-            Set.disjoint uterms_v (Set.map Name.toVar (uterm_r0_ns0 ref))
-      foldMapM
-        (\hash -> filter notBeingUpdated <$> loadTermComponent hash)
-        (Set.mapMaybe (Reference.toHash . uterm_v_r0) uterms_v)
+hydrateUnisonFileTerms loadTermComponent typecheck unisonFile uterms_v uterm_r0_ns0 uterm_v_r0 udecl_r0_r1 uterm_r0_r1 = do
+  extraTerms <- loadExtraTerms
 
   if Map.null extraTerms
     then pure unisonFile
-    else do
-      -- in mates, perform ref->ref replacement, for all new ->ref that are being updated
-      -- FIXME what about old type? currently just passing it along...
-      -- FIXME substitute new types per update too, right?
-      -- FIXME what about constructor references?
-      let extraTerms1 :: Map TermReferenceId (Term v Ann)
-          extraTerms1 = Map.map substituteTerm extraTerms
+    else hydrateTerms unisonFile extraTerms
+  where
+    loadExtraTerms :: m (Map TermReferenceId (Term v Ann))
+    loadExtraTerms =
+      -- FIXME pretty sure this could be Map.fromAscList
+      fmap Map.fromList do
+        let notBeingUpdated (ref, _) =
+              Set.disjoint uterms_v (Set.map Name.toVar (uterm_r0_ns0 ref))
+        foldMapM
+          (\hash -> filter notBeingUpdated <$> loadTermComponent hash)
+          (Set.mapMaybe (Reference.toHash . uterm_v_r0) uterms_v)
 
-      let allTerms :: Map TermReferenceId (Term v Ann)
-          allTerms =
-            Map.union extraTerms1
-              (UF.hashTermsId unisonFile
-                & Map.elems
-                & map (\(ref, _wk, term, _typ) -> (ref, term))
-                & Map.fromList )
-
-      let allTermsUnhashed :: Map TermReferenceId (v, Term v Ann)
-          allTermsUnhashed =
-            Term.unhashComponent allTerms
-
-      let restoreName :: v -> v
-          restoreName =
-            \v -> Map.findWithDefault v (m0 Map.! v) m1
-            where
-              m0 :: Map v TermReferenceId
-              m0 =
-                Map.remap (\(r, (v, _)) -> (v, r)) allTermsUnhashed
-
-              m1 :: Map TermReferenceId v
-              m1 =
-                Map.remap (\(v, (r, _, _)) -> (r, v)) (UF.hashTermsId unisonFile)
-
+    hydrateTerms :: TypecheckedUnisonFile v Ann -> Map TermReferenceId (Term v Ann) -> m (TypecheckedUnisonFile v Ann)
+    hydrateTerms unisonFile extraTerms = do
       -- TODO partition allTermsUnhashed into terms and watches
 
       -- FIXME can skip typechecking if types don't change
       -- FIXME separate terms from watches!
-      let fileToTypecheck :: UF.UnisonFile v Ann
-          fileToTypecheck =
+      let fileToTypecheck =
             UF.UnisonFileId
               { UF.dataDeclarationsId = UF.dataDeclarationsId' unisonFile,
                 UF.effectDeclarationsId = UF.effectDeclarationsId' unisonFile,
-                UF.terms = Map.elems allTermsUnhashed,
+                UF.terms = Map.elems allUnhashedTerms,
                 UF.watches = Map.empty
               }
 
-      result <- eval (TypecheckFile fileToTypecheck [])
-      case runIdentity (Result.toMaybe result) of
-        Just (Right unisonFile') -> do
-          let -- replace generated names with their originals, wherever possible
-              -- FIXME think a little bit about if that works - they can't overlap right? printf debug a little
-              terms :: Map v (TermReferenceId, Maybe WK.WatchKind, Term v Ann, Type v Ann)
-              terms =
-                Map.mapKeys (\v -> fromMaybe v (recoverTermName v)) (UF.hashTermsId unisonFile)
-          pure
-            Structure
-              { structureTerms =
-                  -- named added terms
-                  -- named updated terms
-                  -- nameless updated terms
-                  undefined,
-                structureTypes = undefined
-              }
-        -- fall back on original unisonFile I guess?
-        _ ->
-          pure undefined -- Structure
-  where
+      typecheck fileToTypecheck <&> \case
+        Nothing -> unisonFile
+        Just unisonFile1 ->
+          unisonFile1
+            { UF.topLevelComponents' = over (mapped . mapped . _1) restoreName (UF.topLevelComponents' unisonFile1),
+              UF.watchComponents = over (mapped . _2 . mapped . _1) restoreName (UF.watchComponents unisonFile1),
+              UF.hashTermsId = Map.mapKeys restoreName (UF.hashTermsId unisonFile1)
+            }
+      where
+        -- in mates, perform ref->ref replacement, for all new ->ref that are being updated
+        -- FIXME what about old type? currently just passing it along...
+        -- FIXME what about constructor references?
+        allUnhashedTerms :: Map TermReferenceId (v, Term v Ann)
+        allUnhashedTerms =
+          extraTerms
+            & Map.map substituteTerm
+            & Map.union fileTerms
+            & Term.unhashComponent
+
+        fileTerms :: Map TermReferenceId (Term v Ann)
+        fileTerms =
+          unisonFile
+            & UF.hashTermsId
+            & Map.elems
+            & map (\(ref, _wk, term, _typ) -> (ref, term))
+            & Map.fromList
+
+        restoreName :: v -> v
+        restoreName =
+          \v -> Map.findWithDefault v (m0 Map.! v) m1
+          where
+            m0 :: Map v TermReferenceId
+            m0 =
+              Map.remap (\(r, (v, _)) -> (v, r)) allUnhashedTerms
+
+            m1 :: Map TermReferenceId v
+            m1 =
+              Map.remap (\(v, (r, _, _, _)) -> (r, v)) (UF.hashTermsId unisonFile)
+
     substituteTerm :: Term v Ann -> Term v Ann
     substituteTerm =
       ABT.rebuildUp \case
@@ -2434,6 +2336,7 @@ hydrateUnisonFileTerms loadTermComponent unisonFile uterms_v uterm_r0_ns0 uterm_
             Just ref1 -> Term.Ref ref1
         Term.Ann ann ty -> Term.Ann ann (substituteType ty)
         term -> term
+
     substituteType :: Type v Ann -> Type v Ann
     substituteType =
       ABT.rebuildUp \case

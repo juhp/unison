@@ -4,7 +4,7 @@
 </span><span id="line-4"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Unison.Reference</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Reference</span></span><span class="hs-special">)</span><span>
 </span><span id="line-5"></span><span>
 </span><span id="line-6"></span><span class="hs-keyword">data</span><span> </span><span id="TypeEdit"><span class="annot"><a href="Unison.Codebase.TypeEdit.html#TypeEdit"><span class="hs-identifier hs-var">TypeEdit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Replace"><span class="annot"><a href="Unison.Codebase.TypeEdit.html#Replace"><span class="hs-identifier hs-var">Replace</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Reference</span></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="Deprecate"><span class="annot"><a href="Unison.Codebase.TypeEdit.html#Deprecate"><span class="hs-identifier hs-var">Deprecate</span></a></span></span><span>
-</span><span id="line-7"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680920934"><span id="local-6989586621680920936"><span class="annot"><span class="annottext">TypeEdit -&gt; TypeEdit -&gt; Bool
+</span><span id="line-7"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680921024"><span id="local-6989586621680921026"><span class="annot"><span class="annottext">TypeEdit -&gt; TypeEdit -&gt; Bool
 (TypeEdit -&gt; TypeEdit -&gt; Bool)
 -&gt; (TypeEdit -&gt; TypeEdit -&gt; Bool) -&gt; Eq TypeEdit
 forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
@@ -12,7 +12,7 @@ forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
 $c/= :: TypeEdit -&gt; TypeEdit -&gt; Bool
 == :: TypeEdit -&gt; TypeEdit -&gt; Bool
 $c== :: TypeEdit -&gt; TypeEdit -&gt; Bool
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680920918"><span id="local-6989586621680920920"><span id="local-6989586621680920922"><span id="local-6989586621680920924"><span id="local-6989586621680920926"><span id="local-6989586621680920928"><span id="local-6989586621680920930"><span class="annot"><span class="annottext">Eq TypeEdit
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680921008"><span id="local-6989586621680921010"><span id="local-6989586621680921012"><span id="local-6989586621680921014"><span id="local-6989586621680921016"><span id="local-6989586621680921018"><span id="local-6989586621680921020"><span class="annot"><span class="annottext">Eq TypeEdit
 Eq TypeEdit
 -&gt; (TypeEdit -&gt; TypeEdit -&gt; Ordering)
 -&gt; (TypeEdit -&gt; TypeEdit -&gt; Bool)
@@ -50,7 +50,7 @@ $c&lt; :: TypeEdit -&gt; TypeEdit -&gt; Bool
 compare :: TypeEdit -&gt; TypeEdit -&gt; Ordering
 $ccompare :: TypeEdit -&gt; TypeEdit -&gt; Ordering
 $cp1Ord :: Eq TypeEdit
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680920911"><span id="local-6989586621680920913"><span id="local-6989586621680920915"><span class="annot"><span class="annottext">Int -&gt; TypeEdit -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680921001"><span id="local-6989586621680921003"><span id="local-6989586621680921005"><span class="annot"><span class="annottext">Int -&gt; TypeEdit -&gt; ShowS
 [TypeEdit] -&gt; ShowS
 TypeEdit -&gt; String
 (Int -&gt; TypeEdit -&gt; ShowS)
@@ -67,19 +67,19 @@ $cshowsPrec :: Int -&gt; TypeEdit -&gt; ShowS
 </span><span id="line-8"></span><span>
 </span><span id="line-9"></span><span class="annot"><a href="Unison.Codebase.TypeEdit.html#references"><span class="hs-identifier hs-type">references</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Codebase.TypeEdit.html#TypeEdit"><span class="hs-identifier hs-type">TypeEdit</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Reference</span></span><span class="hs-special">]</span><span>
 </span><span id="line-10"></span><span id="references"><span class="annot"><span class="annottext">references :: TypeEdit -&gt; [Reference]
-</span><a href="Unison.Codebase.TypeEdit.html#references"><span class="hs-identifier hs-var hs-var">references</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Codebase.TypeEdit.html#Replace"><span class="hs-identifier hs-type">Replace</span></a></span><span> </span><span id="local-6989586621680920908"><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680920908"><span class="hs-identifier hs-var">r</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680920908"><span class="hs-identifier hs-var">r</span></a></span><span class="hs-special">]</span><span>
+</span><a href="Unison.Codebase.TypeEdit.html#references"><span class="hs-identifier hs-var hs-var">references</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Codebase.TypeEdit.html#Replace"><span class="hs-identifier hs-type">Replace</span></a></span><span> </span><span id="local-6989586621680920998"><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680920998"><span class="hs-identifier hs-var">r</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680920998"><span class="hs-identifier hs-var">r</span></a></span><span class="hs-special">]</span><span>
 </span><span id="line-11"></span><span class="annot"><a href="Unison.Codebase.TypeEdit.html#references"><span class="hs-identifier hs-var">references</span></a></span><span> </span><span class="annot"><span class="annottext">TypeEdit
 </span><a href="Unison.Codebase.TypeEdit.html#Deprecate"><span class="hs-identifier hs-var">Deprecate</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
 </span><span id="line-12"></span><span>
 </span><span id="line-13"></span><span class="annot"><a href="Unison.Codebase.TypeEdit.html#toReference"><span class="hs-identifier hs-type">toReference</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Codebase.TypeEdit.html#TypeEdit"><span class="hs-identifier hs-type">TypeEdit</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Reference</span></span><span>
 </span><span id="line-14"></span><span id="toReference"><span class="annot"><span class="annottext">toReference :: TypeEdit -&gt; Maybe Reference
-</span><a href="Unison.Codebase.TypeEdit.html#toReference"><span class="hs-identifier hs-var hs-var">toReference</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Codebase.TypeEdit.html#Replace"><span class="hs-identifier hs-type">Replace</span></a></span><span> </span><span id="local-6989586621680920906"><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680920906"><span class="hs-identifier hs-var">r</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Reference -&gt; Maybe Reference
+</span><a href="Unison.Codebase.TypeEdit.html#toReference"><span class="hs-identifier hs-var hs-var">toReference</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Codebase.TypeEdit.html#Replace"><span class="hs-identifier hs-type">Replace</span></a></span><span> </span><span id="local-6989586621680920996"><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680920996"><span class="hs-identifier hs-var">r</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Reference -&gt; Maybe Reference
 forall a. a -&gt; Maybe a
 </span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680920906"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><a href="#local-6989586621680920996"><span class="hs-identifier hs-var">r</span></a></span><span>
 </span><span id="line-15"></span><span class="annot"><a href="Unison.Codebase.TypeEdit.html#toReference"><span class="hs-identifier hs-var">toReference</span></a></span><span> </span><span class="annot"><span class="annottext">TypeEdit
 </span><a href="Unison.Codebase.TypeEdit.html#Deprecate"><span class="hs-identifier hs-var">Deprecate</span></a></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Reference
 forall a. Maybe a

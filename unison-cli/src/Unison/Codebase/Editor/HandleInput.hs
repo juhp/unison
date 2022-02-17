@@ -2276,16 +2276,13 @@ hydrateUnisonFileTerms loadTermComponent typecheck unisonFile uterms_v uterm_r0_
 
     hydrateTerms :: TypecheckedUnisonFile v Ann -> Map TermReferenceId (Term v Ann) -> m (TypecheckedUnisonFile v Ann)
     hydrateTerms unisonFile extraTerms = do
-      -- TODO partition allTermsUnhashed into terms and watches
-
       -- FIXME can skip typechecking if types don't change
-      -- FIXME separate terms from watches!
       let fileToTypecheck =
             UF.UnisonFileId
               { UF.dataDeclarationsId = UF.dataDeclarationsId' unisonFile,
                 UF.effectDeclarationsId = UF.effectDeclarationsId' unisonFile,
-                UF.terms = Map.elems allUnhashedTerms,
-                UF.watches = Map.empty
+                UF.terms = allUnhashedTerms,
+                UF.watches = allUnhashedWatches
               }
 
       typecheck fileToTypecheck <&> \case
@@ -2300,12 +2297,29 @@ hydrateUnisonFileTerms loadTermComponent typecheck unisonFile uterms_v uterm_r0_
         -- in mates, perform ref->ref replacement, for all new ->ref that are being updated
         -- FIXME what about old type? currently just passing it along...
         -- FIXME what about constructor references?
-        allUnhashedTerms :: Map TermReferenceId (v, Term v Ann)
-        allUnhashedTerms =
+        allUnhashedTermsAndWatches :: Map TermReferenceId (v, Term v Ann)
+        allUnhashedTermsAndWatches =
           extraTerms
             & Map.map substituteTerm
             & Map.union fileTerms
             & Term.unhashComponent
+
+        allUnhashedTerms :: [(v, Term v Ann)]
+        allUnhashedWatches :: Map WK.WatchKind [(v, Term v Ann)]
+        (allUnhashedTerms, allUnhashedWatches) =
+          allUnhashedTermsAndWatches
+            & List.foldl
+              ( \(terms, watches) term@(v, _) ->
+                  case Map.lookup (restoreName v) (UF.hashTermsId unisonFile) of
+                    Just (_, Just watchKind, _, _) -> (terms, Map.insertWith (++) watchKind [term] watches)
+                    -- A Nothing here means this was an extra term, I guess just assume it's not a watch.
+                    -- FIXME this is somewhat suspicious. Currently a watch can't be a member of a cycle because we only
+                    -- store test watches as terms, which aren't lambdas. But still, it seems like we could pull out
+                    -- such a watch as a dependency of the updated term, which refers to the original in some way. What
+                    -- to do in that case?
+                    _ -> (term : terms, watches)
+              )
+              ([], Map.empty)
 
         fileTerms :: Map TermReferenceId (Term v Ann)
         fileTerms =
@@ -2321,7 +2335,7 @@ hydrateUnisonFileTerms loadTermComponent typecheck unisonFile uterms_v uterm_r0_
           where
             m0 :: Map v TermReferenceId
             m0 =
-              Map.remap (\(r, (v, _)) -> (v, r)) allUnhashedTerms
+              Map.remap (\(r, (v, _)) -> (v, r)) allUnhashedTermsAndWatches
 
             m1 :: Map TermReferenceId v
             m1 =

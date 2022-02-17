@@ -265,6 +265,55 @@ test> Any.test2 = checks [(not (Any "hi" == Any 42))]
     ✅ Passed Passed
 
 ```
+## Sandboxing functions
+
+```unison
+openFile1 t = openFile t
+openFile2 t = openFile1 t
+
+openFiles =
+  [ not (validateSandboxed [] openFile)
+  , not (validateSandboxed [] openFile1)
+  , not (validateSandboxed [] openFile2)
+  ]
+
+test> Sandbox.test1 = checks [validateSandboxed [] "hello"]
+test> Sandbox.test2 = checks openFiles
+test> Sandbox.test3 = checks [validateSandboxed [termLink openFile.impl]
+openFile]
+```
+
+```ucm
+
+  I found and typechecked these definitions in scratch.u. If you
+  do an `add` or `update`, here's how your codebase would
+  change:
+  
+    ⍟ These new definitions are ok to `add`:
+    
+      Sandbox.test1 : [Result]
+      Sandbox.test2 : [Result]
+      Sandbox.test3 : [Result]
+      openFile1     : Text -> FileMode ->{IO, Exception} Handle
+      openFile2     : Text -> FileMode ->{IO, Exception} Handle
+      openFiles     : [Boolean]
+  
+  Now evaluating any watch expressions (lines starting with
+  `>`)... Ctrl+C cancels.
+
+    10 | test> Sandbox.test1 = checks [validateSandboxed [] "hello"]
+    
+    ✅ Passed Passed
+  
+    11 | test> Sandbox.test2 = checks openFiles
+    
+    ✅ Passed Passed
+  
+    12 | test> Sandbox.test3 = checks [validateSandboxed [termLink openFile.impl]
+    
+    ✅ Passed Passed
+
+```
 ## Run the tests
 
 Now that all the tests have been added to the codebase, let's view the test report. This will fail the transcript (with a nice message) if any of the tests are failing.
@@ -287,11 +336,14 @@ Now that all the tests have been added to the codebase, let's view the test repo
   ◉ Nat.tests.arithmetic        Passed
   ◉ Nat.tests.bitTwiddling      Passed
   ◉ Nat.tests.conversions       Passed
+  ◉ Sandbox.test1               Passed
+  ◉ Sandbox.test2               Passed
+  ◉ Sandbox.test3               Passed
   ◉ Text.tests.alignment        Passed
   ◉ Text.tests.repeat           Passed
   ◉ Text.tests.takeDropAppend   Passed
   
-  ✅ 16 test(s) passing
+  ✅ 19 test(s) passing
   
   Tip: Use view Any.test1 to view the source of a test.
 

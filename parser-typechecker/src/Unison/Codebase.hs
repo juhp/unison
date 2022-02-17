@@ -129,6 +129,7 @@ import Unison.Prelude
 import Unison.Reference (Reference)
 import qualified Unison.Reference as Reference
 import qualified Unison.Referent as Referent
+import qualified Unison.Runtime.IOSource as IOSource
 import Unison.Symbol (Symbol)
 import Unison.Term (Term)
 import qualified Unison.Term as Term
@@ -143,6 +144,7 @@ import UnliftIO (MonadUnliftIO)
 import Control.Monad.Except (ExceptT(ExceptT))
 import Control.Monad.Except (runExceptT)
 import Control.Monad.Trans.Except (throwE)
+import qualified Unison.Codebase.Editor.Git as Git
 
 -- | Get a branch from the codebase.
 getBranchForHash :: Monad m => Codebase m v a -> Branch.Hash -> m (Maybe (Branch m))
@@ -259,8 +261,10 @@ typeLookupForDependencies codebase s = do
               Nothing -> pure mempty
     go tl Reference.Builtin {} = pure tl -- codebase isn't consulted for builtins
 
-toCodeLookup :: Codebase m v a -> CL.CodeLookup v m a
+toCodeLookup :: Monad m => Codebase m Symbol Parser.Ann -> CL.CodeLookup Symbol m Parser.Ann
 toCodeLookup c = CL.CodeLookup (getTerm c) (getTypeDeclaration c)
+  <> Builtin.codeLookup
+  <> IOSource.codeLookupM
 
 -- | Get the type of a term.
 --
@@ -362,7 +366,7 @@ importRemoteBranch ::
   Preprocessing m ->
   m (Either GitError (Branch m))
 importRemoteBranch codebase ns mode preprocess = runExceptT $ do
-  branchHash <- ExceptT . viewRemoteBranch' codebase ns $ \(branch, cacheDir) -> do
+  branchHash <- ExceptT . viewRemoteBranch' codebase ns Git.RequireExistingBranch $ \(branch, cacheDir) -> do
          withStatus "Importing downloaded files into local codebase..." $ do
            processedBranch <- preprocessOp branch
            time "SyncFromDirectory" $ do
@@ -384,10 +388,11 @@ viewRemoteBranch ::
   MonadIO m =>
   Codebase m v a ->
   ReadRemoteNamespace ->
+  Git.GitBranchBehavior ->
   (Branch m -> m r) ->
   m (Either GitError r)
-viewRemoteBranch codebase ns action =
-  viewRemoteBranch' codebase ns (\(b, _dir) -> action b)
+viewRemoteBranch codebase ns gitBranchBehavior action =
+  viewRemoteBranch' codebase ns gitBranchBehavior (\(b, _dir) -> action b)
 
 unsafeGetComponentLength :: (HasCallStack, Monad m) => Codebase m v a -> Hash -> m Reference.CycleSize
 unsafeGetComponentLength codebase h =

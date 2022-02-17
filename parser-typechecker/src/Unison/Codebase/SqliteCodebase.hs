@@ -14,8 +14,7 @@ module Unison.Codebase.SqliteCodebase
 where
 
 import qualified Control.Concurrent
-import Control.Monad.Except (ExceptT, runExceptT, withExceptT)
-import Control.Monad.Except (throwError)
+import Control.Monad.Except (runExceptT, throwError, ExceptT)
 import qualified Control.Monad.Except as Except
 import qualified Control.Monad.Extra as Monad
 import Control.Monad.Reader (ReaderT (runReaderT))
@@ -50,7 +49,6 @@ import qualified U.Codebase.Sqlite.Operations as Ops
 import qualified U.Codebase.Sqlite.Queries as Q
 import qualified U.Codebase.Sqlite.Sync22 as Sync22
 import qualified U.Codebase.Sync as Sync
-import qualified U.Codebase.WatchKind as WK
 import qualified U.Util.Cache as Cache
 import qualified U.Util.Hash as H2
 import qualified U.Util.Monoid as Monoid
@@ -61,8 +59,9 @@ import qualified Unison.Codebase as Codebase1
 import Unison.Codebase.Branch (Branch (..))
 import qualified Unison.Codebase.Branch as Branch
 import qualified Unison.Codebase.Causal.Type as Causal
-import Unison.Codebase.Editor.Git (gitIn, gitTextIn, pullRepo, withIsolatedRepo)
-import Unison.Codebase.Editor.RemoteRepo (ReadRemoteNamespace, WriteRepo (WriteGitRepo), printWriteRepo, writeToRead)
+import Unison.Codebase.Editor.RemoteRepo (ReadRemoteNamespace, WriteRepo (..), ReadRepo, printWriteRepo, writeToRead)
+import Unison.Codebase.Editor.Git (gitIn, gitTextIn, gitInCaptured, withRepo)
+import qualified Unison.Codebase.Editor.Git as Git
 import qualified Unison.Codebase.GitError as GitError
 import qualified Unison.Codebase.Init as Codebase
 import qualified Unison.Codebase.Init.CreateCodebaseError as Codebase1
@@ -99,9 +98,8 @@ import Unison.Type (Type)
 import qualified Unison.Type as Type
 import qualified Unison.Util.Set as Set
 import qualified Unison.WatchKind as UF
-import UnliftIO (catchIO, finally, try, MonadUnliftIO, throwIO)
-import qualified UnliftIO
-import UnliftIO.Directory (createDirectoryIfMissing, doesDirectoryExist, doesFileExist, removePathForcibly)
+import UnliftIO (catchIO, finally, try, MonadUnliftIO, throwIO, try)
+import UnliftIO.Directory (createDirectoryIfMissing, doesDirectoryExist, doesFileExist)
 import UnliftIO.Exception (bracket, catch)
 import UnliftIO.STM
 import Data.Either.Extra ()
@@ -357,10 +355,10 @@ sqliteCodebase debugName root localOrRemote action = do
       -- option 2: switch codebase interface from putTerm to putTerms -- buffering can be local to the function
       -- option 3: switch from putTerm to putTermComponent -- needs to buffer dependencies non-locally (or require application to manage + die horribly)
 
-      putTerm :: MonadIO m => Reference.Id -> Term Symbol Ann -> Type Symbol Ann -> m ()
+      putTerm :: MonadUnliftIO m => Reference.Id -> Term Symbol Ann -> Type Symbol Ann -> m ()
       putTerm id tm tp | debug && trace (show "SqliteCodebase.putTerm " ++ show id ++ " " ++ show tm ++ " " ++ show tp) False = undefined
       putTerm (Reference.Id h@(Cv.hash1to2 -> h2) i) tm tp =
-        runDB conn $
+        runDBInTx  conn "putTerm" $
           unlessM
             (Ops.objectExistsForHash h2 >>= if debug then \b -> do traceM $ "objectExistsForHash " ++ show h2 ++ " = " ++ show b; pure b else pure)
             ( withBuffer termBuffer h \be@(BufferEntry size comp missing waiting) -> do
@@ -495,9 +493,9 @@ sqliteCodebase debugName root localOrRemote action = do
           (\h -> tryFlushTermBuffer h >> tryFlushDeclBuffer h)
           h
 
-      putTypeDeclaration :: MonadIO m => Reference.Id -> Decl Symbol Ann -> m ()
+      putTypeDeclaration :: MonadUnliftIO m => Reference.Id -> Decl Symbol Ann -> m ()
       putTypeDeclaration (Reference.Id h@(Cv.hash1to2 -> h2) i) decl =
-        runDB conn $
+        runDBInTx conn "putTypeDeclaration" $
           unlessM
             (Ops.objectExistsForHash h2)
             ( withBuffer declBuffer h \(BufferEntry size comp missing waiting) -> do
@@ -555,11 +553,11 @@ sqliteCodebase debugName root localOrRemote action = do
       getRootBranchExists =
         isJust <$> runDB conn (Ops.loadMaybeRootCausalHash)
 
-      putRootBranch :: MonadIO m => TVar (Maybe (Q.DataVersion, Branch m)) -> Branch m -> m ()
+      putRootBranch :: MonadUnliftIO m => TVar (Maybe (Q.DataVersion, Branch m)) -> Branch m -> m ()
       putRootBranch rootBranchCache branch1 = do
         -- todo: check to see if root namespace hash has been externally modified
         -- and do something (merge?) it if necessary. But for now, we just overwrite it.
-        runDB conn
+        runDBInTx conn "putRootBranch"
           . void
           . Ops.saveRootBranch
           . Cv.causalbranch1to2
@@ -615,8 +613,8 @@ sqliteCodebase debugName root localOrRemote action = do
               =<< Cv.causalbranch2to1 getDeclType b
           Nothing -> pure Nothing
 
-      putBranch :: MonadIO m => Branch m -> m ()
-      putBranch = runDB conn . putBranch'
+      putBranch :: MonadUnliftIO m => Branch m -> m ()
+      putBranch = runDBInTx conn "putBranch" . putBranch'
 
       isCausalHash :: MonadIO m => Branch.Hash -> m Bool
       isCausalHash = runDB conn . isCausalHash'
@@ -628,9 +626,9 @@ sqliteCodebase debugName root localOrRemote action = do
             >>= Ops.loadPatchById
             <&> Cv.patch2to1
 
-      putPatch :: MonadIO m => Branch.EditHash -> Patch -> m ()
+      putPatch :: MonadUnliftIO m => Branch.EditHash -> Patch -> m ()
       putPatch h p =
-        runDB conn . void $
+        runDBInTx conn "putPatch" . void $
           Ops.savePatch (Cv.patchHash1to2 h) (Cv.patch1to2 p)
 
       patchExists :: MonadIO m => Branch.EditHash -> m Bool
@@ -677,7 +675,7 @@ sqliteCodebase debugName root localOrRemote action = do
 
       standardWatchKinds = [UF.RegularWatch, UF.TestWatch]
 
-      putWatch :: MonadIO m => UF.WatchKind -> Reference.Id -> Term Symbol Ann -> m ()
+      putWatch :: MonadUnliftIO m => UF.WatchKind -> Reference.Id -> Term Symbol Ann -> m ()
       putWatch k r@(Reference.Id h _i) tm
         | elem k standardWatchKinds =
           runDB conn $
@@ -963,10 +961,6 @@ syncInternal progress srcConn destConn b = time "syncInternal" do
     let progress' = Sync.transformProgress (lift . lift) progress
         bHash = Branch.headHash b
     se $ time "SyncInternal.processBranches" $ processBranches sync progress' [B bHash (pure b)]
-    testWatchRefs <- time "SyncInternal enumerate testWatches" $
-      lift . fmap concat $ for [WK.TestWatch] \wk ->
-        fmap (Sync22.W wk) <$> flip runReaderT srcConn (Q.loadWatchesByWatchKind wk)
-    se . r $ Sync.sync sync progress' testWatchRefs
   let onSuccess a = runDB destConn (Q.release "sync") *> pure a
       onFailure e = do
         if debugCommitFailedTransaction
@@ -983,6 +977,17 @@ runDB :: MonadIO m => Connection -> ReaderT Connection (ExceptT Ops.Error m) a -
 runDB conn = (runExceptT >=> err) . flip runReaderT conn
   where
     err = \case Left err -> error $ show err; Right a -> pure a
+
+-- | Like 'runDB', but executes the action within a transaction on the provided
+-- connection.
+runDBInTx ::
+  MonadUnliftIO m =>
+  Connection ->
+  String ->
+  ReaderT Connection (ExceptT Ops.Error m) a ->
+  m a
+runDBInTx conn name action =
+  runReaderT (Q.withSavepoint_ name (lift $ runDB conn action)) conn
 
 data Entity m
   = B Branch.Hash (m (Branch m))
@@ -1076,12 +1081,13 @@ viewRemoteBranch' ::
   forall m r.
   (MonadUnliftIO m) =>
   ReadRemoteNamespace ->
+  Git.GitBranchBehavior ->
   ((Branch m, CodebasePath) -> m r) ->
   m (Either C.GitError r)
-viewRemoteBranch' (repo, sbh, path) action = UnliftIO.try do
+viewRemoteBranch' (repo, sbh, path) gitBranchBehavior action = UnliftIO.try $ do
   -- set up the cache dir
-  remotePath <- UnliftIO.fromEitherM . runExceptT . withExceptT C.GitProtocolError . time "Git fetch" $ pullRepo repo
-
+ time "Git fetch" $ throwEitherMWith C.GitProtocolError . withRepo repo gitBranchBehavior $ \remoteRepo -> do
+  let remotePath = Git.gitDirToPath remoteRepo
   -- Tickle the database before calling into `sqliteCodebase`; this covers the case that the database file either
   -- doesn't exist at all or isn't a SQLite database file, but does not cover the case that the database file itself is
   -- somehow corrupt, or not even a Unison database.
@@ -1134,7 +1140,7 @@ pushGitBranch ::
   WriteRepo ->
   PushGitBranchOpts ->
   m (Either C.GitError ())
-pushGitBranch srcConn branch repo (PushGitBranchOpts setRoot _syncMode) = UnliftIO.try $ do
+pushGitBranch srcConn branch repo (PushGitBranchOpts setRoot _syncMode) = mapLeft C.GitProtocolError <$> do
   -- Pull the latest remote into our git cache
   -- Use a local git clone to copy this git repo into a temp-dir
   -- Delete the codebase in our temp-dir
@@ -1149,19 +1155,14 @@ pushGitBranch srcConn branch repo (PushGitBranchOpts setRoot _syncMode) = Unlift
   -- Delete the temp-dir.
   --
   -- set up the cache dir
-  pathToCachedRemote <- time "Git fetch" $ throwExceptTWith C.GitProtocolError $ pullRepo (writeToRead repo)
-  throwEitherMWith C.GitProtocolError . withIsolatedRepo pathToCachedRemote $ \isolatedRemotePath -> do
-    -- Connect to codebase in the cached git repo so we can copy it over.
-    withOpenOrCreateCodebaseConnection @m "push.cached" pathToCachedRemote $ \cachedRemoteConn -> do
-      -- Copy our cached remote database cleanly into our isolated directory.
-      copyCodebase cachedRemoteConn isolatedRemotePath
-      -- Connect to the newly copied database which we know has been properly closed and
-      -- nobody else could be using.
-      withConnection @m "push.dest" isolatedRemotePath $ \destConn -> do
-        flip runReaderT destConn $ Q.withSavepoint_ @(ReaderT _ m) "push" $ do
-          throwExceptT $ doSync isolatedRemotePath srcConn destConn
-    void $ push isolatedRemotePath repo
+ withRepo readRepo Git.CreateBranchIfMissing $ \pushStaging -> do
+   withOpenOrCreateCodebaseConnection @m "push.dest" (Git.gitDirToPath pushStaging) $ \destConn -> do
+     flip runReaderT destConn $ Q.withSavepoint_ @(ReaderT _ m) "push" $ do
+       throwExceptT $ doSync (Git.gitDirToPath pushStaging) srcConn destConn
+   void $ push pushStaging repo
   where
+    readRepo :: ReadRepo
+    readRepo = writeToRead repo
     doSync :: FilePath -> Connection -> Connection -> ExceptT C.GitError (ReaderT Connection m) ()
     doSync remotePath srcConn destConn = do
       _ <- flip State.execStateT emptySyncProgressState $
@@ -1238,8 +1239,8 @@ pushGitBranch srcConn branch repo (PushGitBranchOpts setRoot _syncMode) = Unlift
         hasDeleteShm = any isShmDelete statusLines
 
     -- Commit our changes
-    push :: forall m. MonadIO m => CodebasePath -> WriteRepo -> m Bool -- withIOError needs IO
-    push remotePath (WriteGitRepo url) = time "SqliteCodebase.pushGitRootBranch.push" $ do
+    push :: forall m. MonadIO m => Git.GitRepo -> WriteRepo -> m Bool -- withIOError needs IO
+    push remotePath repo@(WriteGitRepo {url'=url, branch=mayGitBranch}) = time "SqliteCodebase.pushGitRootBranch.push" $ do
       -- has anything changed?
       -- note: -uall recursively shows status for all files in untracked directories
       --   we want this so that we see
@@ -1266,14 +1267,9 @@ pushGitBranch srcConn branch repo (PushGitBranchOpts setRoot _syncMode) = Unlift
             gitIn
               remotePath
               ["commit", "-q", "-m", "Sync branch " <> Text.pack (show $ Branch.headHash branch)]
-            -- Push our changes to the repo
-            gitIn remotePath ["push", "--quiet", url]
+            -- Push our changes to the repo, silencing all output.
+            -- Even with quiet, the remote (Github) can still send output through,
+            -- so we capture stdout and stderr.
+            (successful, _stdout, stderr) <- gitInCaptured remotePath $ ["push", "--quiet", url] ++ maybe [] (pure @[]) mayGitBranch
+            when (not successful) . throwIO $ GitError.PushException repo (Text.unpack stderr)
             pure True
-
--- | Make a clean copy of the connected codebase into the provided path. Destroys any existing `v2/` directory
-copyCodebase :: MonadIO m => Connection -> CodebasePath -> m ()
-copyCodebase srcConn destPath = runDB srcConn $ do
-  -- remove any existing codebase at the destination location.
-  removePathForcibly (makeCodebaseDirPath destPath)
-  createDirectoryIfMissing True (makeCodebaseDirPath destPath)
-  Q.vacuumInto (makeCodebasePath destPath)

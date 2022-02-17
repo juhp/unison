@@ -156,6 +156,7 @@ import qualified Data.Set.NonEmpty as NESet
 import Data.Set.NonEmpty (NESet)
 import Unison.Symbol (Symbol)
 import qualified Unison.Codebase.Editor.Input as Input
+import qualified Unison.Codebase.Editor.Git as Git
 
 defaultPatchNameSegment :: NameSegment
 defaultPatchNameSegment = "patch"
@@ -182,7 +183,6 @@ loop = do
   sbhLength <- eval BranchHashLength
   let currentPath'' = Path.unabsolute currentPath'
       hqNameQuery q = eval $ HQNameQuery (Just currentPath'') root' q
-      sbh = SBH.fromHash sbhLength
       root0 = Branch.head root'
       currentBranch0 = Branch.head currentBranch'
       defaultPatchPath :: PatchPath
@@ -640,8 +640,8 @@ loop = do
                       ppe
                       outputDiff
             CreatePullRequestI baseRepo headRepo -> do
-              result <- join @(Either GitError) <$> viewRemoteBranch baseRepo \baseBranch -> do
-                 viewRemoteBranch headRepo \headBranch -> do
+              result <- join @(Either GitError) <$> viewRemoteBranch baseRepo Git.RequireExistingBranch \baseBranch -> do
+                 viewRemoteBranch headRepo Git.RequireExistingBranch \headBranch -> do
                    merged <- eval $ Merge Branch.RegularMerge baseBranch headBranch
                    (ppe, diff) <- diffHelperCmd root' currentPath' (Branch.head baseBranch) (Branch.head merged)
                    pure $ ShowDiffAfterCreatePR baseRepo headRepo ppe diff
@@ -813,15 +813,15 @@ loop = do
               where
                 doHistory !n b acc =
                   if maybe False (n >=) resultsCap
-                    then respond $ History diffCap acc (PageEnd (sbh $ Branch.headHash b) n)
+                    then respondNumbered $ History diffCap sbhLength acc (PageEnd (Branch.headHash b) n)
                     else case Branch._history b of
                       Causal.One {} ->
-                        respond $ History diffCap acc (EndOfLog . sbh $ Branch.headHash b)
+                        respondNumbered $ History diffCap sbhLength acc (EndOfLog $ Branch.headHash b)
                       Causal.Merge _ _ tails ->
-                        respond $ History diffCap acc (MergeTail (sbh $ Branch.headHash b) . map sbh $ Map.keys tails)
+                        respondNumbered $ History diffCap sbhLength acc (MergeTail (Branch.headHash b) $ Map.keys tails)
                       Causal.Cons _ _ tail -> do
                         b' <- fmap Branch.Branch . eval . Eval $ snd tail
-                        let elem = (sbh $ Branch.headHash b, Branch.namesDiff b' b)
+                        let elem = (Branch.headHash b, Branch.namesDiff b' b)
                         doHistory (n + 1) b' (elem : acc)
             UndoI -> do
               prev <- eval . Eval $ Branch.uncons root'
@@ -1485,7 +1485,7 @@ loop = do
               ppe <-
                 suffixifiedPPE
                   =<< makePrintNamesFromLabeled' (Patch.labeledDependencies patch)
-              respond $ ListEdits patch ppe
+              respondNumbered $ ListEdits patch ppe
             PullRemoteBranchI mayRepo path syncMode pullMode verbosity -> unlessError do
               let preprocess = case pullMode of
                     Input.PullWithHistory -> Unmodified
@@ -1732,7 +1732,7 @@ doPushRemoteBranch repo localPath syncMode remoteTarget = do
                     runExceptT (syncRemoteBranch newRemoteRoot repo opts) >>= \case
                       Left gitErr -> respond (Output.GitError gitErr)
                       Right () -> respond Success
-          viewRemoteBranch (writeToRead repo, Nothing, Path.empty) withRemoteRoot >>= \case
+          viewRemoteBranch (writeToRead repo, Nothing, Path.empty) Git.CreateBranchIfMissing withRemoteRoot >>= \case
             Left (GitSqliteCodebaseError NoDatabaseFile{}) -> withRemoteRoot Branch.empty
             Left err -> throwError err
             Right () -> pure ()
@@ -2586,9 +2586,14 @@ configKey k p =
         NameSegment.toText
         (Path.toSeq $ Path.unabsolute p)
 
-viewRemoteBranch :: (MonadCommand n m i v, MonadUnliftIO m) => ReadRemoteNamespace -> (Branch m -> Free (Command m i v) r) -> n (Either GitError r)
-viewRemoteBranch ns action = do
-  eval $ ViewRemoteBranch ns action
+viewRemoteBranch ::
+  (MonadCommand n m i v, MonadUnliftIO m) =>
+  ReadRemoteNamespace ->
+  Git.GitBranchBehavior ->
+  (Branch m -> Free (Command m i v) r) ->
+  n (Either GitError r)
+viewRemoteBranch ns gitBranchBehavior action = do
+  eval $ ViewRemoteBranch ns gitBranchBehavior action
 
 syncRemoteBranch :: MonadCommand n m i v => Branch m -> WriteRepo -> PushGitBranchOpts -> ExceptT GitError n ()
 syncRemoteBranch b repo opts =
@@ -2764,7 +2769,7 @@ showTodoOutput getPpe patch names0 = do
                <$> fst (TO.todoFrontierDependents todo)
            )
       ppe <- getPpe
-      respond $ TodoOutput ppe todo
+      respondNumbered $ TodoOutput ppe todo
 
 checkTodo :: Patch -> Names -> Action m i v (TO.TodoOutput v Ann)
 checkTodo patch names0 = do

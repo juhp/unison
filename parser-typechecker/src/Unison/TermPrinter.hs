@@ -258,19 +258,25 @@ pretty0
     List' xs -> PP.group $
       (fmt S.DelimiterChar $ l "[") <> optSpace
           <> intercalateMap ((fmt S.DelimiterChar $ l ",") <> PP.softbreak <> optSpace <> optSpace)
-                            (pretty0 n (ac 0 Normal im doc))
+                            (PP.indentNAfterNewline 2 . pretty0 n (ac 0 Normal im doc))
                             xs
           <> optSpace <> (fmt S.DelimiterChar $ l "]")
       where optSpace = PP.orElse "" " "
     If' cond t f -> paren (p >= 2) $
-      if PP.isMultiLine pt || PP.isMultiLine pf then PP.lines [
-        (fmt S.ControlKeyword "if ") <> pcond <> (fmt S.ControlKeyword " then") `PP.hang` pt,
+      if PP.isMultiLine pcond then PP.lines [
+        (fmt S.ControlKeyword "if") `PP.hang` pcond,
+        (fmt S.ControlKeyword "then") `PP.hang` pt,
         (fmt S.ControlKeyword "else") `PP.hang` pf
        ]
-      else PP.spaced [
-        ((fmt S.ControlKeyword "if") `PP.hang` pcond) <> ((fmt S.ControlKeyword " then") `PP.hang` pt),
-        (fmt S.ControlKeyword "else") `PP.hang` pf
-       ]
+      else
+        if PP.isMultiLine pt || PP.isMultiLine pf then PP.lines [
+          (fmt S.ControlKeyword "if ") <> pcond <> (fmt S.ControlKeyword " then") `PP.hang` pt,
+          (fmt S.ControlKeyword "else") `PP.hang` pf
+         ]
+        else PP.spaced [
+          ((fmt S.ControlKeyword "if") `PP.hang` pcond) <> ((fmt S.ControlKeyword " then") `PP.hang` pt),
+          (fmt S.ControlKeyword "else") `PP.hang` pf
+         ]
      where
        pcond  = pretty0 n (ac 2 Block im doc) cond
        pt     = branch t
@@ -321,6 +327,7 @@ pretty0
 
     t -> l "error: " <> l (show t)
  where
+  goNormal prec tm = pretty0 n (ac prec Normal im doc) tm     
   specialCases term _go | Just p <- prettyDoc2 n a term = p
   specialCases term go = case (term, binaryOpsPred) of
     (DD.Doc, _) | doc == MaybeDoc ->
@@ -339,7 +346,10 @@ pretty0
     (TupleTerm' xs, _) ->
       let tupleLink p = fmt (S.TypeReference DD.unitRef) p
       in PP.group (tupleLink "(" <> commaList xs <> tupleLink ")")
-
+    (App' f@(Builtin' "Any.Any") arg, _) ->   
+      paren (p >= 10) $ goNormal 9 f `PP.hang` goNormal 10 arg
+    (Apps' f@(Constructor' _) args, _) ->   
+      paren (p >= 10) $ goNormal 9 f `PP.hang` PP.spacedMap (goNormal 10) args
     (Bytes' bs, _) ->
       fmt S.BytesLiteral "0xs" <> (PP.shown $ Bytes.fromWord8s (map fromIntegral bs))
     BinaryAppsPred' apps lastArg -> paren (p >= 3) $
@@ -1402,16 +1412,16 @@ prettyDoc2 ppe ac tm = case tm of
           S.DocDelimiter
           "}}"
     bail tm = brace (pretty0 ppe ac tm)
-    -- Finds the longest run of a character and return a run one longer than that
-    oneMore c inner = replicate num c
-     where
-      num =
-        case
-            filter (\s -> take 2 s == "__")
-              $ group (PP.toPlainUnbroken $ PP.syntaxToColor inner)
-          of
-            [] -> 2
-            x  -> 1 + (maximum $ map length x)
+    -- Finds the longest run of a character and return one bigger than that
+    longestRun c s =
+      case
+          filter (\s -> take 2 s == [c,c])
+            $ group (PP.toPlainUnbroken $ PP.syntaxToColor s)
+        of
+          [] -> 2
+          x  -> 1 + (maximum $ map length x)
+    oneMore c inner = replicate (longestRun c inner) c
+    makeFence inner = PP.string $ replicate (max 3 $ longestRun '`' inner) '`'
     go :: Width -> Term3 v PrintAnnotation -> Pretty SyntaxText
     go hdr = \case
       (toDocTransclude ppe -> Just d) ->
@@ -1438,22 +1448,22 @@ prettyDoc2 ppe ac tm = case tm of
         PP.text t
       (toDocCode ppe -> Just d) ->
         let inner = rec d
-            quotes = oneMore '\'' inner
-         in PP.group $ PP.string quotes <> inner <> PP.string quotes
+            quotes = PP.string $ oneMore '\'' inner
+         in PP.group $ quotes <> inner <> quotes
       (toDocJoin ppe -> Just ds) ->
         foldMap rec ds
       (toDocItalic ppe -> Just d) ->
         let inner = rec d
-            underscores = oneMore '_' inner
-         in PP.group $ PP.string underscores <> inner <> PP.string underscores
+            underscores = PP.string $ oneMore '_' inner
+         in PP.group $ underscores <> inner <> underscores
       (toDocBold ppe -> Just d) ->
         let inner = rec d
-            stars = oneMore '*' inner
-         in PP.group $ PP.string stars <> inner <> PP.string stars
+            stars = PP.string $ oneMore '*' inner
+         in PP.group $ stars <> inner <> stars
       (toDocStrikethrough ppe -> Just d) ->
          let inner = rec d
-             quotes = oneMore '~' inner
-         in PP.group $ PP.string quotes <> inner <> PP.string quotes
+             quotes = PP.string $ oneMore '~' inner
+         in PP.group $ quotes <> inner <> quotes
       (toDocGroup ppe -> Just d) ->
         PP.group $ rec d
       (toDocColumn ppe -> Just ds) ->
@@ -1464,13 +1474,17 @@ prettyDoc2 ppe ac tm = case tm of
         Left r -> "{type " <> tyName r <> "}"
         Right r -> "{" <> tmName r <> "}"
       (toDocEval ppe -> Just tm) ->
-        PP.lines ["```", pretty0 ppe ac tm, "```"]
+        let inner = pretty0 ppe ac tm
+            fence = makeFence inner
+         in PP.lines [fence, inner, fence]
       (toDocEvalInline ppe -> Just tm) ->
         "@eval{" <> pretty0 ppe ac tm <> "}"
       (toDocExample ppe -> Just tm) ->
         PP.group $ "``" <> pretty0 ppe ac tm <> "``"
       (toDocExampleBlock ppe -> Just tm) ->
-        PP.lines ["@typecheck ```", pretty0 ppe ac' tm, "```"]
+        let inner = pretty0 ppe ac' tm
+            fence = makeFence inner
+         in PP.lines ["@typecheck " <> fence, inner, fence]
         where ac' = ac { elideUnit = True }
       (toDocSource ppe -> Just es) ->
         PP.group $ "    @source{" <> intercalateMap ", " go es <> "}"
@@ -1488,18 +1502,20 @@ prettyDoc2 ppe ac tm = case tm of
         let name = if length tms == 1 then "@signature" else "@signatures"
         in PP.group $ "    " <> name <> "{" <> intercalateMap ", " tmName tms <> "}"
       (toDocCodeBlock ppe -> Just (typ, txt)) ->
-        PP.group $
-          PP.lines
-            [ "``` " <> PP.text typ,
-              PP.group $ PP.text txt,
-              "```"
-            ]
+        let txt' = PP.text txt
+            fence = makeFence txt'
+         in PP.group $
+              PP.lines
+                [ fence <> " " <> PP.text typ
+                , PP.group txt'
+                , fence
+                ]
       (toDocVerbatim ppe -> Just txt) ->
         PP.group $
           PP.lines
-            [ "'''",
-              PP.group $ PP.text txt,
-              "'''"
+            [ "'''"
+            , PP.group $ PP.text txt
+            , "'''"
             ]
       -- todo : emit fewer gratuitous columns, maybe a wrapIfMany combinator
       tm -> bail tm

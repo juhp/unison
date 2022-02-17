@@ -1,18 +1,18 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span id="%24con2tag_1ZUUiU8XBF29P7fFgG6ucu"></span><span class="hs-comment">{- ORMOLU_DISABLE -}</span><span> </span><span class="hs-comment">-- Remove this when the file is ready to be auto-formatted</span><span>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span id="%24con2tag_9HjFZl0bumm61kfIxILpA4"></span><span class="hs-comment">{- ORMOLU_DISABLE -}</span><span> </span><span class="hs-comment">-- Remove this when the file is ready to be auto-formatted</span><span>
 </span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DeriveGeneric #-}</span><span>
 </span><span id="line-3"></span><span>
 </span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Unison.Kind</span><span> </span><span class="hs-keyword">where</span><span>
 </span><span id="line-5"></span><span>
 </span><span id="line-6"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Unison.Prelude</span></span><span>
 </span><span id="line-7"></span><span>
-</span><span id="line-8"></span><span id="local-6989586621679195181"><span id="local-6989586621679195182"></span></span><span class="hs-keyword">data</span><span> </span><span id="Kind"><span class="annot"><a href="Unison.Kind.html#Kind"><span class="hs-identifier hs-var">Kind</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Star"><span class="annot"><a href="Unison.Kind.html#Star"><span class="hs-identifier hs-var">Star</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="Arrow"><span class="annot"><a href="Unison.Kind.html#Arrow"><span class="hs-identifier hs-var">Arrow</span></a></span></span><span> </span><span class="annot"><a href="Unison.Kind.html#Kind"><span class="hs-identifier hs-type">Kind</span></a></span><span> </span><span class="annot"><a href="Unison.Kind.html#Kind"><span class="hs-identifier hs-type">Kind</span></a></span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679195175"><span id="local-6989586621679195177"><span class="annot"><span class="annottext">Kind -&gt; Kind -&gt; Bool
+</span><span id="line-8"></span><span id="local-6989586621679196215"><span id="local-6989586621679196216"></span></span><span class="hs-keyword">data</span><span> </span><span id="Kind"><span class="annot"><a href="Unison.Kind.html#Kind"><span class="hs-identifier hs-var">Kind</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Star"><span class="annot"><a href="Unison.Kind.html#Star"><span class="hs-identifier hs-var">Star</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="Arrow"><span class="annot"><a href="Unison.Kind.html#Arrow"><span class="hs-identifier hs-var">Arrow</span></a></span></span><span> </span><span class="annot"><a href="Unison.Kind.html#Kind"><span class="hs-identifier hs-type">Kind</span></a></span><span> </span><span class="annot"><a href="Unison.Kind.html#Kind"><span class="hs-identifier hs-type">Kind</span></a></span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679196209"><span id="local-6989586621679196211"><span class="annot"><span class="annottext">Kind -&gt; Kind -&gt; Bool
 (Kind -&gt; Kind -&gt; Bool) -&gt; (Kind -&gt; Kind -&gt; Bool) -&gt; Eq Kind
 forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
 /= :: Kind -&gt; Kind -&gt; Bool
 $c/= :: Kind -&gt; Kind -&gt; Bool
 == :: Kind -&gt; Kind -&gt; Bool
 $c== :: Kind -&gt; Kind -&gt; Bool
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span id="local-6989586621679195159"><span id="local-6989586621679195161"><span id="local-6989586621679195163"><span id="local-6989586621679195165"><span id="local-6989586621679195167"><span id="local-6989586621679195169"><span id="local-6989586621679195171"><span class="annot"><span class="annottext">Eq Kind
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span id="local-6989586621679196193"><span id="local-6989586621679196195"><span id="local-6989586621679196197"><span id="local-6989586621679196199"><span id="local-6989586621679196201"><span id="local-6989586621679196203"><span id="local-6989586621679196205"><span class="annot"><span class="annottext">Eq Kind
 Eq Kind
 -&gt; (Kind -&gt; Kind -&gt; Ordering)
 -&gt; (Kind -&gt; Kind -&gt; Bool)
@@ -50,7 +50,7 @@ $c&lt; :: Kind -&gt; Kind -&gt; Bool
 compare :: Kind -&gt; Kind -&gt; Ordering
 $ccompare :: Kind -&gt; Kind -&gt; Ordering
 $cp1Ord :: Eq Kind
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621679195150"><span id="local-6989586621679195152"><span id="local-6989586621679195154"><span id="local-6989586621679195156"><span class="annot"><span class="annottext">ReadPrec [Kind]
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621679196184"><span id="local-6989586621679196186"><span id="local-6989586621679196188"><span id="local-6989586621679196190"><span class="annot"><span class="annottext">ReadPrec [Kind]
 ReadPrec Kind
 Int -&gt; ReadS Kind
 ReadS [Kind]
@@ -67,7 +67,7 @@ readList :: ReadS [Kind]
 $creadList :: ReadS [Kind]
 readsPrec :: Int -&gt; ReadS Kind
 $creadsPrec :: Int -&gt; ReadS Kind
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621679195143"><span id="local-6989586621679195145"><span id="local-6989586621679195147"><span class="annot"><span class="annottext">Int -&gt; Kind -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span id="local-6989586621679196177"><span id="local-6989586621679196179"><span id="local-6989586621679196181"><span class="annot"><span class="annottext">Int -&gt; Kind -&gt; ShowS
 [Kind] -&gt; ShowS
 Kind -&gt; String
 (Int -&gt; Kind -&gt; ShowS)

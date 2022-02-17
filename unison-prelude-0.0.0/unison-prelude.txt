@@ -5,6 +5,34 @@
 @package unison-prelude
 @version 0.0.0
 
+module Unison.Debug
+
+-- | Use for trace-style selective debugging. E.g. 1 + (debug Git "The
+--   second number" 2)
+--   
+--   Or, use in pattern matching to view arguments. E.g. myFunc (debug Git
+--   "argA" -&gt; argA) = ...
+debug :: Show a => DebugFlag -> String -> a -> a
+
+-- | Use for selective debug logging in monadic contexts. E.g. do debugM
+--   Git "source repo" srcRepo ...
+debugM :: (Show a, Monad m) => DebugFlag -> String -> a -> m ()
+
+-- | A <a>when</a> block which is triggered if the given flag is being
+--   debugged.
+whenDebug :: Monad m => DebugFlag -> m () -> m ()
+debugLog :: DebugFlag -> String -> a -> a
+debugLogM :: Monad m => DebugFlag -> String -> m ()
+data DebugFlag
+Git :: DebugFlag
+Sqlite :: DebugFlag
+Codebase :: DebugFlag
+instance GHC.Enum.Enum Unison.Debug.DebugFlag
+instance GHC.Enum.Bounded Unison.Debug.DebugFlag
+instance GHC.Show.Show Unison.Debug.DebugFlag
+instance GHC.Classes.Ord Unison.Debug.DebugFlag
+instance GHC.Classes.Eq Unison.Debug.DebugFlag
+
 module Unison.Prelude
 
 -- | The <a>trace</a> function outputs the trace message given as its first

@@ -59,6 +59,21 @@ instance (GHC.Classes.Ord b, GHC.Classes.Ord a) => GHC.Classes.Ord (Unison.Codeb
 instance (GHC.Classes.Eq b, GHC.Classes.Eq a) => GHC.Classes.Eq (Unison.Codebase.Editor.DisplayObject.DisplayObject b a)
 instance Data.Bifunctor.Bifunctor Unison.Codebase.Editor.DisplayObject.DisplayObject
 
+
+-- | Open codebase error type.
+module Unison.Codebase.Init.OpenCodebaseError
+
+-- | An error that can occur when attempting to open a codebase.
+data OpenCodebaseError
+
+-- | The codebase doesn't exist.
+OpenCodebaseDoesntExist :: OpenCodebaseError
+
+-- | The codebase exists, but its schema version is unknown to this
+--   application.
+OpenCodebaseUnknownSchemaVersion :: Word64 -> OpenCodebaseError
+instance GHC.Show.Show Unison.Codebase.Init.OpenCodebaseError.OpenCodebaseError
+
 module Unison.Codebase.Path
 newtype Path
 Path :: Seq NameSegment -> Path
@@ -2475,6 +2490,7 @@ NoRootBranch :: GetRootBranchError
 CouldntParseRootBranch :: String -> GetRootBranchError
 CouldntLoadRootBranch :: Hash -> GetRootBranchError
 type SyncToDir m = CodebasePath -> SyncMode -> Branch m -> m ()
+gitErrorFromOpenCodebaseError :: CodebasePath -> ReadRepo -> OpenCodebaseError -> GitSqliteCodebaseError
 instance GHC.Show.Show Unison.Codebase.Type.GetRootBranchError
 instance GHC.Show.Show Unison.Codebase.Type.GitError
 instance GHC.Exception.Type.Exception Unison.Codebase.Type.GitError
@@ -2885,26 +2901,9 @@ evaluateWatches :: forall v a. Var v => CodeLookup v IO a -> PrettyPrintEnv -> (
 evaluateTerm' :: (Var v, Monoid a) => CodeLookup v IO a -> (Id -> IO (Maybe (Term v))) -> PrettyPrintEnv -> Runtime v -> Term v a -> IO (Either Error (Term v))
 evaluateTerm :: (Var v, Monoid a) => CodeLookup v IO a -> PrettyPrintEnv -> Runtime v -> Term v a -> IO (Either Error (Term v))
 
-
--- | Open codebase error type.
-module Unison.Codebase.Init.OpenCodebaseError
-
--- | An error that can occur when attempting to open a codebase.
-data OpenCodebaseError
-
--- | The codebase doesn't exist.
-OpenCodebaseDoesntExist :: OpenCodebaseError
-
--- | The codebase exists, but its schema version is unknown to this
---   application.
-OpenCodebaseUnknownSchemaVersion :: Word64 -> OpenCodebaseError
-OpenCodebaseOther :: Pretty ColorText -> OpenCodebaseError
-instance GHC.Show.Show Unison.Codebase.Init.OpenCodebaseError.OpenCodebaseError
-
 module Unison.Codebase.Init.CreateCodebaseError
 data CreateCodebaseError
 CreateCodebaseAlreadyExists :: CreateCodebaseError
-CreateCodebaseOther :: Pretty -> CreateCodebaseError
 type Pretty = Pretty ColorText
 
 module Unison.PrettyTerminal
@@ -3408,9 +3407,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5i5t loc_a5i5u. Lens' (Env v_a5i5t loc_a5i5u) (TypeLookup v_a5i5t loc_a5i5u)
-termsByShortname :: forall v_a5i5t loc_a5i5u. Lens' (Env v_a5i5t loc_a5i5u) (Map Name [NamedReference v_a5i5t loc_a5i5u])
-ambientAbilities :: forall v_a5i5t loc_a5i5u. Lens' (Env v_a5i5t loc_a5i5u) [Type v_a5i5t loc_a5i5u]
+typeLookup :: forall v_a5i0Y loc_a5i0Z. Lens' (Env v_a5i0Y loc_a5i0Z) (TypeLookup v_a5i0Y loc_a5i0Z)
+termsByShortname :: forall v_a5i0Y loc_a5i0Z. Lens' (Env v_a5i0Y loc_a5i0Z) (Map Name [NamedReference v_a5i0Y loc_a5i0Z])
+ambientAbilities :: forall v_a5i0Y loc_a5i0Z. Lens' (Env v_a5i0Y loc_a5i0Z) [Type v_a5i0Y loc_a5i0Z]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.
@@ -4203,6 +4202,7 @@ instance GHC.Show.Show Unison.Codebase.Init.InitResult
 
 module Unison.Codebase.SqliteCodebase
 init :: HasCallStack => MonadUnliftIO m => Init m Symbol Ann
+instance GHC.Classes.Eq Unison.Codebase.SqliteCodebase.CodebaseStatus
 instance GHC.Show.Show a => GHC.Show.Show (Unison.Codebase.SqliteCodebase.BufferEntry a)
 instance GHC.Classes.Eq a => GHC.Classes.Eq (Unison.Codebase.SqliteCodebase.BufferEntry a)
 instance GHC.Show.Show (Unison.Codebase.SqliteCodebase.Entity m)

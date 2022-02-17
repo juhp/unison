@@ -2200,3 +2200,4 @@ difference1 :: Ord a => Set a -> Set a -> Maybe (Set a)
 mapMaybe :: Ord b => (a -> Maybe b) -> Set a -> Set b
 symmetricDifference :: Ord a => Set a -> Set a -> Set a
 traverse :: (Applicative f, Ord b) => (a -> f b) -> Set a -> f (Set b)
+flatMap :: Ord b => (a -> Set b) -> Set a -> Set b

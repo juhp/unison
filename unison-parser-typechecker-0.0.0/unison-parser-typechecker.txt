@@ -1972,6 +1972,10 @@ dataDeclarations' :: TypecheckedUnisonFile v a -> Map v (Reference, DataDeclarat
 discardTypes :: TypecheckedUnisonFile v a -> UnisonFile v a
 effectDeclarations' :: TypecheckedUnisonFile v a -> Map v (Reference, EffectDeclaration v a)
 hashConstructors :: forall v a. Ord v => TypecheckedUnisonFile v a -> Map v Id
+
+-- | Returns the set of constructor names for decls whose names in the
+--   given Set.
+constructorsForDecls :: Ord v => Set v -> TypecheckedUnisonFile v a -> Set v
 hashTerms :: TypecheckedUnisonFile v a -> Map v (Reference, Maybe WatchKind, Term v a, Type v a)
 indexByReference :: TypecheckedUnisonFile v a -> (Map Id (Term v a, Type v a), Map Id (Decl v a))
 lookupDecl :: Ord v => v -> TypecheckedUnisonFile v a -> Maybe (Id, Decl v a)
@@ -3407,9 +3411,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5i0Y loc_a5i0Z. Lens' (Env v_a5i0Y loc_a5i0Z) (TypeLookup v_a5i0Y loc_a5i0Z)
-termsByShortname :: forall v_a5i0Y loc_a5i0Z. Lens' (Env v_a5i0Y loc_a5i0Z) (Map Name [NamedReference v_a5i0Y loc_a5i0Z])
-ambientAbilities :: forall v_a5i0Y loc_a5i0Z. Lens' (Env v_a5i0Y loc_a5i0Z) [Type v_a5i0Y loc_a5i0Z]
+typeLookup :: forall v_a5icX loc_a5icY. Lens' (Env v_a5icX loc_a5icY) (TypeLookup v_a5icX loc_a5icY)
+termsByShortname :: forall v_a5icX loc_a5icY. Lens' (Env v_a5icX loc_a5icY) (Map Name [NamedReference v_a5icX loc_a5icY])
+ambientAbilities :: forall v_a5icX loc_a5icY. Lens' (Env v_a5icX loc_a5icY) [Type v_a5icX loc_a5icY]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.

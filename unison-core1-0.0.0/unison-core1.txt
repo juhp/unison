@@ -1757,6 +1757,7 @@ constructors :: DataDeclaration v a -> [(v, Type v a)]
 constructorType :: Decl v a -> ConstructorType
 constructorTypes :: DataDeclaration v a -> [Type v a]
 constructorVars :: DataDeclaration v a -> [v]
+constructorIds :: DataDeclaration v a -> [ConstructorId]
 declConstructorReferents :: Id -> Decl v a -> [Id]
 declDependencies :: Ord v => Decl v a -> Set Reference
 declFields :: Var v => Decl v a -> Either [Int] [Int]

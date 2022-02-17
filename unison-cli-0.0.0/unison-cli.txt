@@ -55,10 +55,10 @@ DeletePatchI :: Split' -> Input
 ResolveTermNameI :: HQSplit' -> Input
 ResolveTypeNameI :: HQSplit' -> Input
 LoadI :: Maybe FilePath -> Input
-AddI :: [HashQualified Name] -> Input
-PreviewAddI :: [HashQualified Name] -> Input
-UpdateI :: Maybe PatchPath -> [HashQualified Name] -> Input
-PreviewUpdateI :: [HashQualified Name] -> Input
+AddI :: Set Name -> Input
+PreviewAddI :: Set Name -> Input
+UpdateI :: Maybe PatchPath -> Set Name -> Input
+PreviewUpdateI :: Set Name -> Input
 TodoI :: Maybe PatchPath -> Path' -> Input
 PropagatePatchI :: PatchPath -> Path' -> Input
 ListEditsI :: Maybe PatchPath -> Input
@@ -202,14 +202,18 @@ instance GHC.Show.Show Unison.Codebase.Editor.Output.DumpNamespace.DumpNamespace
 
 module Unison.Codebase.Editor.SlurpComponent
 data SlurpComponent v
-SlurpComponent :: Set v -> Set v -> SlurpComponent v
+SlurpComponent :: Set v -> Set v -> Set v -> SlurpComponent v
 [types] :: SlurpComponent v -> Set v
 [terms] :: SlurpComponent v -> Set v
+[ctors] :: SlurpComponent v -> Set v
 isEmpty :: SlurpComponent v -> Bool
 empty :: Ord v => SlurpComponent v
 difference :: Ord v => SlurpComponent v -> SlurpComponent v -> SlurpComponent v
 intersection :: Ord v => SlurpComponent v -> SlurpComponent v -> SlurpComponent v
 closeWithDependencies :: forall v a. Ord v => TypecheckedUnisonFile v a -> SlurpComponent v -> SlurpComponent v
+fromTypes :: Ord v => Set v -> SlurpComponent v
+fromTerms :: Ord v => Set v -> SlurpComponent v
+fromCtors :: Ord v => Set v -> SlurpComponent v
 instance GHC.Show.Show v => GHC.Show.Show (Unison.Codebase.Editor.SlurpComponent.SlurpComponent v)
 instance GHC.Classes.Ord v => GHC.Classes.Ord (Unison.Codebase.Editor.SlurpComponent.SlurpComponent v)
 instance GHC.Classes.Eq v => GHC.Classes.Eq (Unison.Codebase.Editor.SlurpComponent.SlurpComponent v)
@@ -236,10 +240,7 @@ SlurpResult :: TypecheckedUnisonFile v Ann -> SlurpComponent v -> SlurpComponent
 [termAlias] :: SlurpResult v -> Map v Aliases
 [typeAlias] :: SlurpResult v -> Map v Aliases
 [defsWithBlockedDependencies] :: SlurpResult v -> SlurpComponent v
-constructorsFor :: Var v => Set v -> TypecheckedUnisonFile v Ann -> Set v
-subtractComponent :: forall v. Var v => SlurpComponent v -> SlurpResult v -> SlurpResult v
-disallowUpdates :: forall v. Var v => SlurpResult v -> SlurpResult v
-isNonempty :: Ord v => SlurpResult v -> Bool
+hasAddsOrUpdates :: Ord v => SlurpResult v -> Bool
 data Status
 Add :: Status
 Update :: Status
@@ -266,6 +267,38 @@ instance GHC.Show.Show v => GHC.Show.Show (Unison.Codebase.Editor.SlurpResult.Sl
 instance GHC.Show.Show Unison.Codebase.Editor.SlurpResult.Status
 instance GHC.Classes.Eq Unison.Codebase.Editor.SlurpResult.Status
 instance GHC.Classes.Ord Unison.Codebase.Editor.SlurpResult.Status
+
+module Unison.Codebase.Editor.Slurp
+
+-- | The operation which is being performed or checked.
+data SlurpOp
+AddOp :: SlurpOp
+UpdateOp :: SlurpOp
+CheckOp :: SlurpOp
+
+-- | Analyze a file and determine the status of all of its definitions with
+--   respect to a set of vars to analyze and an operation you wish to
+--   perform.
+slurpFile :: forall v. Var v => TypecheckedUnisonFile v Ann -> Set v -> SlurpOp -> Names -> SlurpResult v
+instance GHC.Show.Show Unison.Codebase.Editor.Slurp.SlurpOp
+instance GHC.Classes.Eq Unison.Codebase.Editor.Slurp.SlurpOp
+instance GHC.Show.Show v => GHC.Show.Show (Unison.Codebase.Editor.Slurp.TaggedVar v)
+instance GHC.Classes.Ord v => GHC.Classes.Ord (Unison.Codebase.Editor.Slurp.TaggedVar v)
+instance GHC.Classes.Eq v => GHC.Classes.Eq (Unison.Codebase.Editor.Slurp.TaggedVar v)
+instance GHC.Show.Show Unison.Codebase.Editor.Slurp.SlurpOk
+instance GHC.Classes.Ord Unison.Codebase.Editor.Slurp.SlurpOk
+instance GHC.Classes.Eq Unison.Codebase.Editor.Slurp.SlurpOk
+instance GHC.Show.Show Unison.Codebase.Editor.Slurp.SlurpErr
+instance GHC.Classes.Ord Unison.Codebase.Editor.Slurp.SlurpErr
+instance GHC.Classes.Eq Unison.Codebase.Editor.Slurp.SlurpErr
+instance GHC.Show.Show Unison.Codebase.Editor.Slurp.DefnStatus
+instance GHC.Classes.Ord Unison.Codebase.Editor.Slurp.DefnStatus
+instance GHC.Classes.Eq Unison.Codebase.Editor.Slurp.DefnStatus
+instance GHC.Show.Show v => GHC.Show.Show (Unison.Codebase.Editor.Slurp.SummarizedStatus v)
+instance GHC.Classes.Ord v => GHC.Classes.Ord (Unison.Codebase.Editor.Slurp.SummarizedStatus v)
+instance GHC.Classes.Eq v => GHC.Classes.Eq (Unison.Codebase.Editor.Slurp.SummarizedStatus v)
+instance GHC.Classes.Ord v => GHC.Base.Semigroup (Unison.Codebase.Editor.Slurp.SlurpingSummary v)
+instance GHC.Classes.Ord v => GHC.Base.Monoid (Unison.Codebase.Editor.Slurp.SlurpingSummary v)
 
 module Unison.Codebase.Editor.TodoOutput
 type Score = Int
@@ -693,13 +726,13 @@ LoopState :: Branch m -> Branch m -> NonEmpty Absolute -> Maybe (FilePath, SkipN
 type Action' m v = Action m (Either Event Input) v
 type SkipNextUpdate = Bool
 type InputDescription = Text
-root :: forall m_a1ueW v_a1ueX. Lens' (LoopState m_a1ueW v_a1ueX) (Branch m_a1ueW)
-numberedArgs :: forall m_a1ueW v_a1ueX. Lens' (LoopState m_a1ueW v_a1ueX) NumberedArgs
-latestTypecheckedFile :: forall m_a1ueW v_a1ueX v_a1uqH. Lens (LoopState m_a1ueW v_a1ueX) (LoopState m_a1ueW v_a1uqH) (Maybe (TypecheckedUnisonFile v_a1ueX Ann)) (Maybe (TypecheckedUnisonFile v_a1uqH Ann))
-latestFile :: forall m_a1ueW v_a1ueX. Lens' (LoopState m_a1ueW v_a1ueX) (Maybe (FilePath, SkipNextUpdate))
-lastSavedRoot :: forall m_a1ueW v_a1ueX. Lens' (LoopState m_a1ueW v_a1ueX) (Branch m_a1ueW)
-lastInput :: forall m_a1ueW v_a1ueX. Lens' (LoopState m_a1ueW v_a1ueX) (Maybe Input)
-currentPathStack :: forall m_a1ueW v_a1ueX. Lens' (LoopState m_a1ueW v_a1ueX) (NonEmpty Absolute)
+root :: forall m_a1BAA v_a1BAB. Lens' (LoopState m_a1BAA v_a1BAB) (Branch m_a1BAA)
+numberedArgs :: forall m_a1BAA v_a1BAB. Lens' (LoopState m_a1BAA v_a1BAB) NumberedArgs
+latestTypecheckedFile :: forall m_a1BAA v_a1BAB v_a1BMl. Lens (LoopState m_a1BAA v_a1BAB) (LoopState m_a1BAA v_a1BMl) (Maybe (TypecheckedUnisonFile v_a1BAB Ann)) (Maybe (TypecheckedUnisonFile v_a1BMl Ann))
+latestFile :: forall m_a1BAA v_a1BAB. Lens' (LoopState m_a1BAA v_a1BAB) (Maybe (FilePath, SkipNextUpdate))
+lastSavedRoot :: forall m_a1BAA v_a1BAB. Lens' (LoopState m_a1BAA v_a1BAB) (Branch m_a1BAA)
+lastInput :: forall m_a1BAA v_a1BAB. Lens' (LoopState m_a1BAA v_a1BAB) (Maybe Input)
+currentPathStack :: forall m_a1BAA v_a1BAB. Lens' (LoopState m_a1BAA v_a1BAB) (NonEmpty Absolute)
 currentPath :: Getter (LoopState m v) Absolute
 loopState0 :: Branch m -> Absolute -> LoopState m v
 instance Unison.Codebase.Editor.HandleInput.LoopState.MonadCommand (Unison.Util.Free.Free (Unison.Codebase.Editor.Command.Command m i v)) m i v

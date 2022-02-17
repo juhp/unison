@@ -1440,7 +1440,9 @@ type Line = Int
 type Column = Int
 data Err
 InvalidWordyId :: String -> Err
+ReservedWordyId :: String -> Err
 InvalidSymbolyId :: String -> Err
+ReservedSymbolyId :: String -> Err
 InvalidShortHash :: String -> Err
 InvalidBytesLiteral :: String -> Err
 InvalidHexLiteral :: Err
@@ -1535,8 +1537,8 @@ UnknownTerm :: Token (HashQualified Name) -> Set Referent -> Error v
 UnknownType :: Token (HashQualified Name) -> Set Reference -> Error v
 UnknownId :: Token (HashQualified Name) -> Set Referent -> Set Reference -> Error v
 ExpectedBlockOpen :: String -> Token Lexeme -> Error v
-EmptyMatch :: Error v
-EmptyWatch :: Error v
+EmptyMatch :: Token () -> Error v
+EmptyWatch :: Ann -> Error v
 UseInvalidPrefixSuffix :: Either (Token Name) (Token Name) -> Maybe [Token Name] -> Error v
 UseEmpty :: Token String -> Error v
 DidntExpectExpression :: Token Lexeme -> Maybe (Token Lexeme) -> Error v
@@ -2005,15 +2007,15 @@ link' :: Var v => P v (Either (Token Reference) (Token Referent))
 link :: Var v => TermP v
 blockTerm :: Var v => TermP v
 match :: Var v => TermP v
-matchCases :: Var v => P v [(Int, MatchCase Ann (Term v Ann))]
+matchCases1 :: Var v => Token () -> P v (NonEmpty (Int, MatchCase Ann (Term v Ann)))
 matchCase :: Var v => P v (Int, [MatchCase Ann (Term v Ann)])
 parsePattern :: forall v. Var v => P v (Pattern Ann, [(Ann, v)])
 lam :: Var v => TermP v -> TermP v
 letBlock :: Var v => TermP v
 handle :: Var v => TermP v
-lamCase :: Var v => TermP v
 ifthen :: Var v => TermP v
-checkCasesArities :: (Ord v, Annotated a) => [(Int, a)] -> P v (Int, [a])
+checkCasesArities :: (Ord v, Annotated a) => NonEmpty (Int, a) -> P v (Int, NonEmpty a)
+lamCase :: Var v => TermP v
 text :: Var v => TermP v
 char :: Var v => TermP v
 boolean :: Var v => TermP v
@@ -2082,7 +2084,6 @@ Bindings :: [((Ann, v), term)] -> Stanza v term
 getVars :: Var v => Stanza v term -> [v]
 stanza :: Var v => P v (Stanza v (Term v Ann))
 watched :: Var v => P v (WatchKind, Text, Ann)
-closed :: Var v => P v ()
 type Accessors v = [(Token v, [(Token v, Type v Ann)])]
 declarations :: Var v => P v (Map v (DataDeclaration v Ann), Map v (EffectDeclaration v Ann), Accessors v)
 modifier :: Var v => P v (Maybe (Token Modifier))
@@ -3407,9 +3408,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5hJA loc_a5hJB. Lens' (Env v_a5hJA loc_a5hJB) (TypeLookup v_a5hJA loc_a5hJB)
-termsByShortname :: forall v_a5hJA loc_a5hJB. Lens' (Env v_a5hJA loc_a5hJB) (Map Name [NamedReference v_a5hJA loc_a5hJB])
-ambientAbilities :: forall v_a5hJA loc_a5hJB. Lens' (Env v_a5hJA loc_a5hJB) [Type v_a5hJA loc_a5hJB]
+typeLookup :: forall v_a5hWe loc_a5hWf. Lens' (Env v_a5hWe loc_a5hWf) (TypeLookup v_a5hWe loc_a5hWf)
+termsByShortname :: forall v_a5hWe loc_a5hWf. Lens' (Env v_a5hWe loc_a5hWf) (Map Name [NamedReference v_a5hWe loc_a5hWf])
+ambientAbilities :: forall v_a5hWe loc_a5hWf. Lens' (Env v_a5hWe loc_a5hWf) [Type v_a5hWe loc_a5hWf]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.

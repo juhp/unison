@@ -26,6 +26,7 @@ module Unison.UnisonFile
     tcEffectDeclarationsById,
     tcDeclarationsById,
     hashConstructors,
+    constructorsForDecls,
     hashTerms,
     indexByReference,
     lookupDecl,
@@ -221,3 +222,20 @@ hashConstructors file =
       ctors2 = Map.elems (effectDeclarationsId' file) >>= \(ref, dd) ->
         [ (v, Referent.ConId (ConstructorReference ref i) CT.Effect) | (v,i) <- DD.constructorVars (DD.toDataDecl dd) `zip` [0 ..] ]
   in Map.fromList (ctors1 ++ ctors2)
+
+-- | Returns the set of constructor names for decls whose names in the given Set.
+constructorsForDecls :: Ord v => Set v -> TypecheckedUnisonFile v a -> Set v
+constructorsForDecls types uf =
+  let dataConstructors =
+        dataDeclarationsId' uf
+          & Map.filterWithKey (\k _ -> Set.member k types)
+          & Map.elems
+          & fmap snd
+          & concatMap DD.constructorVars
+      effectConstructors =
+        effectDeclarationsId' uf
+          & Map.filterWithKey (\k _ -> Set.member k types)
+          & Map.elems
+          & fmap (DD.toDataDecl . snd)
+          & concatMap DD.constructorVars
+   in Set.fromList (dataConstructors <> effectConstructors)

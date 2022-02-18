@@ -1818,7 +1818,7 @@ handleUpdate input maybePatchPath requestedNames = do
   use LoopState.latestTypecheckedFile >>= \case
     Nothing -> respond NoUnisonFile
     Just uf -> do
-      structure <- oink requestedNames uf
+      structure <- oink requestedVars uf
 
       -- goal: only use structure below here, not uf/slurp
 
@@ -2037,54 +2037,80 @@ data TermUpdateOp v
 
 -- to add metadata, we need the set of Path.Split
 
+-- FIXME rename to SlurpUpdates
+data SlurpForUpdate v
+  = SlurpForUpdate
+  { -- | Get the set of names a decl had pre-update.
+    -- FIXME kinda misleading to call these "pre-update" names; names don't change during update =P
+    preUpdateDeclNames :: TypeReferenceId -> Set Name
+    -- | Get the set of names a term had pre-update.
+  , preUpdateTermNames :: TermReferenceId -> Set Name
+    -- | The decls' hashes that are being updated.
+    -- FIXME OLD hashes
+  , slurpedDeclHashes :: Set Hash
+    -- | The mapping from old decl to new decl for this update.
+  , slurpedDeclMapping :: Map Reference Reference
+    -- | The names of decls being updated. Initially this is just the names parsed out of the unison file that the user
+    -- saved, but it may gets augmented during decl "hydration", in which we pull more decls out of the codebase into
+    -- the (virtual) unison file. These things would have weird names (see Unison.Var.RefNamed).
+  , slurpedDeclVars :: Set v
+    -- | The terms' hashes that are being updated.
+    -- FIXME OLD hashes
+  , slurpedTermHashes :: Set Hash
+    -- | The mapping from old term to new term for this update.
+  , slurpedTermMapping :: Map Reference Reference
+    -- | The names of terms being updated. See 'slurpedDeclVars'.
+  , slurpedTermVars :: Set v
+  }
+
+makeSlurpForUpdate :: Var v => Names -> Set v -> TypecheckedUnisonFile v Ann -> SlurpForUpdate v
+makeSlurpForUpdate allNames selection unisonFile =
+  SlurpForUpdate
+    { preUpdateDeclNames = Names.namesForReference allNames . Reference.fromId,
+      preUpdateTermNames = Names.namesForReferent allNames . Referent.fromTermReferenceId,
+      slurpedDeclHashes = Set.mapMaybe (Reference.toHash . slurpedDeclVarOldReference) slurpedDeclVars,
+      slurpedDeclMapping =
+        foldl'
+          (\acc var -> Map.insert (slurpedDeclVarOldReference var) (slurpedDeclVarNewReference var) acc)
+          Map.empty
+          slurpedDeclVars,
+      slurpedDeclVars,
+      slurpedTermHashes = Set.mapMaybe (Reference.toHash . slurpedTermVarOldReference) slurpedTermVars,
+      slurpedTermMapping =
+        foldl'
+          (\acc var -> Map.insert (slurpedTermVarOldReference var) (slurpedTermVarNewReference var) acc)
+          Map.empty
+          slurpedTermVars,
+      slurpedTermVars
+    }
+  where
+    fileNames = UF.typecheckedToNames unisonFile
+    slurpResult = Slurp.slurpFile unisonFile selection Slurp.UpdateOp allNames
+    slurpedDeclVars = SC.types (Slurp.updates slurpResult)
+    slurpedDeclVarNewReference = Names.theTypeNamed fileNames . Name.unsafeFromVar
+    slurpedDeclVarOldReference = Names.theTypeNamed allNames . Name.unsafeFromVar
+    slurpedTermVarNewReference = Names.theRefTermNamed fileNames . Name.unsafeFromVar
+    slurpedTermVarOldReference = Names.theRefTermNamed allNames . Name.unsafeFromVar
+    slurpedTermVars = SC.terms (Slurp.updates slurpResult)
+
 oink ::
   forall m v.
   (Monad m, Var v) =>
-  Set Name ->
-  UF.TypecheckedUnisonFile v Ann ->
+  Set v ->
+  TypecheckedUnisonFile v Ann ->
   Action' m v (Structure v)
-oink selection unisonFile = do
+oink selection unisonFile0 = do
   allNames <- currentPathNames
-  let sr0 = Slurp.slurpFile unisonFile (Set.map Name.toVar selection) Slurp.UpdateOp allNames
-  let fileNames = UF.typecheckedToNames unisonFile
+  let slurp = makeSlurpForUpdate allNames selection
 
-  -- Naming conventions for these variables:
-  --
-  --   * "u" prefix means "updated in this slurp", e.g. udecls = updated decls
-  --   * "v" suffix means "var"
-  --   * "r0" suffix means "the old reference" (in the codebase)
-  --   * "r1" suffix means "the new reference" (in the unison file)
-  --   * "ns0" suffix means "the old names" (in the current namespace, ignoring the unison file)
+  unisonFile1 <- hydrateUnisonFileDecls loadDeclComponent unisonFile0 (slurp unisonFile0)
+  unisonFile2 <- hydrateUnisonFileTerms loadTermComponent typecheck unisonFile1 (slurp unisonFile1)
 
-  let udecls_v = SC.types (Slurp.updates sr0)
-  let uterms_v = SC.terms (Slurp.updates sr0)
-
-  let udecl_v_r0 = Names.theTypeNamed allNames . Name.unsafeFromVar
-  let uterm_v_r0 = Names.theRefTermNamed allNames . Name.unsafeFromVar
-
-  let udecl_v_r1 = Names.theTypeNamed fileNames . Name.unsafeFromVar
-  let uterm_v_r1 = Names.theRefTermNamed fileNames . Name.unsafeFromVar
-
-  let udecl_r0_ns0 = Names.namesForReference allNames . Reference.fromId
-  let uterm_r0_ns0 = Names.namesForReferent allNames . Referent.fromTermReferenceId
-
-  let udecl_r0_r1 = foldMap (\var -> Map.singleton (udecl_v_r0 var) (udecl_v_r1 var)) udecls_v
-  let uterm_r0_r1 = foldMap (\var -> Map.singleton (uterm_v_r0 var) (uterm_v_r1 var)) uterms_v
-
-  unisonFile1 <- hydrateUnisonFileDecls loadDeclComponent unisonFile udecls_v udecl_r0_ns0 udecl_v_r0 udecl_r0_r1
-
-  -- FIXME recompute (parts of?) slurp name resolution with new unison file
-
-  unisonFile2 <-
-    hydrateUnisonFileTerms
-      loadTermComponent
-      typecheck
-      unisonFile1
-      uterms_v
-      uterm_r0_ns0
-      uterm_v_r0
-      udecl_r0_r1 -- FIXME
-      uterm_r0_r1
+  pure Structure
+    { structureTerms = undefined
+    , structureTermType = undefined
+    , structureTypes = undefined
+    }
 
   -- let -- replace generated names with their originals, wherever possible
   --     -- FIXME think a little bit about if that works - they can't overlap right? printf debug a little
@@ -2154,12 +2180,9 @@ hydrateUnisonFileDecls ::
   (Monad m, Var v) =>
   (Hash -> m [(TypeReferenceId, Decl v Ann)]) ->
   TypecheckedUnisonFile v Ann ->
-  Set v ->
-  (TypeReferenceId -> Set Name) ->
-  (v -> TypeReference) ->
-  Map TypeReference TypeReference ->
+  SlurpForUpdate v ->
   m (TypecheckedUnisonFile v Ann)
-hydrateUnisonFileDecls loadDeclComponent unisonFile udecls_v udecl_r0_ns0 udecl_v_r0 udecl_r0_r1 = do
+hydrateUnisonFileDecls loadDeclComponent unisonFile SlurpForUpdate{preUpdateDeclNames, slurpedDeclHashes, slurpedDeclMapping, slurpedDeclVars} = do
   extraDecls <- loadExtraDecls
   pure
     if Map.null extraDecls
@@ -2171,10 +2194,8 @@ hydrateUnisonFileDecls loadDeclComponent unisonFile udecls_v udecl_r0_ns0 udecl_
       -- FIXME pretty sure this could be Map.fromAscList
       fmap Map.fromList do
         let notBeingUpdated (ref0, _) =
-              Set.disjoint udecls_v (Set.map Name.toVar (udecl_r0_ns0 ref0))
-        foldMapM
-          (\hash -> filter notBeingUpdated <$> loadDeclComponent hash)
-          (Set.mapMaybe (Reference.toHash . udecl_v_r0) udecls_v)
+              Set.disjoint slurpedDeclVars (Set.map Name.toVar (preUpdateDeclNames ref0))
+        foldMapM (\hash -> filter notBeingUpdated <$> loadDeclComponent hash) slurpedDeclHashes
 
     hydrateDecls ::
       TypecheckedUnisonFile v Ann ->
@@ -2235,7 +2256,7 @@ hydrateUnisonFileDecls loadDeclComponent unisonFile udecls_v udecl_r0_ns0 udecl_
     substituteType :: Type.F a -> Type.F a
     substituteType = \case
       Type.Ref ref0 ->
-        case Map.lookup ref0 udecl_r0_r1 of
+        case Map.lookup ref0 slurpedDeclMapping of
           Nothing -> Type.Ref ref0
           Just ref1 -> Type.Ref ref1
       ty -> ty
@@ -2246,13 +2267,9 @@ hydrateUnisonFileTerms ::
   (Hash -> m [(TermReferenceId, Term v Ann)]) ->
   (UF.UnisonFile v Ann -> m (Maybe (TypecheckedUnisonFile v Ann))) ->
   TypecheckedUnisonFile v Ann ->
-  Set v ->
-  (TermReferenceId -> Set Name) ->
-  (v -> TermReference) ->
-  Map TypeReference TypeReference ->
-  Map TermReference TermReference ->
+  SlurpForUpdate v ->
   m (TypecheckedUnisonFile v Ann)
-hydrateUnisonFileTerms loadTermComponent typecheck unisonFile uterms_v uterm_r0_ns0 uterm_v_r0 udecl_r0_r1 uterm_r0_r1 = do
+hydrateUnisonFileTerms loadTermComponent typecheck unisonFile SlurpForUpdate{preUpdateTermNames, slurpedDeclMapping, slurpedTermHashes, slurpedTermMapping, slurpedTermVars} = do
   extraTerms <- loadExtraTerms
 
   if Map.null extraTerms
@@ -2264,10 +2281,8 @@ hydrateUnisonFileTerms loadTermComponent typecheck unisonFile uterms_v uterm_r0_
       -- FIXME pretty sure this could be Map.fromAscList
       fmap Map.fromList do
         let notBeingUpdated (ref, _) =
-              Set.disjoint uterms_v (Set.map Name.toVar (uterm_r0_ns0 ref))
-        foldMapM
-          (\hash -> filter notBeingUpdated <$> loadTermComponent hash)
-          (Set.mapMaybe (Reference.toHash . uterm_v_r0) uterms_v)
+              Set.disjoint slurpedTermVars (Set.map Name.toVar (preUpdateTermNames ref))
+        foldMapM (\hash -> filter notBeingUpdated <$> loadTermComponent hash) slurpedTermHashes
 
     hydrateTerms :: TypecheckedUnisonFile v Ann -> Map TermReferenceId (Term v Ann) -> m (TypecheckedUnisonFile v Ann)
     hydrateTerms unisonFile extraTerms = do
@@ -2340,7 +2355,7 @@ hydrateUnisonFileTerms loadTermComponent typecheck unisonFile uterms_v uterm_r0_
     substituteTerm =
       ABT.rebuildUp \case
         Term.Ref ref0 ->
-          case Map.lookup ref0 uterm_r0_r1 of
+          case Map.lookup ref0 slurpedTermMapping of
             Nothing -> Term.Ref ref0
             Just ref1 -> Term.Ref ref1
         Term.Ann ann ty -> Term.Ann ann (substituteType ty)
@@ -2350,7 +2365,7 @@ hydrateUnisonFileTerms loadTermComponent typecheck unisonFile uterms_v uterm_r0_
     substituteType =
       ABT.rebuildUp \case
         Type.Ref ref0 ->
-          case Map.lookup ref0 udecl_r0_r1 of
+          case Map.lookup ref0 slurpedDeclMapping of
             Nothing -> Type.Ref ref0
             Just ref1 -> Type.Ref ref1
         ty -> ty
@@ -3320,8 +3335,8 @@ docsI srcLoc prettyPrintNames src = do
 filterBySlurpResult ::
   Ord v =>
   SlurpResult v ->
-  UF.TypecheckedUnisonFile v Ann ->
-  UF.TypecheckedUnisonFile v Ann
+  TypecheckedUnisonFile v Ann ->
+  TypecheckedUnisonFile v Ann
 filterBySlurpResult
   SlurpResult {adds, updates}
   ( UF.TypecheckedUnisonFileId
@@ -3348,7 +3363,7 @@ doSlurpAdds ::
   forall m v.
   (Monad m, Var v) =>
   SlurpComponent v ->
-  UF.TypecheckedUnisonFile v Ann ->
+  TypecheckedUnisonFile v Ann ->
   (Branch0 m -> Branch0 m)
 doSlurpAdds slurp uf = Branch.batchUpdates (typeActions <> termActions)
   where

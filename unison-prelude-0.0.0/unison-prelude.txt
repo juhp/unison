@@ -2154,9 +2154,20 @@ encodeUtf8 :: Text -> ByteString
 --   handling of invalid data, use <a>decodeUtf8'</a> or
 --   <a>decodeUtf8With</a>.
 decodeUtf8 :: ByteString -> Text
+
+-- | Strictly read an entire file decoding UTF8. Converts rn -&gt; n on
+--   windows.
 readUtf8 :: FilePath -> IO Text
+
+-- | Strictly read from a handle, decoding UTF8, or failing if not valid
+--   UTF8 Converts rn -&gt; n on windows.
 safeReadUtf8 :: FilePath -> IO (Either IOException Text)
+
+-- | Strictly read from stdin, decoding UTF8. Converts rn -&gt; n on
+--   windows.
 safeReadUtf8StdIn :: IO (Either IOException Text)
+
+-- | Write a file strictly assuming UTF8 Converts n -&gt; rn on windows.
 writeUtf8 :: FilePath -> Text -> IO ()
 uncurry4 :: (a -> b -> c -> d -> e) -> (a, b, c, d) -> e
 reportBug :: String -> String -> String

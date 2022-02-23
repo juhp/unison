@@ -277,6 +277,7 @@ data GitCodebaseError h
 NoRemoteNamespaceWithHash :: ReadRepo -> ShortBranchHash -> GitCodebaseError h
 RemoteNamespaceHashAmbiguous :: ReadRepo -> ShortBranchHash -> Set h -> GitCodebaseError h
 CouldntLoadRootBranch :: ReadRepo -> h -> GitCodebaseError h
+CouldntParseRemoteBranch :: ReadRepo -> String -> GitCodebaseError h
 CouldntLoadSyncedBranch :: ReadRemoteNamespace -> h -> GitCodebaseError h
 CouldntFindRemoteBranch :: ReadRepo -> Path -> GitCodebaseError h
 instance GHC.Exception.Type.Exception Unison.Codebase.GitError.GitProtocolError
@@ -2320,7 +2321,7 @@ module Unison.Codebase.Type
 
 -- | Abstract interface to a user's codebase.
 data Codebase m v a
-Codebase :: (Id -> m (Maybe (Term v a))) -> (Id -> m (Maybe (Type v a))) -> (Id -> m (Maybe (Decl v a))) -> (Id -> Term v a -> Type v a -> m ()) -> (Id -> Decl v a -> m ()) -> (Hash -> m (Maybe [(Term v a, Type v a)])) -> (Hash -> m (Maybe [Decl v a])) -> (Hash -> m (Maybe CycleSize)) -> m (Either GetRootBranchError (Branch m)) -> m Bool -> (Branch m -> m ()) -> m (IO (), IO (Set Hash)) -> (Hash -> m (Maybe (Branch m))) -> (Branch m -> m ()) -> (Hash -> m Bool) -> (EditHash -> m (Maybe Patch)) -> (EditHash -> Patch -> m ()) -> (EditHash -> m Bool) -> (Reference -> m (Set Id)) -> (Hash -> m (Set Id)) -> (CodebasePath -> SyncMode -> Branch m -> m ()) -> (CodebasePath -> SyncMode -> Branch m -> m ()) -> (forall r. ReadRemoteNamespace -> GitBranchBehavior -> ((Branch m, CodebasePath) -> m r) -> m (Either GitError r)) -> (Branch m -> WriteRepo -> PushGitBranchOpts -> m (Either GitError ())) -> (WatchKind -> m [Id]) -> (WatchKind -> Id -> m (Maybe (Term v a))) -> (WatchKind -> Id -> Term v a -> m ()) -> m () -> m [Entry Hash] -> (Text -> Branch m -> Branch m -> m ()) -> (Reference -> m (Set Id)) -> (Reference -> m (Set Id)) -> m Int -> (ShortHash -> m (Set Id)) -> (ShortHash -> m (Set Id)) -> (ShortHash -> m (Set Id)) -> m Int -> (ShortBranchHash -> m (Set Hash)) -> Maybe (Hash -> Hash -> m (Maybe Hash)) -> Maybe (Hash -> Hash -> m Bool) -> Codebase m v a
+Codebase :: (Id -> m (Maybe (Term v a))) -> (Id -> m (Maybe (Type v a))) -> (Id -> m (Maybe (Decl v a))) -> (Id -> Term v a -> Type v a -> m ()) -> (Id -> Decl v a -> m ()) -> (Hash -> m (Maybe [(Term v a, Type v a)])) -> (Hash -> m (Maybe [Decl v a])) -> (Hash -> m (Maybe CycleSize)) -> m (Either GetRootBranchError (Branch m)) -> m Bool -> (Branch m -> m ()) -> m (IO (), IO (Set Hash)) -> (Hash -> m (Maybe (Branch m))) -> (Branch m -> m ()) -> (Hash -> m Bool) -> (EditHash -> m (Maybe Patch)) -> (EditHash -> Patch -> m ()) -> (EditHash -> m Bool) -> (Reference -> m (Set Id)) -> (Hash -> m (Set Id)) -> (CodebasePath -> SyncMode -> Branch m -> m ()) -> (CodebasePath -> SyncMode -> Branch m -> m ()) -> (forall r. ReadRemoteNamespace -> GitBranchBehavior -> ((Branch m, CodebasePath) -> m r) -> m (Either GitError r)) -> (forall e. WriteRepo -> PushGitBranchOpts -> (Branch m -> m (Either e (Branch m))) -> m (Either GitError (Either e (Branch m)))) -> (WatchKind -> m [Id]) -> (WatchKind -> Id -> m (Maybe (Term v a))) -> (WatchKind -> Id -> Term v a -> m ()) -> m () -> m [Entry Hash] -> (Text -> Branch m -> Branch m -> m ()) -> (Reference -> m (Set Id)) -> (Reference -> m (Set Id)) -> m Int -> (ShortHash -> m (Set Id)) -> (ShortHash -> m (Set Id)) -> (ShortHash -> m (Set Id)) -> m Int -> (ShortBranchHash -> m (Set Hash)) -> Maybe (Hash -> Hash -> m (Maybe Hash)) -> Maybe (Hash -> Hash -> m Bool) -> Codebase m v a
 
 -- | Get a user-defined term from the codebase.
 --   
@@ -2405,7 +2406,7 @@ Codebase :: (Id -> m (Maybe (Term v a))) -> (Id -> m (Maybe (Type v a))) -> (Id 
 
 -- | Push the given branch to the given repo, and optionally set it as the
 --   root branch.
-[pushGitBranch] :: Codebase m v a -> Branch m -> WriteRepo -> PushGitBranchOpts -> m (Either GitError ())
+[pushGitBranch] :: Codebase m v a -> forall e. WriteRepo -> PushGitBranchOpts -> (Branch m -> m (Either e (Branch m))) -> m (Either GitError (Either e (Branch m)))
 
 -- | <tt>watches k</tt> returns all of the references <tt>r</tt> that were
 --   previously put by a <tt>putWatch k r t</tt>. <tt>t</tt> can be
@@ -3411,9 +3412,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5icX loc_a5icY. Lens' (Env v_a5icX loc_a5icY) (TypeLookup v_a5icX loc_a5icY)
-termsByShortname :: forall v_a5icX loc_a5icY. Lens' (Env v_a5icX loc_a5icY) (Map Name [NamedReference v_a5icX loc_a5icY])
-ambientAbilities :: forall v_a5icX loc_a5icY. Lens' (Env v_a5icX loc_a5icY) [Type v_a5icX loc_a5icY]
+typeLookup :: forall v_a5ij3 loc_a5ij4. Lens' (Env v_a5ij3 loc_a5ij4) (TypeLookup v_a5ij3 loc_a5ij4)
+termsByShortname :: forall v_a5ij3 loc_a5ij4. Lens' (Env v_a5ij3 loc_a5ij4) (Map Name [NamedReference v_a5ij3 loc_a5ij4])
+ambientAbilities :: forall v_a5ij3 loc_a5ij4. Lens' (Env v_a5ij3 loc_a5ij4) [Type v_a5ij3 loc_a5ij4]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.
@@ -4109,7 +4110,7 @@ Preprocessed :: (Branch m -> m (Branch m)) -> Preprocessing m
 
 -- | Push the given branch to the given repo, and optionally set it as the
 --   root branch.
-pushGitBranch :: Codebase m v a -> Branch m -> WriteRepo -> PushGitBranchOpts -> m (Either GitError ())
+pushGitBranch :: Codebase m v a -> forall e. WriteRepo -> PushGitBranchOpts -> (Branch m -> m (Either e (Branch m))) -> m (Either GitError (Either e (Branch m)))
 data PushGitBranchOpts
 PushGitBranchOpts :: Bool -> SyncMode -> PushGitBranchOpts
 

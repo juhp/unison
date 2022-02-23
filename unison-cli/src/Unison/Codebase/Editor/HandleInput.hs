@@ -1936,38 +1936,87 @@ structureIsEmpty structure =
 -- maybe this should be adds and updates
 structureToAdds :: Structure v -> [(Path, Branch0 m -> Branch0 m)]
 structureToAdds = undefined
+-- doSlurpAdds ::
+--   forall m v.
+--   (Monad m, Var v) =>
+--   SlurpComponent v ->
+--   TypecheckedUnisonFile v Ann ->
+--   (Branch0 m -> Branch0 m)
+-- doSlurpAdds slurp uf = Branch.batchUpdates (typeActions <> termActions)
+--   where
+--     typeActions = map doType . toList $ SC.types slurp
+--     termActions =
+--       map doTerm . toList $
+--         SC.terms slurp <> UF.constructorsForDecls (SC.types slurp) uf
+--     names = UF.typecheckedToNames uf
+--     tests = Set.fromList $ fst <$> UF.watchesOfKind WK.TestWatch (UF.discardTypes uf)
+--     (isTestType, isTestValue) = isTest
+--     md v =
+--       if Set.member v tests
+--         then Metadata.singleton isTestType isTestValue
+--         else Metadata.empty
+--     doTerm :: v -> (Path, Branch0 m -> Branch0 m)
+--     doTerm v = case toList (Names.termsNamed names (Name.unsafeFromVar v)) of
+--       [] -> errorMissingVar v
+--       [r] -> BranchUtil.makeAddTermName (Path.splitFromName (Name.unsafeFromVar v)) r (md v)
+--       wha ->
+--         error $
+--           "Unison bug, typechecked file w/ multiple terms named "
+--             <> Var.nameStr v
+--             <> ": "
+--             <> show wha
+--     doType :: v -> (Path, Branch0 m -> Branch0 m)
+--     doType v = case toList (Names.typesNamed names (Name.unsafeFromVar v)) of
+--       [] -> errorMissingVar v
+--       [r] -> BranchUtil.makeAddTypeName (Path.splitFromName (Name.unsafeFromVar v)) r Metadata.empty
+--       wha ->
+--         error $
+--           "Unison bug, typechecked file w/ multiple types named "
+--             <> Var.nameStr v
+--             <> ": "
+--             <> show wha
+--     errorMissingVar v = error $ "expected to find " ++ show v ++ " in " ++ show uf
 
 -- FIXME reduce duplication?
-structureToUpdates :: forall m v. Branch0 m -> Structure v -> [(Path, Branch0 m -> Branch0 m)]
+structureToUpdates :: forall m v. Var v => Branch0 m -> Structure v -> [(Path, Branch0 m -> Branch0 m)]
 structureToUpdates branch structure =
   let termUpsertToOps :: UpsertOp v -> [(Path, Branch0 m -> Branch0 m)]
       termUpsertToOps = \case
-        UpsertOpAdd {} -> []
-        UpsertOpUpdate updateOp -> termUpdateToOps updateOp
-      termUpdateToOps :: UpdateOp v -> [(Path, Branch0 m -> Branch0 m)]
-      termUpdateToOps UpdateOp {updateOldRef, updateNewRef} = do
-        (name, metadata) <- getTermInfo (Referent.Ref updateOldRef)
-        [ BranchUtil.makeDeleteTermName name (Referent.Ref updateOldRef),
-          BranchUtil.makeAddTermName name (Referent.Ref updateNewRef) metadata
+        UpsertOpAdd AddOp {addVar, addRef} ->
+          [ BranchUtil.makeAddTermName (Path.splitFromName (Name.unsafeFromVar addVar)) (Referent.Ref addRef)
+              (if Set.member addVar undefined
+                then Metadata.singleton undefined undefined
+                else Metadata.empty)
           ]
+        -- FIXME add isTest metadata to update (to cover the case of updating *not test* -> *test*
+        UpsertOpUpdate UpdateOp {updateOldRef, updateNewRef} -> do
+          (name, metadata) <- getTermInfo (Referent.Ref updateOldRef)
+          [ BranchUtil.makeDeleteTermName name (Referent.Ref updateOldRef),
+            BranchUtil.makeAddTermName name (Referent.Ref updateNewRef) metadata
+            ]
       typeUpsertToOps :: UpsertOp v -> [(Path, Branch0 m -> Branch0 m)]
       typeUpsertToOps = \case
-        UpsertOpAdd {} -> []
-        UpsertOpUpdate updateOp -> typeUpdateToOps updateOp
-      typeUpdateToOps :: UpdateOp v -> [(Path, Branch0 m -> Branch0 m)]
-      typeUpdateToOps UpdateOp {updateOldRef, updateNewRef} =
-        let infoToOps (name, metadata) =
-              [ BranchUtil.makeDeleteTypeName name updateOldRef,
-                BranchUtil.makeAddTypeName name updateNewRef metadata
-              ]
-         in foldMap infoToOps (getTypeInfo updateOldRef) ++ termDeprecations
-        where
-          termDeprecations :: [(Path, Branch0 m -> Branch0 m)]
-          termDeprecations =
-            map
-              (\(name, term) -> BranchUtil.makeDeleteTermName (Path.splitFromName name) term)
-              (Names.constructorsForType updateOldRef (Branch.toNames branch))
-   in foldMap termUpsertToOps (structureTerms structure) ++ foldMap typeUpsertToOps (structureTypes structure)
+        UpsertOpAdd AddOp {addVar, addRef} ->
+          [BranchUtil.makeAddTypeName (Path.splitFromName (Name.unsafeFromVar addVar)) addRef Metadata.empty]
+        UpsertOpUpdate UpdateOp {updateOldRef, updateNewRef} ->
+          let infoToOps (name, metadata) =
+                [ BranchUtil.makeDeleteTypeName name updateOldRef,
+                  BranchUtil.makeAddTypeName name updateNewRef metadata
+                ]
+           in concat
+                [ foldMap infoToOps (getTypeInfo updateOldRef),
+                  termDeprecations
+                ]
+          where
+            termDeprecations :: [(Path, Branch0 m -> Branch0 m)]
+            termDeprecations =
+              map
+                (\(name, term) -> BranchUtil.makeDeleteTermName (Path.splitFromName name) term)
+                (Names.constructorsForType updateOldRef (Branch.toNames branch))
+   in concat
+        [ foldMap termUpsertToOps (structureTerms structure),
+          foldMap typeUpsertToOps (structureTypes structure)
+        ]
   where
     getTermInfo :: Referent -> [(Path.Split, Metadata.Metadata)]
     getTermInfo ref =
@@ -2011,7 +2060,7 @@ data UpdateOp v
   = UpdateOp
   { updateOldRef :: Reference,
     updateNewRef :: Reference,
-    updateVar :: Maybe v
+    updateVar :: Maybe v -- FIXME is this needed?
   }
 
 data TermUpsertOp v

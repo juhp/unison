@@ -3412,9 +3412,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5ij4 loc_a5ij5. Lens' (Env v_a5ij4 loc_a5ij5) (TypeLookup v_a5ij4 loc_a5ij5)
-termsByShortname :: forall v_a5ij4 loc_a5ij5. Lens' (Env v_a5ij4 loc_a5ij5) (Map Name [NamedReference v_a5ij4 loc_a5ij5])
-ambientAbilities :: forall v_a5ij4 loc_a5ij5. Lens' (Env v_a5ij4 loc_a5ij5) [Type v_a5ij4 loc_a5ij5]
+typeLookup :: forall v_a5iwE loc_a5iwF. Lens' (Env v_a5iwE loc_a5iwF) (TypeLookup v_a5iwE loc_a5iwF)
+termsByShortname :: forall v_a5iwE loc_a5iwF. Lens' (Env v_a5iwE loc_a5iwF) (Map Name [NamedReference v_a5iwE loc_a5iwF])
+ambientAbilities :: forall v_a5iwE loc_a5iwF. Lens' (Env v_a5iwE loc_a5iwF) [Type v_a5iwE loc_a5iwF]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.
@@ -3756,6 +3756,12 @@ doc2JoinId :: ConstructorId
 doc2UntitledSectionId :: ConstructorId
 doc2ColumnId :: ConstructorId
 doc2GroupId :: ConstructorId
+doc2MediaSourceRef :: Reference
+pattern Doc2MediaSourceRef :: Reference
+doc2VideoRef :: Reference
+pattern Doc2VideoRef :: Reference
+doc2FrontMatterRef :: Reference
+pattern Doc2FrontMatterRef :: Reference
 pattern Doc2Word :: Text -> Term (F typeVar typeAnn patternAnn) v a
 pattern Doc2Code :: Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a
 pattern Doc2CodeBlock :: Text -> Term2 typeVar typeAnn patternAnn v a -> Term2 typeVar typeAnn patternAnn v a
@@ -3807,6 +3813,9 @@ pattern Doc2SpecialFormEval :: Term (F typeVar typeAnn patternAnn) v a -> Term (
 pattern Doc2SpecialFormEvalInline :: Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a
 pattern Doc2SpecialFormEmbed :: Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a
 pattern Doc2SpecialFormEmbedInline :: Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a
+pattern Doc2MediaSource :: Term2 typeVar typeAnn patternAnn v a -> Term2 typeVar typeAnn patternAnn v a -> Term2 typeVar typeAnn patternAnn v a
+pattern Doc2SpecialFormEmbedVideo :: [Term (F typeVar typeAnn patternAnn) v a] -> [Term (F typeVar typeAnn patternAnn) v a] -> Term (F typeVar typeAnn patternAnn) v a
+pattern Doc2SpecialFormEmbedFrontMatter :: [Term (F typeVar typeAnn patternAnn) v a] -> Term (F typeVar typeAnn patternAnn) v a
 pattern Doc2Example :: forall vt at ap v a. [v] -> Term2 vt at ap v a -> Term (F vt at ap) v a
 pattern Doc2Term :: Term (F typeVar typeAnn patternAnn) v a -> Term (F typeVar typeAnn patternAnn) v a
 pattern Doc2TermRef :: Reference
@@ -4262,6 +4271,10 @@ type UnisonHash = Text
 data Ref a
 Term :: a -> Ref a
 Type :: a -> Ref a
+data MediaSource
+MediaSource :: Text -> Maybe Text -> MediaSource
+[mediaSourceUrl] :: MediaSource -> Text
+[mediaSourceMimeType] :: MediaSource -> Maybe Text
 data SpecialForm
 Source :: [Ref (UnisonHash, DisplayObject SyntaxText Src)] -> SpecialForm
 FoldedSource :: [Ref (UnisonHash, DisplayObject SyntaxText Src)] -> SpecialForm
@@ -4274,6 +4287,8 @@ Eval :: SyntaxText -> SyntaxText -> SpecialForm
 EvalInline :: SyntaxText -> SyntaxText -> SpecialForm
 Embed :: SyntaxText -> SpecialForm
 EmbedInline :: SyntaxText -> SpecialForm
+Video :: [MediaSource] -> Map Text Text -> SpecialForm
+FrontMatter :: Map Text [Text] -> SpecialForm
 data Src
 Src :: SyntaxText -> SyntaxText -> Src
 renderDoc :: forall v m. (Var v, Monad m) => PrettyPrintEnvDecl -> (Reference -> m (Maybe (Term v ()))) -> (Referent -> m (Maybe (Type v ()))) -> (Term v () -> m (Maybe (Term v ()))) -> (Reference -> m (Maybe (Decl v ()))) -> Term v () -> m Doc
@@ -4283,6 +4298,9 @@ instance GHC.Base.Functor Unison.Server.Doc.Ref
 instance GHC.Generics.Generic (Unison.Server.Doc.Ref a)
 instance GHC.Show.Show a => GHC.Show.Show (Unison.Server.Doc.Ref a)
 instance GHC.Classes.Eq a => GHC.Classes.Eq (Unison.Server.Doc.Ref a)
+instance GHC.Generics.Generic Unison.Server.Doc.MediaSource
+instance GHC.Show.Show Unison.Server.Doc.MediaSource
+instance GHC.Classes.Eq Unison.Server.Doc.MediaSource
 instance GHC.Generics.Generic Unison.Server.Doc.Src
 instance GHC.Show.Show Unison.Server.Doc.Src
 instance GHC.Classes.Eq Unison.Server.Doc.Src
@@ -4424,10 +4442,12 @@ instance Data.Aeson.Types.ToJSON.ToJSONKey Unison.ShortHash.ShortHash
 instance Data.Aeson.Types.ToJSON.ToJSON n => Data.Aeson.Types.ToJSON.ToJSON (Unison.HashQualified.HashQualified n)
 instance Data.Aeson.Types.ToJSON.ToJSON Unison.ConstructorType.ConstructorType
 instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Doc.Doc
+instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Doc.MediaSource
 instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Doc.SpecialForm
 instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Doc.Src
 instance Data.Aeson.Types.ToJSON.ToJSON a => Data.Aeson.Types.ToJSON.ToJSON (Unison.Server.Doc.Ref a)
 instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Doc.Doc
+instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Doc.MediaSource
 instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Doc.SpecialForm
 instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Doc.Src
 instance Data.OpenApi.Internal.Schema.ToSchema a => Data.OpenApi.Internal.Schema.ToSchema (Unison.Server.Doc.Ref a)
@@ -4463,7 +4483,12 @@ mergeWords :: Text -> [Doc] -> [Doc]
 --   things like extract an src of an image. I.e something that has to be a
 --   Text and not a Doc
 toText :: Text -> Doc -> Text
-toHtml :: Map Referent Name -> Doc -> Html ()
+data SideContent
+FrontMatterContent :: Map Text [Text] -> SideContent
+TooltipContent :: Html () -> SideContent
+newtype FrontMatterData
+FrontMatterData :: Map Text [Text] -> FrontMatterData
+toHtml :: Map Referent Name -> Doc -> (FrontMatterData, Html ())
 
 -- | Unison Doc allows endlessly deep section nesting with titles, but HTML
 --   only supports to h1-h6, so we clamp the sectionLevel when converting

@@ -121,15 +121,15 @@ f (Token s) -&gt; m (Token s)
 </span><span class="hs-identifier hs-type">ReadGitRepo</span></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">url :: Text
 </span><span class="hs-identifier hs-var">url</span></span><span class="hs-glyph">=</span><span class="annot"><span class="annottext">Text
 </span><span class="hs-string">&quot;https://github.com/unisonweb/base&quot;</span></span><span>
-</span><span id="line-29"></span><span>                           </span><span class="hs-comment">-- Use the 'v2' branch of base for now.</span><span>
+</span><span id="line-29"></span><span>                           </span><span class="hs-comment">-- Use the 'v3' branch of base for now.</span><span>
 </span><span id="line-30"></span><span>                           </span><span class="hs-comment">-- We can revert back to the main branch once enough people have upgraded ucm and</span><span>
-</span><span id="line-31"></span><span>                           </span><span class="hs-comment">-- we're okay with pushing the v2 base codebase to main (perhaps by the next ucm</span><span>
+</span><span id="line-31"></span><span>                           </span><span class="hs-comment">-- we're okay with pushing the v3 base codebase to main (perhaps by the next ucm</span><span>
 </span><span id="line-32"></span><span>                           </span><span class="hs-comment">-- release).</span><span>
 </span><span id="line-33"></span><span>                           </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">ref :: Maybe Text
 </span><span class="hs-identifier hs-var">ref</span></span><span class="hs-glyph">=</span><span class="annot"><span class="annottext">Text -&gt; Maybe Text
 forall a. a -&gt; Maybe a
 </span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Text
-</span><span class="hs-string">&quot;v2&quot;</span></span><span>
+</span><span class="hs-string">&quot;v3&quot;</span></span><span>
 </span><span id="line-34"></span><span>                           </span><span class="hs-special">}</span><span>
 </span><span id="line-35"></span><span>             </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Maybe ShortBranchHash
 forall a. Maybe a

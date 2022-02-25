@@ -15,6 +15,7 @@ module Unison.DataDeclaration
     Modifier(..),
     allVars,
     asDataDecl,
+    asLabeledDataDecl,
     bindReferences,
     constructorNames,
     constructors,
@@ -78,6 +79,13 @@ data DeclOrBuiltin v a =
 
 asDataDecl :: Decl v a -> DataDeclaration v a
 asDataDecl = either toDataDecl id
+
+-- | Like 'asDataDecl', but also returns the constructor type to indicate whether the decl was an effect declaration or
+-- a data declaration.
+asLabeledDataDecl :: Decl v a -> (CT.ConstructorType, DataDeclaration v a)
+asLabeledDataDecl = \case
+  Left effectDecl -> (CT.Effect, toDataDecl effectDecl)
+  Right dataDecl -> (CT.Data, dataDecl)
 
 -- | View the 'DataDeclaration' inside a 'Decl'.
 dataDecl_ :: Lens' (Decl v a) (DataDeclaration v a)

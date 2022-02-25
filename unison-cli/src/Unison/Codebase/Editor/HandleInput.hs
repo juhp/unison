@@ -83,7 +83,7 @@ import qualified Unison.CommandLine.DisplayValues as DisplayValues
 import qualified Unison.CommandLine.FuzzySelect as Fuzzy
 import qualified Unison.CommandLine.InputPattern as InputPattern
 import qualified Unison.CommandLine.InputPatterns as InputPatterns
-import Unison.ConstructorReference (GConstructorReference(..))
+import Unison.ConstructorReference (ConstructorReferenceId, GConstructorReference(..))
 import Unison.DataDeclaration (Decl)
 import qualified Unison.DataDeclaration as DD
 import Unison.Hash (Hash)
@@ -1894,17 +1894,10 @@ handleUpdate input maybePatchPath requestedNames = do
           [ ( Path.unabsolute currentPath',
               pure . Branch.batchUpdates (structureToUpdates currentBranch structure)
             ),
-            ( Path.unabsolute currentPath',
-              -- FIXME delete
-              -- observation: don't want updates here, they are redundant due to doSlurpUpdates
-              --   wait, maybe not? (isTest metadata, other complications maybe)
-              -- pure . doSlurpAdds addsAndUpdates uf
-              pure . Branch.batchUpdates (structureToAdds structure)
-            ),
             (Path.unabsolute p, updatePatches)
           ]
-        for_ (structureTerms structure) \case
-          UpsertOpAdd _ -> pure ()
+        -- for_ (structureTerms structure) \case
+        --   UpsertOpAdd _ -> pure ()
         eval . AddDefsToCodebase . filterBySlurpResult sr $ uf
       ppe <- prettyPrintEnvDecl =<< displayNames uf
       respond $ SlurpOutput input (PPE.suffixifiedPPE ppe) sr
@@ -1921,21 +1914,18 @@ handleUpdate input maybePatchPath requestedNames = do
               & tShow
       syncRoot ("update " <> patchString)
 
+-- FIXME just separate into add/updates? what's the benefit of upsert?
 data Structure v = Structure
-  { structureTerms :: [UpsertOp v],
+  { structureDecls :: [DeclUpsertOp v]
+  , structureTerms :: [TermUpsertOp v],
     -- Look up the type of a term in the structure. Only valid for terms in the structure (old or new).
-    structureTermType :: TermReference -> Type v Ann,
-    structureTypes :: [UpsertOp v]
+    structureTermType :: TermReference -> Type v Ann
   }
 
 structureIsEmpty :: Structure v -> Bool
 structureIsEmpty structure =
-  null (structureTerms structure) && null (structureTypes structure)
+  null (structureDecls structure) && null (structureTerms structure)
 
--- copy doSlurpAdds
--- maybe this should be adds and updates
-structureToAdds :: Structure v -> [(Path, Branch0 m -> Branch0 m)]
-structureToAdds = undefined
 -- doSlurpAdds ::
 --   forall m v.
 --   (Monad m, Var v) =>
@@ -1944,7 +1934,6 @@ structureToAdds = undefined
 --   (Branch0 m -> Branch0 m)
 -- doSlurpAdds slurp uf = Branch.batchUpdates (typeActions <> termActions)
 --   where
---     typeActions = map doType . toList $ SC.types slurp
 --     termActions =
 --       map doTerm . toList $
 --         SC.terms slurp <> UF.constructorsForDecls (SC.types slurp) uf
@@ -1965,59 +1954,87 @@ structureToAdds = undefined
 --             <> Var.nameStr v
 --             <> ": "
 --             <> show wha
---     doType :: v -> (Path, Branch0 m -> Branch0 m)
---     doType v = case toList (Names.typesNamed names (Name.unsafeFromVar v)) of
---       [] -> errorMissingVar v
---       [r] -> BranchUtil.makeAddTypeName (Path.splitFromName (Name.unsafeFromVar v)) r Metadata.empty
---       wha ->
---         error $
---           "Unison bug, typechecked file w/ multiple types named "
---             <> Var.nameStr v
---             <> ": "
---             <> show wha
 --     errorMissingVar v = error $ "expected to find " ++ show v ++ " in " ++ show uf
 
--- FIXME reduce duplication?
+-- UF.constructorsForDecls (SC.types slurp) uf
+
 structureToUpdates :: forall m v. Var v => Branch0 m -> Structure v -> [(Path, Branch0 m -> Branch0 m)]
 structureToUpdates branch structure =
-  let termUpsertToOps :: UpsertOp v -> [(Path, Branch0 m -> Branch0 m)]
-      termUpsertToOps = \case
-        UpsertOpAdd AddOp {addVar, addRef} ->
-          [ BranchUtil.makeAddTermName (Path.splitFromName (Name.unsafeFromVar addVar)) (Referent.Ref addRef)
-              (if Set.member addVar undefined
-                then Metadata.singleton undefined undefined
-                else Metadata.empty)
-          ]
-        -- FIXME add isTest metadata to update (to cover the case of updating *not test* -> *test*
-        UpsertOpUpdate UpdateOp {updateOldRef, updateNewRef} -> do
-          (name, metadata) <- getTermInfo (Referent.Ref updateOldRef)
-          [ BranchUtil.makeDeleteTermName name (Referent.Ref updateOldRef),
-            BranchUtil.makeAddTermName name (Referent.Ref updateNewRef) metadata
+  let declUpsertToOps :: DeclUpsertOp v -> [(Path, Branch0 m -> Branch0 m)]
+      declUpsertToOps = \case
+        DeclUpsertOpAdd DeclAddOp {declAddVar, declAddRef, declAddDecl} ->
+          ( BranchUtil.makeAddTypeName (Path.splitFromName (Name.unsafeFromVar declAddVar)) declAddRef Metadata.empty :
+            constructorAdditions declAddRef declAddDecl
+          )
+        -- TODO constructors
+        -- TODO hmm what about pulled-out decls, how do we add their constructors? >__<
+        -- old ref
+        --   -> get old constructors' names (ouch - also how?)
+        --   -> add each one to the namespace under its existing name
+        --
+        -- Update with an actual name: yeah use the vars in the decl; they're good shit yo
+        DeclUpsertOpUpdate DeclUpdateOp {declUpdateVar, declUpdateOldRef, declUpdateNewRef} ->
+          concat
+            [ let f (name, metadata) =
+                    [ BranchUtil.makeDeleteTypeName name declUpdateOldRef,
+                      BranchUtil.makeAddTypeName name declUpdateNewRef metadata
+                    ]
+               in foldMap f (getTypeInfo declUpdateOldRef),
+              constructorDeprecations,
+              constructorAdditions undefined undefined
             ]
-      typeUpsertToOps :: UpsertOp v -> [(Path, Branch0 m -> Branch0 m)]
-      typeUpsertToOps = \case
-        UpsertOpAdd AddOp {addVar, addRef} ->
-          [BranchUtil.makeAddTypeName (Path.splitFromName (Name.unsafeFromVar addVar)) addRef Metadata.empty]
-        UpsertOpUpdate UpdateOp {updateOldRef, updateNewRef} ->
-          let infoToOps (name, metadata) =
-                [ BranchUtil.makeDeleteTypeName name updateOldRef,
-                  BranchUtil.makeAddTypeName name updateNewRef metadata
-                ]
-           in concat
-                [ foldMap infoToOps (getTypeInfo updateOldRef),
-                  termDeprecations
-                ]
           where
-            termDeprecations :: [(Path, Branch0 m -> Branch0 m)]
-            termDeprecations =
+            constructorDeprecations :: [(Path, Branch0 m -> Branch0 m)]
+            constructorDeprecations =
               map
                 (\(name, term) -> BranchUtil.makeDeleteTermName (Path.splitFromName name) term)
-                (Names.constructorsForType updateOldRef (Branch.toNames branch))
+                (Names.constructorsForType declUpdateOldRef (Branch.toNames branch))
+        where
+          constructorAdditions :: TypeReference -> Decl v a -> [(Path, Branch0 m -> Branch0 m)]
+          constructorAdditions ref decl =
+            decl
+                & DD.asLabeledDataDecl
+                & ( \(ctype, decl) ->
+                      decl
+                        & DD.constructorVars
+                        & zip [0 ..]
+                        & map
+                          ( \(cid, var) ->
+                              BranchUtil.makeAddTermName
+                                (Path.splitFromName (Name.unsafeFromVar var))
+                                (Referent.Con (ConstructorReference ref cid) ctype)
+                                Metadata.empty
+                          )
+                  )
+      termUpsertToOps :: TermUpsertOp v -> [(Path, Branch0 m -> Branch0 m)]
+      termUpsertToOps = \case
+        TermUpsertOpAdd TermAddOp {termAddVar, termAddRef, termAddIsTest} ->
+          [ BranchUtil.makeAddTermName
+              (Path.splitFromName (Name.unsafeFromVar termAddVar))
+              (Referent.Ref termAddRef)
+              (if termAddIsTest then isTestMetadata else Metadata.empty)
+          ]
+        TermUpsertOpUpdate TermUpdateOp {termUpdateOldRef, termUpdateNewRef, termUpdateIsTest} -> do
+          (name, oldMetadata) <- getTermInfo (Referent.Ref termUpdateOldRef)
+          -- FIXME (existing) bug? shouldn't we delete isTest when updating from test to non-test?
+          let newMetadata =
+                Metadata.merge
+                  (if termUpdateIsTest then isTestMetadata else Metadata.empty)
+                  oldMetadata
+          [ BranchUtil.makeDeleteTermName name (Referent.Ref termUpdateOldRef),
+            BranchUtil.makeAddTermName name (Referent.Ref termUpdateNewRef) newMetadata
+            ]
    in concat
-        [ foldMap termUpsertToOps (structureTerms structure),
-          foldMap typeUpsertToOps (structureTypes structure)
+        [ foldMap declUpsertToOps (structureDecls structure),
+          foldMap termUpsertToOps (structureTerms structure)
         ]
   where
+    -- The metadata we associate with a term if it's a test> watch.
+    isTestMetadata :: Metadata.Metadata
+    isTestMetadata =
+      Metadata.singleton isTestType isTestValue
+      where
+        (isTestType, isTestValue) = isTest
     getTermInfo :: Referent -> [(Path.Split, Metadata.Metadata)]
     getTermInfo ref =
       BranchUtil.getTermPaths ref branch
@@ -2035,51 +2052,63 @@ structureToVars = undefined
 
 structureTermEdits :: Structure v -> [(TermReference, TermReference)]
 structureTermEdits structure =
-  mapMaybe upsertOpUpdate (structureTerms structure)
+  mapMaybe termUpsertOpUpdate (structureTerms structure)
 
 structureTypeEdits :: Structure v -> [(TypeReference, TypeReference)]
 structureTypeEdits structure =
-  mapMaybe upsertOpUpdate (structureTypes structure)
+  mapMaybe declUpsertOpUpdate (structureDecls structure)
 
-data UpsertOp v
-  = UpsertOpAdd (AddOp v)
-  | UpsertOpUpdate (UpdateOp v)
+data DeclUpsertOp v
+  = DeclUpsertOpAdd (DeclAddOp v)
+  | DeclUpsertOpUpdate (DeclUpdateOp v)
 
-upsertOpUpdate :: UpsertOp v -> Maybe (Reference, Reference)
-upsertOpUpdate = \case
-  UpsertOpAdd _ -> Nothing
-  UpsertOpUpdate UpdateOp {updateOldRef, updateNewRef} -> Just (updateOldRef, updateNewRef)
+declUpsertOpUpdate :: DeclUpsertOp v -> Maybe (TypeReference, TypeReference)
+declUpsertOpUpdate = \case
+  DeclUpsertOpAdd _ -> Nothing
+  DeclUpsertOpUpdate DeclUpdateOp {declUpdateOldRef, declUpdateNewRef} -> Just (declUpdateOldRef, declUpdateNewRef)
 
-data AddOp v
-  = AddOp
-  { addVar :: v
-  , addRef :: Reference
+-- FIXME add -> addOp
+data DeclAddOp v
+  = DeclAddOp
+  { declAddVar :: v
+  , declAddRef :: TypeReference
+  , declAddDecl :: Decl v Ann
   }
 
-data UpdateOp v
-  = UpdateOp
-  { updateOldRef :: Reference,
-    updateNewRef :: Reference,
-    updateVar :: Maybe v -- FIXME is this needed?
+-- FIXME update -> updateOp
+data DeclUpdateOp v
+  = DeclUpdateOp
+  { declUpdateVar :: Maybe v, -- FIXME is this needed?
+    declUpdateOldRef :: TypeReference,
+    declUpdateNewRef :: TypeReference
   }
 
 data TermUpsertOp v
   = TermUpsertOpAdd (TermAddOp v)
   | TermUpsertOpUpdate (TermUpdateOp v)
 
+termUpsertOpUpdate :: TermUpsertOp v -> Maybe (TermReference, TermReference)
+termUpsertOpUpdate = \case
+  TermUpsertOpAdd _ -> Nothing
+  TermUpsertOpUpdate TermUpdateOp {termUpdateOldRef, termUpdateNewRef} -> Just (termUpdateOldRef, termUpdateNewRef)
+
 data TermAddOp v
   = TermAddOp
-  { termAddVar :: v
-  , termAddRef :: TermReference
+  { termAddVar :: v,
+    termAddRef :: TermReference,
+    -- Is the new term a test> watch?
+    termAddIsTest :: Bool
   }
 
 data TermUpdateOp v
   = TermUpdateOp
-  { termUpdateOldRef :: TermReference,
+  { termUpdateVar :: Maybe v,
+    termUpdateOldRef :: TermReference,
     termUpdateNewRef :: TermReference,
     termUpdateNewTerm :: Term v Ann,
     termUpdateNewType :: Type v Ann,
-    termUpdateVar :: Maybe v
+    -- Is the new term a test> watch?
+    termUpdateIsTest :: Bool
   }
 
 -- to add, we need to, for each name being updated, resolve that to a split and a referent
@@ -2152,13 +2181,13 @@ oink selection unisonFile0 = do
   allNames <- currentPathNames
   let slurp = makeSlurpForUpdate allNames selection
 
-  unisonFile1 <- hydrateUnisonFileDecls loadDeclComponent unisonFile0 (slurp unisonFile0)
+  (unisonFile1, constructorReferenceMapping) <- hydrateUnisonFileDecls loadDeclComponent unisonFile0 (slurp unisonFile0)
   unisonFile2 <- hydrateUnisonFileTerms loadTermComponent typecheck unisonFile1 (slurp unisonFile1)
 
   pure Structure
-    { structureTerms = undefined
+    { structureDecls = undefined
+    , structureTerms = undefined
     , structureTermType = undefined
-    , structureTypes = undefined
     }
 
   -- let -- replace generated names with their originals, wherever possible
@@ -2224,19 +2253,44 @@ oink selection unisonFile0 = do
 --
 -- This is preferred, because otherwise we'd have updated Ping to refer to the Pong which still refers to the *old*
 -- Ping.
+--
+-- For any extra decls that are pulled into consideration in this way, unhashing and rehashing with the other types
+-- being updated may change their constructor order.
+--
+-- For example, the type
+--
+-- @
+-- structural type Pong = Pong1 Nat | Pong2 Ping
+-- @
+--
+-- may have its canonical constructor order change from
+--
+-- @
+-- [Pong1, Pong2]
+-- @
+--
+-- to
+--
+-- @
+-- [Pong2, Pong1]
+-- @
+--
+-- after being updated to refer to the new @Pong@. For this reason, we also return a constructor mapping alongside the
+-- new typechecked unison file. The mapping is total, and just maps a constructor reference to itself if it was not a 
+-- constructor whose constructor id changed.
 hydrateUnisonFileDecls ::
   forall m v.
   (Monad m, Var v) =>
   (Hash -> m [(TypeReferenceId, Decl v Ann)]) ->
   TypecheckedUnisonFile v Ann ->
   SlurpForUpdate v ->
-  m (TypecheckedUnisonFile v Ann)
+  m (TypecheckedUnisonFile v Ann, ConstructorReferenceId -> ConstructorReferenceId)
 hydrateUnisonFileDecls loadDeclComponent unisonFile SlurpForUpdate{preUpdateDeclNames, slurpedDeclHashes, slurpedDeclMapping, slurpedDeclVars} = do
   extraDecls <- loadExtraDecls
   pure
     if Map.null extraDecls
-      then unisonFile
-      else hydrateDecls unisonFile extraDecls
+      then (unisonFile, id)
+      else (hydrateDecls unisonFile extraDecls, undefined)
   where
     loadExtraDecls :: m (Map TypeReferenceId (Decl v Ann))
     loadExtraDecls =
@@ -2310,6 +2364,10 @@ hydrateUnisonFileDecls loadDeclComponent unisonFile SlurpForUpdate{preUpdateDecl
           Just ref1 -> Type.Ref ref1
       ty -> ty
 
+-- FIXME take constructor reference mapping, and use it
+-- ... but kinda weird that we only maintain a constructor reference mapping for decls that are known not to have 
+-- changed shape (e.g. unmentioned component-mates of decls being updated), but not for decls that are being updated 
+-- themselves...
 hydrateUnisonFileTerms ::
   forall m v.
   (Monad m, Var v) =>
@@ -3408,6 +3466,7 @@ filterBySlurpResult
       filterTLC (v, _, _) = Set.member v keepTerms
 
 -- updates the namespace for adding `slurp`
+-- FIXME delete this in favor of Structure
 doSlurpAdds ::
   forall m v.
   (Monad m, Var v) =>

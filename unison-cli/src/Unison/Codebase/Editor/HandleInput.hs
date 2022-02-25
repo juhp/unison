@@ -85,6 +85,7 @@ import qualified Unison.CommandLine.InputPattern as InputPattern
 import qualified Unison.CommandLine.InputPatterns as InputPatterns
 import Unison.ConstructorReference (ConstructorReferenceId, GConstructorReference(..))
 import Unison.DataDeclaration (Decl)
+import Unison.DataDeclaration.ConstructorId (ConstructorId)
 import qualified Unison.DataDeclaration as DD
 import Unison.Hash (Hash)
 import qualified Unison.HashQualified as HQ
@@ -2182,6 +2183,22 @@ oink selection unisonFile0 = do
   let slurp = makeSlurpForUpdate allNames selection
 
   (unisonFile1, constructorReferenceMapping) <- hydrateUnisonFileDecls loadDeclComponent unisonFile0 (slurp unisonFile0)
+        -- (effects, datas) =
+        --   allUnhashedDecls
+        --     & Map.elems
+        --     & Map.fromList
+        --     & Hashing.hashDecls
+        --     & \case
+        --       Left _resolutionFailure -> (UF.effectDeclarationsId' unisonFile, UF.dataDeclarationsId' unisonFile)
+        --       Right decls ->
+        --         decls
+        --           & map untangle
+        --           & partitionEithers
+        --           & \(xs, ys) -> (Map.fromList xs, Map.fromList ys)
+        --   where
+        --     untangle = \case
+        --       (v, ref, Left e) -> Left (fromMaybe v (restoreName v), (ref, e))
+        --       (v, ref, Right d) -> Right (fromMaybe v (restoreName v), (ref, d))
   unisonFile2 <- hydrateUnisonFileTerms loadTermComponent typecheck unisonFile1 (slurp unisonFile1)
 
   pure Structure
@@ -2223,7 +2240,9 @@ oink selection unisonFile0 = do
         Just (Right file1) -> Just file1
         _ -> Nothing
 
--- | "Hydrate" the decls in a typechecked unison file by pulling some decls out of the codebase re-hash with the slurp,
+-- | FIXME rewrite
+--
+-- "Hydrate" the decls in a typechecked unison file by pulling some decls out of the codebase re-hash with the slurp,
 -- so that:
 --
 -- 1. Component-mates are considered (e.g. if we're updating Ping in a unison file, but Pong is not mentioned
@@ -2284,13 +2303,13 @@ hydrateUnisonFileDecls ::
   (Hash -> m [(TypeReferenceId, Decl v Ann)]) ->
   TypecheckedUnisonFile v Ann ->
   SlurpForUpdate v ->
-  m (TypecheckedUnisonFile v Ann, ConstructorReferenceId -> ConstructorReferenceId)
-hydrateUnisonFileDecls loadDeclComponent unisonFile SlurpForUpdate{preUpdateDeclNames, slurpedDeclHashes, slurpedDeclMapping, slurpedDeclVars} = do
+  m (Maybe [(v, TypeReferenceId, Decl v Ann, Maybe (ConstructorId -> ConstructorId))])
+hydrateUnisonFileDecls loadDeclComponent unisonFile SlurpForUpdate {preUpdateDeclNames, slurpedDeclHashes, slurpedDeclMapping, slurpedDeclVars} = do
   extraDecls <- loadExtraDecls
   pure
     if Map.null extraDecls
-      then (unisonFile, id)
-      else (hydrateDecls unisonFile extraDecls, undefined)
+      then Nothing
+      else hydrateDecls unisonFile extraDecls
   where
     loadExtraDecls :: m (Map TypeReferenceId (Decl v Ann))
     loadExtraDecls =
@@ -2303,12 +2322,25 @@ hydrateUnisonFileDecls loadDeclComponent unisonFile SlurpForUpdate{preUpdateDecl
     hydrateDecls ::
       TypecheckedUnisonFile v Ann ->
       Map TypeReferenceId (Decl v Ann) ->
-      TypecheckedUnisonFile v Ann
+      Maybe [(v, TypeReferenceId, Decl v Ann, Maybe (ConstructorId -> ConstructorId))]
     hydrateDecls unisonFile extraDecls =
-      unisonFile
-        { UF.dataDeclarationsId' = datas,
-          UF.effectDeclarationsId' = effects
-        }
+      allUnhashedDecls
+        & Map.elems
+        & Map.fromList
+        & Hashing.hashDecls
+        & \case
+          Left _resolutionFailure -> Nothing
+          Right decls ->
+            decls
+              & map
+                ( \(v, ref, decl) ->
+                  case randomNameToUserSuppliedName v of
+                    Nothing -> 
+                      let decl0 = extraDecls Map.! (randomNameToOldRef Map.! v)
+                      in (v, ref, decl, Just (DD.constructorIdMapping decl0 decl))
+                    Just v1 -> (v1, ref, decl, Nothing)
+                )
+              & Just
       where
         allUnhashedDecls :: Map TypeReferenceId (v, Decl v Ann)
         allUnhashedDecls =
@@ -2319,38 +2351,21 @@ hydrateUnisonFileDecls loadDeclComponent unisonFile SlurpForUpdate{preUpdateDecl
             & Map.union (UF.tcDeclarationsById unisonFile)
             & DD.unhashComponent
 
-        restoreName :: v -> v
-        restoreName =
-          \v -> Map.findWithDefault v (m0 Map.! v) m1
-          where
-            m0 :: Map v TypeReferenceId
-            m0 =
-              Map.remap (\(r, (v, _)) -> (v, r)) allUnhashedDecls
+        randomNameToOldRef :: Map v TypeReferenceId
+        randomNameToOldRef =
+          Map.remap (\(r, (v, _)) -> (v, r)) allUnhashedDecls
 
-            m1 :: Map TypeReferenceId v
-            m1 =
-              Map.union (f (UF.dataDeclarationsId' unisonFile)) (f (UF.effectDeclarationsId' unisonFile))
-              where
-                f :: forall decl. Map v (TypeReferenceId, decl) -> Map TypeReferenceId v
-                f =
-                  Map.remap (\(v, (r, _)) -> (r, v))
-
-        (effects, datas) =
-          allUnhashedDecls
-            & Map.elems
-            & Map.fromList
-            & Hashing.hashDecls
-            & \case
-              Left _resolutionFailure -> (UF.effectDeclarationsId' unisonFile, UF.dataDeclarationsId' unisonFile)
-              Right decls ->
-                decls
-                  & map untangle
-                  & partitionEithers
-                  & \(xs, ys) -> (Map.fromList xs, Map.fromList ys)
+        oldRefToUserSuppliedName :: Map TypeReferenceId v
+        oldRefToUserSuppliedName =
+          Map.union (f (UF.dataDeclarationsId' unisonFile)) (f (UF.effectDeclarationsId' unisonFile))
           where
-            untangle = \case
-              (v, ref, Left e) -> Left (restoreName v, (ref, e))
-              (v, ref, Right d) -> Right (restoreName v, (ref, d))
+            f :: forall decl. Map v (TypeReferenceId, decl) -> Map TypeReferenceId v
+            f =
+              Map.remap (\(v, (r, _)) -> (r, v))
+
+        randomNameToUserSuppliedName :: v -> Maybe v
+        randomNameToUserSuppliedName v =
+          Map.lookup v (Map.compose oldRefToUserSuppliedName randomNameToOldRef)
 
     substituteDecl :: Decl v a -> Decl v a
     substituteDecl =

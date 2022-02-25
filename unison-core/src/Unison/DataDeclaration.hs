@@ -23,6 +23,7 @@ module Unison.DataDeclaration
     constructorTypes,
     constructorVars,
     constructorIds,
+    constructorIdMapping,
     declConstructorReferents,
     declDependencies,
     declFields,
@@ -237,6 +238,41 @@ declConstructorReferents rid decl =
 
 constructorIds :: DataDeclaration v a -> [ConstructorId]
 constructorIds dd = [0 .. fromIntegral $ length (constructors dd) - 1]
+
+-- | Compute the constructor id mapping between an old and new version of a decl.
+--
+-- Precondition: both decls have the same number of constructors, and the constructors all have the same names (possibly
+-- in a different order).
+--
+-- This function is used for computing the constructor id mapping between a decl and an updated version of a decl whose
+-- canonical constructor ordering may have changed due to hashing differences.
+--
+-- For example, given the following declarations (in pseudosyntax where the order of the constructors given is the
+-- canonical ordering)
+--
+-- @
+-- Old decl      New decl
+-- --------      --------
+-- type Foo      type Foo
+--   = Foo         = Bar
+--   | Bar         | Foo
+--   | Baz         | Baz
+-- @
+--
+-- then this function would return the (partial) function
+--
+-- @
+-- \case
+--   0 -> 1  -- Constructor id 0 in the old decl corresponds to constructor id 1 in the new decl
+--   1 -> 0  -- Constructor id 1 in the old decl corresponds to constructor id 0 in the new decl
+--   2 -> 2  -- Constructor id 2 in the old decl corresponds to constructor id 2 in the new decl
+-- @
+constructorIdMapping :: Ord v => Decl v a -> Decl v a -> (ConstructorId -> ConstructorId)
+constructorIdMapping decl0 decl1 =
+  \cid -> m1 Map.! (m0 Map.! cid)
+  where
+    m0 = Map.fromList (zip [0..] (constructorVars (asDataDecl decl0)))
+    m1 = Map.fromList (zip (constructorVars (asDataDecl decl1)) [0..])
 
 -- | All variables mentioned in the given data declaration.
 -- Includes both term and type variables, both free and bound.

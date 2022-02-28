@@ -2182,27 +2182,60 @@ oink selection unisonFile0 = do
   allNames <- currentPathNames
   let slurp = makeSlurpForUpdate allNames selection
 
-  (unisonFile1, constructorReferenceMapping) <- hydrateUnisonFileDecls loadDeclComponent unisonFile0 (slurp unisonFile0)
-        -- (effects, datas) =
-        --   allUnhashedDecls
-        --     & Map.elems
-        --     & Map.fromList
-        --     & Hashing.hashDecls
-        --     & \case
-        --       Left _resolutionFailure -> (UF.effectDeclarationsId' unisonFile, UF.dataDeclarationsId' unisonFile)
-        --       Right decls ->
-        --         decls
-        --           & map untangle
-        --           & partitionEithers
-        --           & \(xs, ys) -> (Map.fromList xs, Map.fromList ys)
-        --   where
-        --     untangle = \case
-        --       (v, ref, Left e) -> Left (fromMaybe v (restoreName v), (ref, e))
-        --       (v, ref, Right d) -> Right (fromMaybe v (restoreName v), (ref, d))
+  let slurp0 = slurp unisonFile0
+  maybeDecls <- hydrateUnisonFileDecls loadDeclComponent unisonFile0 slurp0
+  let unisonFile1 =
+        case maybeDecls of
+          Nothing -> unisonFile0
+          Just decls ->
+            let (effects, datas) =
+                  decls
+                    & map untangle
+                    & partitionEithers
+                    & \(xs, ys) -> (Map.fromList xs, Map.fromList ys)
+                  where
+                    untangle = \case
+                      (v, ref, Left e, _) -> Left (v, (ref, e))
+                      (v, ref, Right d, _) -> Right (v, (ref, d))
+            in
+              unisonFile0
+                { UF.dataDeclarationsId' = datas,
+                  UF.effectDeclarationsId' = effects
+                }
   unisonFile2 <- hydrateUnisonFileTerms loadTermComponent typecheck unisonFile1 (slurp unisonFile1)
 
   pure Structure
-    { structureDecls = undefined
+    { structureDecls =
+        case maybeDecls of
+          Nothing -> undefined
+          Just decls -> decls & map \(v, ref, decl, mf) ->
+            case mf of
+              Nothing -> undefined
+              Just f -> DeclUpdateOp { declUpdateVar = Nothing, declUpdateOldRef = undefined, declUpdateNewRef = ref }
+-- data DeclUpsertOp v
+--   = DeclUpsertOpAdd (DeclAddOp v)
+--   | DeclUpsertOpUpdate (DeclUpdateOp v)
+
+-- declUpsertOpUpdate :: DeclUpsertOp v -> Maybe (TypeReference, TypeReference)
+-- declUpsertOpUpdate = \case
+--   DeclUpsertOpAdd _ -> Nothing
+--   DeclUpsertOpUpdate DeclUpdateOp {declUpdateOldRef, declUpdateNewRef} -> Just (declUpdateOldRef, declUpdateNewRef)
+
+-- -- FIXME add -> addOp
+-- data DeclAddOp v
+--   = DeclAddOp
+--   { declAddVar :: v
+--   , declAddRef :: TypeReference
+--   , declAddDecl :: Decl v Ann
+--   }
+
+-- -- FIXME update -> updateOp
+-- data DeclUpdateOp v
+--   = DeclUpdateOp
+--   { declUpdateVar :: Maybe v, -- FIXME is this needed?
+--     declUpdateOldRef :: TypeReference,
+--     declUpdateNewRef :: TypeReference
+--   }
     , structureTerms = undefined
     , structureTermType = undefined
     }
@@ -2295,7 +2328,7 @@ oink selection unisonFile0 = do
 -- @
 --
 -- after being updated to refer to the new @Pong@. For this reason, we also return a constructor mapping alongside the
--- new typechecked unison file. The mapping is total, and just maps a constructor reference to itself if it was not a 
+-- new typechecked unison file. The mapping is total, and just maps a constructor reference to itself if it was not a
 -- constructor whose constructor id changed.
 hydrateUnisonFileDecls ::
   forall m v.
@@ -2303,7 +2336,7 @@ hydrateUnisonFileDecls ::
   (Hash -> m [(TypeReferenceId, Decl v Ann)]) ->
   TypecheckedUnisonFile v Ann ->
   SlurpForUpdate v ->
-  m (Maybe [(v, TypeReferenceId, Decl v Ann, Maybe (ConstructorId -> ConstructorId))])
+  m (Maybe [(v, TypeReferenceId, TypeReferenceId, Decl v Ann, Maybe (ConstructorId -> ConstructorId))])
 hydrateUnisonFileDecls loadDeclComponent unisonFile SlurpForUpdate {preUpdateDeclNames, slurpedDeclHashes, slurpedDeclMapping, slurpedDeclVars} = do
   extraDecls <- loadExtraDecls
   pure
@@ -2322,7 +2355,7 @@ hydrateUnisonFileDecls loadDeclComponent unisonFile SlurpForUpdate {preUpdateDec
     hydrateDecls ::
       TypecheckedUnisonFile v Ann ->
       Map TypeReferenceId (Decl v Ann) ->
-      Maybe [(v, TypeReferenceId, Decl v Ann, Maybe (ConstructorId -> ConstructorId))]
+      Maybe [(v, TypeReferenceId, TypeReferenceId, Decl v Ann, Maybe (ConstructorId -> ConstructorId))]
     hydrateDecls unisonFile extraDecls =
       allUnhashedDecls
         & Map.elems
@@ -2333,12 +2366,12 @@ hydrateUnisonFileDecls loadDeclComponent unisonFile SlurpForUpdate {preUpdateDec
           Right decls ->
             decls
               & map
-                ( \(v, ref, decl) ->
+                ( \(v, ref1, decl) ->
                   case randomNameToUserSuppliedName v of
-                    Nothing -> 
+                    Nothing ->
                       let decl0 = extraDecls Map.! (randomNameToOldRef Map.! v)
-                      in (v, ref, decl, Just (DD.constructorIdMapping decl0 decl))
-                    Just v1 -> (v1, ref, decl, Nothing)
+                      in (v, undefined, ref1, decl, Just (DD.constructorIdMapping decl0 decl))
+                    Just v1 -> (v1, undefined, ref1, decl, Nothing)
                 )
               & Just
       where
@@ -2380,8 +2413,8 @@ hydrateUnisonFileDecls loadDeclComponent unisonFile SlurpForUpdate {preUpdateDec
       ty -> ty
 
 -- FIXME take constructor reference mapping, and use it
--- ... but kinda weird that we only maintain a constructor reference mapping for decls that are known not to have 
--- changed shape (e.g. unmentioned component-mates of decls being updated), but not for decls that are being updated 
+-- ... but kinda weird that we only maintain a constructor reference mapping for decls that are known not to have
+-- changed shape (e.g. unmentioned component-mates of decls being updated), but not for decls that are being updated
 -- themselves...
 hydrateUnisonFileTerms ::
   forall m v.

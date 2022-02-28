@@ -726,13 +726,13 @@ LoopState :: Branch m -> Branch m -> NonEmpty Absolute -> Maybe (FilePath, SkipN
 type Action' m v = Action m (Either Event Input) v
 type SkipNextUpdate = Bool
 type InputDescription = Text
-root :: forall m_a1BPc v_a1BPd. Lens' (LoopState m_a1BPc v_a1BPd) (Branch m_a1BPc)
-numberedArgs :: forall m_a1BPc v_a1BPd. Lens' (LoopState m_a1BPc v_a1BPd) NumberedArgs
-latestTypecheckedFile :: forall m_a1BPc v_a1BPd v_a1C0X. Lens (LoopState m_a1BPc v_a1BPd) (LoopState m_a1BPc v_a1C0X) (Maybe (TypecheckedUnisonFile v_a1BPd Ann)) (Maybe (TypecheckedUnisonFile v_a1C0X Ann))
-latestFile :: forall m_a1BPc v_a1BPd. Lens' (LoopState m_a1BPc v_a1BPd) (Maybe (FilePath, SkipNextUpdate))
-lastSavedRoot :: forall m_a1BPc v_a1BPd. Lens' (LoopState m_a1BPc v_a1BPd) (Branch m_a1BPc)
-lastInput :: forall m_a1BPc v_a1BPd. Lens' (LoopState m_a1BPc v_a1BPd) (Maybe Input)
-currentPathStack :: forall m_a1BPc v_a1BPd. Lens' (LoopState m_a1BPc v_a1BPd) (NonEmpty Absolute)
+root :: forall m_a1BPd v_a1BPe. Lens' (LoopState m_a1BPd v_a1BPe) (Branch m_a1BPd)
+numberedArgs :: forall m_a1BPd v_a1BPe. Lens' (LoopState m_a1BPd v_a1BPe) NumberedArgs
+latestTypecheckedFile :: forall m_a1BPd v_a1BPe v_a1C0Y. Lens (LoopState m_a1BPd v_a1BPe) (LoopState m_a1BPd v_a1C0Y) (Maybe (TypecheckedUnisonFile v_a1BPe Ann)) (Maybe (TypecheckedUnisonFile v_a1C0Y Ann))
+latestFile :: forall m_a1BPd v_a1BPe. Lens' (LoopState m_a1BPd v_a1BPe) (Maybe (FilePath, SkipNextUpdate))
+lastSavedRoot :: forall m_a1BPd v_a1BPe. Lens' (LoopState m_a1BPd v_a1BPe) (Branch m_a1BPd)
+lastInput :: forall m_a1BPd v_a1BPe. Lens' (LoopState m_a1BPd v_a1BPe) (Maybe Input)
+currentPathStack :: forall m_a1BPd v_a1BPe. Lens' (LoopState m_a1BPd v_a1BPe) (NonEmpty Absolute)
 currentPath :: Getter (LoopState m v) Absolute
 loopState0 :: Branch m -> Absolute -> LoopState m v
 instance Unison.Codebase.Editor.HandleInput.LoopState.MonadCommand (Unison.Util.Free.Free (Unison.Codebase.Editor.Command.Command m i v)) m i v
@@ -1015,14 +1015,18 @@ Unfenced :: Text -> Stanza
 type FenceType = Text
 type ExpectingError = Bool
 data Hidden
-type Err = String
+data TranscriptError
+TranscriptRunFailure :: Text -> TranscriptError
+TranscriptParseError :: Text -> TranscriptError
 data UcmLine
 UcmCommand :: Absolute -> Text -> UcmLine
 UcmComment :: Text -> UcmLine
-run :: String -> FilePath -> FilePath -> [Stanza] -> Codebase IO Symbol Ann -> IO Text
-parse :: String -> Text -> Either Err [Stanza]
-parseFile :: FilePath -> IO (Either Err [Stanza])
+withTranscriptRunner :: forall m r. MonadUnliftIO m => String -> Maybe FilePath -> (TranscriptRunner -> m r) -> m r
+parse :: String -> Text -> Either TranscriptError [Stanza]
+parseFile :: FilePath -> IO (Either TranscriptError [Stanza])
 instance GHC.Show.Show Unison.Codebase.TranscriptParser.Hidden
 instance GHC.Classes.Eq Unison.Codebase.TranscriptParser.Hidden
+instance GHC.Exception.Type.Exception Unison.Codebase.TranscriptParser.TranscriptError
+instance GHC.Show.Show Unison.Codebase.TranscriptParser.TranscriptError
 instance GHC.Show.Show Unison.Codebase.TranscriptParser.Stanza
 instance GHC.Show.Show Unison.Codebase.TranscriptParser.UcmLine

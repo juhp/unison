@@ -4211,6 +4211,7 @@ createCodebase :: MonadIO m => Init m v a -> DebugName -> CodebasePath -> (Codeb
 initCodebaseAndExit :: MonadIO m => Init m Symbol Ann -> DebugName -> Maybe CodebasePath -> m ()
 withOpenOrCreateCodebase :: MonadIO m => Init m v a -> DebugName -> CodebaseInitOptions -> ((InitResult, CodebasePath, Codebase m v a) -> m r) -> m (Either (CodebasePath, InitError) r)
 withNewUcmCodebaseOrExit :: MonadIO m => Init m Symbol Ann -> DebugName -> CodebasePath -> (Codebase m Symbol Ann -> m r) -> m r
+withTemporaryUcmCodebase :: MonadUnliftIO m => Init m Symbol Ann -> DebugName -> ((CodebasePath, Codebase m Symbol Ann) -> m r) -> m r
 instance GHC.Classes.Eq Unison.Codebase.Init.InitResult
 instance GHC.Show.Show Unison.Codebase.Init.InitResult
 

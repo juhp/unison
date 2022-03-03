@@ -1,10 +1,9 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">{- ORMOLU_DISABLE -}</span><span> </span><span class="hs-comment">-- Remove this when the file is ready to be auto-formatted</span><span>
-</span><span id="line-2"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">U.Codebase.HashTags</span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-3"></span><span>
-</span><span id="line-4"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">U.Util.Hash</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Hash</span></span><span class="hs-special">)</span><span>
-</span><span id="line-5"></span><span>
-</span><span id="line-6"></span><span class="hs-keyword">newtype</span><span> </span><span id="BranchHash"><span class="annot"><a href="U.Codebase.HashTags.html#BranchHash"><span class="hs-identifier hs-var">BranchHash</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="BranchHash"><span class="annot"><a href="U.Codebase.HashTags.html#BranchHash"><span class="hs-identifier hs-var">BranchHash</span></a></span></span><span> </span><span class="hs-special">{</span><span> </span><span id="unBranchHash"><span class="annot"><span class="annottext">BranchHash -&gt; Hash
-</span><a href="U.Codebase.HashTags.html#unBranchHash"><span class="hs-identifier hs-var hs-var">unBranchHash</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Hash</span></span><span> </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679118910"><span id="local-6989586621679118912"><span class="annot"><span class="annottext">BranchHash -&gt; BranchHash -&gt; Bool
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">U.Codebase.HashTags</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-2"></span><span>
+</span><span id="line-3"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">U.Util.Hash</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Hash</span></span><span class="hs-special">)</span><span>
+</span><span id="line-4"></span><span>
+</span><span id="line-5"></span><span class="hs-keyword">newtype</span><span> </span><span id="BranchHash"><span class="annot"><a href="U.Codebase.HashTags.html#BranchHash"><span class="hs-identifier hs-var">BranchHash</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="BranchHash"><span class="annot"><a href="U.Codebase.HashTags.html#BranchHash"><span class="hs-identifier hs-var">BranchHash</span></a></span></span><span> </span><span class="hs-special">{</span><span id="unBranchHash"><span class="annot"><span class="annottext">BranchHash -&gt; Hash
+</span><a href="U.Codebase.HashTags.html#unBranchHash"><span class="hs-identifier hs-var hs-var">unBranchHash</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Hash</span></span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679118910"><span id="local-6989586621679118912"><span class="annot"><span class="annottext">BranchHash -&gt; BranchHash -&gt; Bool
 (BranchHash -&gt; BranchHash -&gt; Bool)
 -&gt; (BranchHash -&gt; BranchHash -&gt; Bool) -&gt; Eq BranchHash
 forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
@@ -51,9 +50,9 @@ compare :: BranchHash -&gt; BranchHash -&gt; Ordering
 $ccompare :: BranchHash -&gt; BranchHash -&gt; Ordering
 $cp1Ord :: Eq BranchHash
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">)</span><span>
-</span><span id="line-7"></span><span>
-</span><span id="line-8"></span><span class="hs-keyword">newtype</span><span> </span><span id="CausalHash"><span class="annot"><a href="U.Codebase.HashTags.html#CausalHash"><span class="hs-identifier hs-var">CausalHash</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="CausalHash"><span class="annot"><a href="U.Codebase.HashTags.html#CausalHash"><span class="hs-identifier hs-var">CausalHash</span></a></span></span><span> </span><span class="hs-special">{</span><span> </span><span id="unCausalHash"><span class="annot"><span class="annottext">CausalHash -&gt; Hash
-</span><a href="U.Codebase.HashTags.html#unCausalHash"><span class="hs-identifier hs-var hs-var">unCausalHash</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Hash</span></span><span> </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679118887"><span id="local-6989586621679118889"><span class="annot"><span class="annottext">CausalHash -&gt; CausalHash -&gt; Bool
+</span><span id="line-6"></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">newtype</span><span> </span><span id="CausalHash"><span class="annot"><a href="U.Codebase.HashTags.html#CausalHash"><span class="hs-identifier hs-var">CausalHash</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="CausalHash"><span class="annot"><a href="U.Codebase.HashTags.html#CausalHash"><span class="hs-identifier hs-var">CausalHash</span></a></span></span><span> </span><span class="hs-special">{</span><span id="unCausalHash"><span class="annot"><span class="annottext">CausalHash -&gt; Hash
+</span><a href="U.Codebase.HashTags.html#unCausalHash"><span class="hs-identifier hs-var hs-var">unCausalHash</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Hash</span></span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679118887"><span id="local-6989586621679118889"><span class="annot"><span class="annottext">CausalHash -&gt; CausalHash -&gt; Bool
 (CausalHash -&gt; CausalHash -&gt; Bool)
 -&gt; (CausalHash -&gt; CausalHash -&gt; Bool) -&gt; Eq CausalHash
 forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
@@ -100,9 +99,9 @@ compare :: CausalHash -&gt; CausalHash -&gt; Ordering
 $ccompare :: CausalHash -&gt; CausalHash -&gt; Ordering
 $cp1Ord :: Eq CausalHash
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">)</span><span>
-</span><span id="line-9"></span><span>
-</span><span id="line-10"></span><span class="hs-keyword">newtype</span><span> </span><span id="EditHash"><span class="annot"><a href="U.Codebase.HashTags.html#EditHash"><span class="hs-identifier hs-var">EditHash</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="EditHash"><span class="annot"><a href="U.Codebase.HashTags.html#EditHash"><span class="hs-identifier hs-var">EditHash</span></a></span></span><span> </span><span class="hs-special">{</span><span> </span><span id="unEditHash"><span class="annot"><span class="annottext">EditHash -&gt; Hash
-</span><a href="U.Codebase.HashTags.html#unEditHash"><span class="hs-identifier hs-var hs-var">unEditHash</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Hash</span></span><span> </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679118866"><span id="local-6989586621679118868"><span class="annot"><span class="annottext">EditHash -&gt; EditHash -&gt; Bool
+</span><span id="line-8"></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">newtype</span><span> </span><span id="EditHash"><span class="annot"><a href="U.Codebase.HashTags.html#EditHash"><span class="hs-identifier hs-var">EditHash</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="EditHash"><span class="annot"><a href="U.Codebase.HashTags.html#EditHash"><span class="hs-identifier hs-var">EditHash</span></a></span></span><span> </span><span class="hs-special">{</span><span id="unEditHash"><span class="annot"><span class="annottext">EditHash -&gt; Hash
+</span><a href="U.Codebase.HashTags.html#unEditHash"><span class="hs-identifier hs-var hs-var">unEditHash</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Hash</span></span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679118866"><span id="local-6989586621679118868"><span class="annot"><span class="annottext">EditHash -&gt; EditHash -&gt; Bool
 (EditHash -&gt; EditHash -&gt; Bool)
 -&gt; (EditHash -&gt; EditHash -&gt; Bool) -&gt; Eq EditHash
 forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
@@ -149,9 +148,9 @@ compare :: EditHash -&gt; EditHash -&gt; Ordering
 $ccompare :: EditHash -&gt; EditHash -&gt; Ordering
 $cp1Ord :: Eq EditHash
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">)</span><span>
-</span><span id="line-11"></span><span>
-</span><span id="line-12"></span><span class="hs-keyword">newtype</span><span> </span><span id="PatchHash"><span class="annot"><a href="U.Codebase.HashTags.html#PatchHash"><span class="hs-identifier hs-var">PatchHash</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="PatchHash"><span class="annot"><a href="U.Codebase.HashTags.html#PatchHash"><span class="hs-identifier hs-var">PatchHash</span></a></span></span><span> </span><span class="hs-special">{</span><span> </span><span id="unPatchHash"><span class="annot"><span class="annottext">PatchHash -&gt; Hash
-</span><a href="U.Codebase.HashTags.html#unPatchHash"><span class="hs-identifier hs-var hs-var">unPatchHash</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Hash</span></span><span> </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679118845"><span id="local-6989586621679118847"><span class="annot"><span class="annottext">PatchHash -&gt; PatchHash -&gt; Bool
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">newtype</span><span> </span><span id="PatchHash"><span class="annot"><a href="U.Codebase.HashTags.html#PatchHash"><span class="hs-identifier hs-var">PatchHash</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="PatchHash"><span class="annot"><a href="U.Codebase.HashTags.html#PatchHash"><span class="hs-identifier hs-var">PatchHash</span></a></span></span><span> </span><span class="hs-special">{</span><span id="unPatchHash"><span class="annot"><span class="annottext">PatchHash -&gt; Hash
+</span><a href="U.Codebase.HashTags.html#unPatchHash"><span class="hs-identifier hs-var hs-var">unPatchHash</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Hash</span></span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679118845"><span id="local-6989586621679118847"><span class="annot"><span class="annottext">PatchHash -&gt; PatchHash -&gt; Bool
 (PatchHash -&gt; PatchHash -&gt; Bool)
 -&gt; (PatchHash -&gt; PatchHash -&gt; Bool) -&gt; Eq PatchHash
 forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
@@ -198,9 +197,9 @@ compare :: PatchHash -&gt; PatchHash -&gt; Ordering
 $ccompare :: PatchHash -&gt; PatchHash -&gt; Ordering
 $cp1Ord :: Eq PatchHash
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">)</span><span>
-</span><span id="line-13"></span><span>
-</span><span id="line-14"></span><span class="hs-keyword">newtype</span><span> </span><span id="DefnHash"><span class="annot"><a href="U.Codebase.HashTags.html#DefnHash"><span class="hs-identifier hs-var">DefnHash</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="DefnHash"><span class="annot"><a href="U.Codebase.HashTags.html#DefnHash"><span class="hs-identifier hs-var">DefnHash</span></a></span></span><span> </span><span class="hs-special">{</span><span> </span><span id="unDefnHash"><span class="annot"><span class="annottext">DefnHash -&gt; Hash
-</span><a href="U.Codebase.HashTags.html#unDefnHash"><span class="hs-identifier hs-var hs-var">unDefnHash</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Hash</span></span><span> </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679118824"><span id="local-6989586621679118826"><span class="annot"><span class="annottext">DefnHash -&gt; DefnHash -&gt; Bool
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">newtype</span><span> </span><span id="DefnHash"><span class="annot"><a href="U.Codebase.HashTags.html#DefnHash"><span class="hs-identifier hs-var">DefnHash</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="DefnHash"><span class="annot"><a href="U.Codebase.HashTags.html#DefnHash"><span class="hs-identifier hs-var">DefnHash</span></a></span></span><span> </span><span class="hs-special">{</span><span id="unDefnHash"><span class="annot"><span class="annottext">DefnHash -&gt; Hash
+</span><a href="U.Codebase.HashTags.html#unDefnHash"><span class="hs-identifier hs-var hs-var">unDefnHash</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Hash</span></span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679118824"><span id="local-6989586621679118826"><span class="annot"><span class="annottext">DefnHash -&gt; DefnHash -&gt; Bool
 (DefnHash -&gt; DefnHash -&gt; Bool)
 -&gt; (DefnHash -&gt; DefnHash -&gt; Bool) -&gt; Eq DefnHash
 forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
@@ -247,9 +246,9 @@ compare :: DefnHash -&gt; DefnHash -&gt; Ordering
 $ccompare :: DefnHash -&gt; DefnHash -&gt; Ordering
 $cp1Ord :: Eq DefnHash
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">)</span><span>
-</span><span id="line-15"></span><span>
-</span><span id="line-16"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679118804"><span id="local-6989586621679118807"><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="U.Codebase.HashTags.html#BranchHash"><span class="hs-identifier hs-type">BranchHash</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-17"></span><span>  </span><span id="local-6989586621679118802"><span class="annot"><span class="annottext">show :: BranchHash -&gt; String
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679118804"><span id="local-6989586621679118807"><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="U.Codebase.HashTags.html#BranchHash"><span class="hs-identifier hs-type">BranchHash</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-16"></span><span>  </span><span id="local-6989586621679118802"><span class="annot"><span class="annottext">show :: BranchHash -&gt; String
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var">show</span></span></span><span> </span><span id="local-6989586621679118800"><span class="annot"><span class="annottext">BranchHash
 </span><a href="#local-6989586621679118800"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;BranchHash (&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
@@ -262,9 +261,9 @@ forall a. Show a =&gt; a -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;)&quot;</span></span><span>
-</span><span id="line-18"></span><span>
-</span><span id="line-19"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679118795"><span id="local-6989586621679118798"><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="U.Codebase.HashTags.html#CausalHash"><span class="hs-identifier hs-type">CausalHash</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-20"></span><span>  </span><span id="local-6989586621679118794"><span class="annot"><span class="annottext">show :: CausalHash -&gt; String
+</span><span id="line-17"></span><span>
+</span><span id="line-18"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679118795"><span id="local-6989586621679118798"><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="U.Codebase.HashTags.html#CausalHash"><span class="hs-identifier hs-type">CausalHash</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-19"></span><span>  </span><span id="local-6989586621679118794"><span class="annot"><span class="annottext">show :: CausalHash -&gt; String
 </span><a href="#local-6989586621679118794"><span class="hs-identifier hs-var hs-var hs-var hs-var">show</span></a></span></span><span> </span><span id="local-6989586621679118793"><span class="annot"><span class="annottext">CausalHash
 </span><a href="#local-6989586621679118793"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;CausalHash (&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
@@ -277,9 +276,9 @@ forall a. Show a =&gt; a -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;)&quot;</span></span><span>
-</span><span id="line-21"></span><span>
-</span><span id="line-22"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679118788"><span id="local-6989586621679118791"><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="U.Codebase.HashTags.html#PatchHash"><span class="hs-identifier hs-type">PatchHash</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-23"></span><span>  </span><span id="local-6989586621679118787"><span class="annot"><span class="annottext">show :: PatchHash -&gt; String
+</span><span id="line-20"></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679118788"><span id="local-6989586621679118791"><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="U.Codebase.HashTags.html#PatchHash"><span class="hs-identifier hs-type">PatchHash</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-22"></span><span>  </span><span id="local-6989586621679118787"><span class="annot"><span class="annottext">show :: PatchHash -&gt; String
 </span><a href="#local-6989586621679118787"><span class="hs-identifier hs-var hs-var hs-var hs-var">show</span></a></span></span><span> </span><span id="local-6989586621679118786"><span class="annot"><span class="annottext">PatchHash
 </span><a href="#local-6989586621679118786"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;PatchHash (&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
@@ -292,9 +291,9 @@ forall a. Show a =&gt; a -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;)&quot;</span></span><span>
-</span><span id="line-24"></span><span>
-</span><span id="line-25"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679118781"><span id="local-6989586621679118784"><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="U.Codebase.HashTags.html#EditHash"><span class="hs-identifier hs-type">EditHash</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-26"></span><span>  </span><span id="local-6989586621679118780"><span class="annot"><span class="annottext">show :: EditHash -&gt; String
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679118781"><span id="local-6989586621679118784"><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="U.Codebase.HashTags.html#EditHash"><span class="hs-identifier hs-type">EditHash</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-25"></span><span>  </span><span id="local-6989586621679118780"><span class="annot"><span class="annottext">show :: EditHash -&gt; String
 </span><a href="#local-6989586621679118780"><span class="hs-identifier hs-var hs-var hs-var hs-var">show</span></a></span></span><span> </span><span id="local-6989586621679118779"><span class="annot"><span class="annottext">EditHash
 </span><a href="#local-6989586621679118779"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;EditHash (&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
@@ -307,9 +306,9 @@ forall a. Show a =&gt; a -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;)&quot;</span></span><span>
-</span><span id="line-27"></span><span>
-</span><span id="line-28"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679118774"><span id="local-6989586621679118777"><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="U.Codebase.HashTags.html#DefnHash"><span class="hs-identifier hs-type">DefnHash</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-29"></span><span>  </span><span id="local-6989586621679118773"><span class="annot"><span class="annottext">show :: DefnHash -&gt; String
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679118774"><span id="local-6989586621679118777"><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="U.Codebase.HashTags.html#DefnHash"><span class="hs-identifier hs-type">DefnHash</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-28"></span><span>  </span><span id="local-6989586621679118773"><span class="annot"><span class="annottext">show :: DefnHash -&gt; String
 </span><a href="#local-6989586621679118773"><span class="hs-identifier hs-var hs-var hs-var hs-var">show</span></a></span></span><span> </span><span id="local-6989586621679118772"><span class="annot"><span class="annottext">DefnHash
 </span><a href="#local-6989586621679118772"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;DefnHash (&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
@@ -322,4 +321,4 @@ forall a. Show a =&gt; a -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;)&quot;</span></span><span>
-</span><span id="line-30"></span></pre></body></html>
+</span><span id="line-29"></span></pre></body></html>

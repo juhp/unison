@@ -1,12 +1,13 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span id="%24con2tag_3mgkpwIOVhr067ck5tQoWS"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Unison.Position</span><span> </span><span class="hs-special">(</span><span>
-</span><span id="line-2"></span><span>  </span><span class="annot"><a href="Unison.Position.html#Position"><span class="hs-identifier">Position</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
-</span><span id="line-3"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-4"></span><span>
-</span><span id="line-5"></span><span class="hs-comment">-- | An indicator of whether something is absolute, e.g. &quot;.foo.bar&quot;, or relative, e.g. &quot;foo.bar&quot;</span><span>
-</span><span id="line-6"></span><span class="hs-keyword">data</span><span> </span><span id="Position"><span class="annot"><a href="Unison.Position.html#Position"><span class="hs-identifier hs-var">Position</span></a></span></span><span>
-</span><span id="line-7"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="Absolute"><span class="annot"><a href="Unison.Position.html#Absolute"><span class="hs-identifier hs-var">Absolute</span></a></span></span><span>
-</span><span id="line-8"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="Relative"><span class="annot"><a href="Unison.Position.html#Relative"><span class="hs-identifier hs-var">Relative</span></a></span></span><span>
-</span><span id="line-9"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679196258"><span id="local-6989586621679196260"><span class="annot"><span class="annottext">Position -&gt; Position -&gt; Bool
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span id="%24con2tag_3mgkpwIOVhr067ck5tQoWS"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Unison.Position</span><span>
+</span><span id="line-2"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Unison.Position.html#Position"><span class="hs-identifier">Position</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-3"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-4"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- | An indicator of whether something is absolute, e.g. &quot;.foo.bar&quot;, or relative, e.g. &quot;foo.bar&quot;</span><span>
+</span><span id="line-7"></span><span class="hs-keyword">data</span><span> </span><span id="Position"><span class="annot"><a href="Unison.Position.html#Position"><span class="hs-identifier hs-var">Position</span></a></span></span><span>
+</span><span id="line-8"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="Absolute"><span class="annot"><a href="Unison.Position.html#Absolute"><span class="hs-identifier hs-var">Absolute</span></a></span></span><span>
+</span><span id="line-9"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="Relative"><span class="annot"><a href="Unison.Position.html#Relative"><span class="hs-identifier hs-var">Relative</span></a></span></span><span>
+</span><span id="line-10"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679196258"><span id="local-6989586621679196260"><span class="annot"><span class="annottext">Position -&gt; Position -&gt; Bool
 (Position -&gt; Position -&gt; Bool)
 -&gt; (Position -&gt; Position -&gt; Bool) -&gt; Eq Position
 forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
@@ -66,5 +67,4 @@ $cshow :: Position -&gt; String
 showsPrec :: Int -&gt; Position -&gt; ShowS
 $cshowsPrec :: Int -&gt; Position -&gt; ShowS
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
-</span><span id="line-10"></span><span>
 </span><span id="line-11"></span></pre></body></html>

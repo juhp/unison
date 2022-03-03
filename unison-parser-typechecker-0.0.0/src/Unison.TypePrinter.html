@@ -1,46 +1,43 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">{- ORMOLU_DISABLE -}</span><span> </span><span class="hs-comment">-- Remove this when the file is ready to be auto-formatted</span><span>
-</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE OverloadedStrings   #-}</span><span>
-</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE PatternSynonyms     #-}</span><span>
-</span><span id="line-4"></span><span>
-</span><span id="line-5"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Unison.TypePrinter</span><span>
-</span><span id="line-6"></span><span>  </span><span class="hs-special">(</span><span>
-</span><span id="line-7"></span><span>  </span><span class="annot"><a href="Unison.TypePrinter.html#pretty"><span class="hs-identifier">pretty</span></a></span><span>
-</span><span id="line-8"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.TypePrinter.html#pretty0"><span class="hs-identifier">pretty0</span></a></span><span>
-</span><span id="line-9"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.TypePrinter.html#prettyRaw"><span class="hs-identifier">prettyRaw</span></a></span><span>
-</span><span id="line-10"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.TypePrinter.html#prettyStr"><span class="hs-identifier">prettyStr</span></a></span><span>
-</span><span id="line-11"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.TypePrinter.html#prettySyntax"><span class="hs-identifier">prettySyntax</span></a></span><span>
-</span><span id="line-12"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.TypePrinter.html#prettySignaturesST"><span class="hs-identifier">prettySignaturesST</span></a></span><span>
-</span><span id="line-13"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.TypePrinter.html#prettySignaturesCT"><span class="hs-identifier">prettySignaturesCT</span></a></span><span>
-</span><span id="line-14"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.TypePrinter.html#prettySignaturesCTCollapsed"><span class="hs-identifier">prettySignaturesCTCollapsed</span></a></span><span>
-</span><span id="line-15"></span><span>
-</span><span id="line-16"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.TypePrinter.html#prettySignaturesAlt"><span class="hs-identifier">prettySignaturesAlt</span></a></span><span>
-</span><span id="line-17"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.TypePrinter.html#prettySignaturesAlt%27"><span class="hs-identifier">prettySignaturesAlt'</span></a></span><span>
-</span><span id="line-18"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-19"></span><span>
-</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Unison.Prelude</span></span><span>
-</span><span id="line-21"></span><span>
-</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Map</span></span><span>              </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Map</span></span><span>
-</span><span id="line-23"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Unison.HashQualified</span></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">HashQualified</span></span><span class="hs-special">)</span><span>
-</span><span id="line-24"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Unison.Name</span></span><span>           </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">Name</span></span><span> </span><span class="hs-special">)</span><span>
-</span><span id="line-25"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Unison.NamePrinter.html"><span class="hs-identifier">Unison.NamePrinter</span></a></span><span>    </span><span class="hs-special">(</span><span class="annot"><a href="Unison.NamePrinter.html#styleHashQualified%27%27"><span class="hs-identifier">styleHashQualified''</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-26"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Unison.PrettyPrintEnv.html"><span class="hs-identifier">Unison.PrettyPrintEnv</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.PrettyPrintEnv.html#PrettyPrintEnv"><span class="hs-identifier">PrettyPrintEnv</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Unison.PrettyPrintEnv.html"><span class="hs-identifier">Unison.PrettyPrintEnv</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">PrettyPrintEnv</span></span><span>
-</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Unison.PrettyPrintEnv.FQN.html"><span class="hs-identifier">Unison.PrettyPrintEnv.FQN</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.PrettyPrintEnv.FQN.html#Imports"><span class="hs-identifier">Imports</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.PrettyPrintEnv.FQN.html#elideFQN"><span class="hs-identifier">elideFQN</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Unison.Reference</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Reference</span></span><span class="hs-special">,</span><span> </span><span class="hs-keyword">pattern</span><span> </span><span class="annot"><span class="hs-identifier">Builtin</span></span><span class="hs-special">)</span><span>
-</span><span id="line-30"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Unison.Type</span></span><span>
-</span><span id="line-31"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Unison.Util.Pretty.html"><span class="hs-identifier">Unison.Util.Pretty</span></a></span><span>    </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Pretty.html#ColorText"><span class="hs-identifier">ColorText</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html#Pretty"><span class="hs-identifier">Pretty</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html#Width"><span class="hs-identifier">Width</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-32"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Unison.Util.ColorText.html"><span class="hs-identifier">Unison.Util.ColorText</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.ColorText.html#toPlain"><span class="hs-identifier">toPlain</span></a></span><span class="hs-special">)</span><span>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE OverloadedStrings #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE PatternSynonyms #-}</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Unison.TypePrinter</span><span>
+</span><span id="line-5"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Unison.TypePrinter.html#pretty"><span class="hs-identifier">pretty</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-6"></span><span>    </span><span class="annot"><a href="Unison.TypePrinter.html#pretty0"><span class="hs-identifier">pretty0</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-7"></span><span>    </span><span class="annot"><a href="Unison.TypePrinter.html#prettyRaw"><span class="hs-identifier">prettyRaw</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><a href="Unison.TypePrinter.html#prettyStr"><span class="hs-identifier">prettyStr</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><a href="Unison.TypePrinter.html#prettySyntax"><span class="hs-identifier">prettySyntax</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>    </span><span class="annot"><a href="Unison.TypePrinter.html#prettySignaturesST"><span class="hs-identifier">prettySignaturesST</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-11"></span><span>    </span><span class="annot"><a href="Unison.TypePrinter.html#prettySignaturesCT"><span class="hs-identifier">prettySignaturesCT</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><a href="Unison.TypePrinter.html#prettySignaturesCTCollapsed"><span class="hs-identifier">prettySignaturesCTCollapsed</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-13"></span><span>    </span><span class="annot"><a href="Unison.TypePrinter.html#prettySignaturesAlt"><span class="hs-identifier">prettySignaturesAlt</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-14"></span><span>    </span><span class="annot"><a href="Unison.TypePrinter.html#prettySignaturesAlt%27"><span class="hs-identifier">prettySignaturesAlt'</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-15"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-16"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-17"></span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Map</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Map</span></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Unison.Builtin.Decls.html"><span class="hs-identifier">Unison.Builtin.Decls</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">DD</span></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Unison.HashQualified</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">HashQualified</span></span><span class="hs-special">)</span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Unison.Name</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Name</span></span><span class="hs-special">)</span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Unison.NamePrinter.html"><span class="hs-identifier">Unison.NamePrinter</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.NamePrinter.html#styleHashQualified%27%27"><span class="hs-identifier">styleHashQualified''</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Unison.Prelude</span></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Unison.PrettyPrintEnv.html"><span class="hs-identifier">Unison.PrettyPrintEnv</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.PrettyPrintEnv.html#PrettyPrintEnv"><span class="hs-identifier">PrettyPrintEnv</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Unison.PrettyPrintEnv.html"><span class="hs-identifier">Unison.PrettyPrintEnv</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">PrettyPrintEnv</span></span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Unison.PrettyPrintEnv.FQN.html"><span class="hs-identifier">Unison.PrettyPrintEnv.FQN</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.PrettyPrintEnv.FQN.html#Imports"><span class="hs-identifier">Imports</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.PrettyPrintEnv.FQN.html#elideFQN"><span class="hs-identifier">elideFQN</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Unison.Reference</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Reference</span></span><span class="hs-special">,</span><span> </span><span class="hs-keyword">pattern</span><span> </span><span class="annot"><span class="hs-identifier">Builtin</span></span><span class="hs-special">)</span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Unison.Referent</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Referent</span></span><span class="hs-special">)</span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Unison.Type</span></span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Unison.Util.ColorText.html"><span class="hs-identifier">Unison.Util.ColorText</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.ColorText.html#toPlain"><span class="hs-identifier">toPlain</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-31"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html"><span class="hs-identifier">Unison.Util.Pretty</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.Pretty.html#ColorText"><span class="hs-identifier">ColorText</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html#Pretty"><span class="hs-identifier">Pretty</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html#Width"><span class="hs-identifier">Width</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-32"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html"><span class="hs-identifier">Unison.Util.Pretty</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">PP</span></span><span>
 </span><span id="line-33"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Unison.Util.SyntaxText.html"><span class="hs-identifier">Unison.Util.SyntaxText</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">S</span></span><span>
-</span><span id="line-34"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html"><span class="hs-identifier">Unison.Util.Pretty</span></a></span><span>    </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">PP</span></span><span>
-</span><span id="line-35"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Unison.Var</span></span><span>            </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Var</span></span><span class="hs-special">)</span><span>
-</span><span id="line-36"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Unison.Var</span></span><span>            </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Var</span></span><span>
-</span><span id="line-37"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Unison.Builtin.Decls.html"><span class="hs-identifier">Unison.Builtin.Decls</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">DD</span></span><span>
-</span><span id="line-38"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Unison.Referent</span></span><span>       </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Referent</span></span><span class="hs-special">)</span><span>
-</span><span id="line-39"></span><span>
-</span><span id="line-40"></span><span class="hs-keyword">type</span><span> </span><span id="SyntaxText"><span class="annot"><a href="Unison.TypePrinter.html#SyntaxText"><span class="hs-identifier hs-var">SyntaxText</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Unison.Util.SyntaxText.html#SyntaxText%27"><span class="hs-identifier hs-type">S.SyntaxText'</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Reference</span></span><span>
-</span><span id="line-41"></span><span>
-</span><span id="line-42"></span><span class="annot"><a href="Unison.TypePrinter.html#pretty"><span class="hs-identifier hs-type">pretty</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621680958862"><span class="annot"><a href="#local-6989586621680958862"><span class="hs-identifier hs-type">v</span></a></span></span><span> </span><span id="local-6989586621680958861"><span class="annot"><a href="#local-6989586621680958861"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Var</span></span><span> </span><span class="annot"><a href="#local-6989586621680958862"><span class="hs-identifier hs-type">v</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Unison.PrettyPrintEnv.html#PrettyPrintEnv"><span class="hs-identifier hs-type">PrettyPrintEnv</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="#local-6989586621680958862"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680958861"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html#ColorText"><span class="hs-identifier hs-type">ColorText</span></a></span><span>
-</span><span id="line-43"></span><span id="pretty"><span class="annot"><span class="annottext">pretty :: PrettyPrintEnv -&gt; Type v a -&gt; Pretty ColorText
+</span><span id="line-34"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Unison.Var</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Var</span></span><span class="hs-special">)</span><span>
+</span><span id="line-35"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Unison.Var</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Var</span></span><span>
+</span><span id="line-36"></span><span>
+</span><span id="line-37"></span><span class="hs-keyword">type</span><span> </span><span id="SyntaxText"><span class="annot"><a href="Unison.TypePrinter.html#SyntaxText"><span class="hs-identifier hs-var">SyntaxText</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Unison.Util.SyntaxText.html#SyntaxText%27"><span class="hs-identifier hs-type">S.SyntaxText'</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Reference</span></span><span>
+</span><span id="line-38"></span><span>
+</span><span id="line-39"></span><span class="annot"><a href="Unison.TypePrinter.html#pretty"><span class="hs-identifier hs-type">pretty</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621680958862"><span class="annot"><a href="#local-6989586621680958862"><span class="hs-identifier hs-type">v</span></a></span></span><span> </span><span id="local-6989586621680958861"><span class="annot"><a href="#local-6989586621680958861"><span class="hs-identifier hs-type">a</span></a></span></span><span class="hs-operator">.</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Var</span></span><span> </span><span class="annot"><a href="#local-6989586621680958862"><span class="hs-identifier hs-type">v</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Unison.PrettyPrintEnv.html#PrettyPrintEnv"><span class="hs-identifier hs-type">PrettyPrintEnv</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="#local-6989586621680958862"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680958861"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html#ColorText"><span class="hs-identifier hs-type">ColorText</span></a></span><span>
+</span><span id="line-40"></span><span id="pretty"><span class="annot"><span class="annottext">pretty :: PrettyPrintEnv -&gt; Type v a -&gt; Pretty ColorText
 </span><a href="Unison.TypePrinter.html#pretty"><span class="hs-identifier hs-var hs-var">pretty</span></a></span></span><span> </span><span id="local-6989586621680958860"><span class="annot"><span class="annottext">PrettyPrintEnv
 </span><a href="#local-6989586621680958860"><span class="hs-identifier hs-var">ppe</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference) -&gt; Pretty ColorText
 forall r. Pretty (SyntaxText' r) -&gt; Pretty ColorText
@@ -55,9 +52,9 @@ Var v =&gt;
 PrettyPrintEnv -&gt; Type v a -&gt; Pretty (SyntaxText' Reference)
 </span><a href="Unison.TypePrinter.html#prettySyntax"><span class="hs-identifier hs-var">prettySyntax</span></a></span><span> </span><span class="annot"><span class="annottext">PrettyPrintEnv
 </span><a href="#local-6989586621680958860"><span class="hs-identifier hs-var">ppe</span></a></span><span>
-</span><span id="line-44"></span><span>
-</span><span id="line-45"></span><span class="annot"><a href="Unison.TypePrinter.html#prettySyntax"><span class="hs-identifier hs-type">prettySyntax</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621680958980"><span class="annot"><a href="#local-6989586621680958980"><span class="hs-identifier hs-type">v</span></a></span></span><span> </span><span id="local-6989586621680958978"><span class="annot"><a href="#local-6989586621680958978"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Var</span></span><span> </span><span class="annot"><a href="#local-6989586621680958980"><span class="hs-identifier hs-type">v</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Unison.PrettyPrintEnv.html#PrettyPrintEnv"><span class="hs-identifier hs-type">PrettyPrintEnv</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="#local-6989586621680958980"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680958978"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="annot"><a href="Unison.TypePrinter.html#SyntaxText"><span class="hs-identifier hs-type">SyntaxText</span></a></span><span>
-</span><span id="line-46"></span><span id="prettySyntax"><span class="annot"><span class="annottext">prettySyntax :: PrettyPrintEnv -&gt; Type v a -&gt; Pretty (SyntaxText' Reference)
+</span><span id="line-41"></span><span>
+</span><span id="line-42"></span><span class="annot"><a href="Unison.TypePrinter.html#prettySyntax"><span class="hs-identifier hs-type">prettySyntax</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621680958980"><span class="annot"><a href="#local-6989586621680958980"><span class="hs-identifier hs-type">v</span></a></span></span><span> </span><span id="local-6989586621680958978"><span class="annot"><a href="#local-6989586621680958978"><span class="hs-identifier hs-type">a</span></a></span></span><span class="hs-operator">.</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Var</span></span><span> </span><span class="annot"><a href="#local-6989586621680958980"><span class="hs-identifier hs-type">v</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Unison.PrettyPrintEnv.html#PrettyPrintEnv"><span class="hs-identifier hs-type">PrettyPrintEnv</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="#local-6989586621680958980"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680958978"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="annot"><a href="Unison.TypePrinter.html#SyntaxText"><span class="hs-identifier hs-type">SyntaxText</span></a></span><span>
+</span><span id="line-43"></span><span id="prettySyntax"><span class="annot"><span class="annottext">prettySyntax :: PrettyPrintEnv -&gt; Type v a -&gt; Pretty (SyntaxText' Reference)
 </span><a href="Unison.TypePrinter.html#prettySyntax"><span class="hs-identifier hs-var hs-var">prettySyntax</span></a></span></span><span> </span><span id="local-6989586621680958857"><span class="annot"><span class="annottext">PrettyPrintEnv
 </span><a href="#local-6989586621680958857"><span class="hs-identifier hs-var">ppe</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PrettyPrintEnv
 -&gt; Imports -&gt; Int -&gt; Type v a -&gt; Pretty (SyntaxText' Reference)
@@ -70,14 +67,14 @@ PrettyPrintEnv
 forall a. Monoid a =&gt; a
 </span><span class="hs-identifier hs-var">mempty</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">-</span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">1</span></span><span class="hs-special">)</span><span>
-</span><span id="line-47"></span><span>
-</span><span id="line-48"></span><span id="local-6989586621680958855"><span id="local-6989586621680958856"><span class="annot"><a href="Unison.TypePrinter.html#prettyStr"><span class="hs-identifier hs-type">prettyStr</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Var</span></span><span> </span><span class="annot"><a href="#local-6989586621680958856"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html#Width"><span class="hs-identifier hs-type">Width</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.PrettyPrintEnv.html#PrettyPrintEnv"><span class="hs-identifier hs-type">PrettyPrintEnv</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="#local-6989586621680958856"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680958855"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span></span></span><span>
-</span><span id="line-49"></span><span id="prettyStr"><span class="annot"><span class="annottext">prettyStr :: Maybe Width -&gt; PrettyPrintEnv -&gt; Type v a -&gt; String
+</span><span id="line-44"></span><span>
+</span><span id="line-45"></span><span id="local-6989586621680958855"><span id="local-6989586621680958856"><span class="annot"><a href="Unison.TypePrinter.html#prettyStr"><span class="hs-identifier hs-type">prettyStr</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Var</span></span><span> </span><span class="annot"><a href="#local-6989586621680958856"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html#Width"><span class="hs-identifier hs-type">Width</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.PrettyPrintEnv.html#PrettyPrintEnv"><span class="hs-identifier hs-type">PrettyPrintEnv</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="#local-6989586621680958856"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680958855"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span></span></span><span>
+</span><span id="line-46"></span><span id="prettyStr"><span class="annot"><span class="annottext">prettyStr :: Maybe Width -&gt; PrettyPrintEnv -&gt; Type v a -&gt; String
 </span><a href="Unison.TypePrinter.html#prettyStr"><span class="hs-identifier hs-var hs-var">prettyStr</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621680958854"><span class="annot"><span class="annottext">Width
 </span><a href="#local-6989586621680958854"><span class="hs-identifier hs-var">width</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621680958853"><span class="annot"><span class="annottext">PrettyPrintEnv
 </span><a href="#local-6989586621680958853"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621680958852"><span class="annot"><span class="annottext">Type v a
 </span><a href="#local-6989586621680958852"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-50"></span><span>  </span><span class="annot"><span class="annottext">ColorText -&gt; String
+</span><span id="line-47"></span><span>  </span><span class="annot"><span class="annottext">ColorText -&gt; String
 </span><a href="Unison.Util.ColorText.html#toPlain"><span class="hs-identifier hs-var">toPlain</span></a></span><span> </span><span class="annot"><span class="annottext">(ColorText -&gt; String) -&gt; ColorText -&gt; String
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Width -&gt; Pretty ColorText -&gt; ColorText
@@ -102,11 +99,11 @@ forall k a. Map k a
 </span><span class="hs-identifier hs-var">Map.empty</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">-</span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Type v a
 </span><a href="#local-6989586621680958852"><span class="hs-identifier hs-var">t</span></a></span><span>
-</span><span id="line-51"></span><span class="annot"><a href="Unison.TypePrinter.html#prettyStr"><span class="hs-identifier hs-var">prettyStr</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe Width
+</span><span id="line-48"></span><span class="annot"><a href="Unison.TypePrinter.html#prettyStr"><span class="hs-identifier hs-var">prettyStr</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe Width
 </span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span id="local-6989586621680958849"><span class="annot"><span class="annottext">PrettyPrintEnv
 </span><a href="#local-6989586621680958849"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621680958848"><span class="annot"><span class="annottext">Type v a
 </span><a href="#local-6989586621680958848"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-52"></span><span>  </span><span class="annot"><span class="annottext">ColorText -&gt; String
+</span><span id="line-49"></span><span>  </span><span class="annot"><span class="annottext">ColorText -&gt; String
 </span><a href="Unison.Util.ColorText.html#toPlain"><span class="hs-identifier hs-var">toPlain</span></a></span><span> </span><span class="annot"><span class="annottext">(ColorText -&gt; String) -&gt; ColorText -&gt; String
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Width -&gt; Pretty ColorText -&gt; ColorText
@@ -132,8 +129,8 @@ forall k a. Map k a
 </span><span class="hs-identifier hs-var">Map.empty</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">-</span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Type v a
 </span><a href="#local-6989586621680958848"><span class="hs-identifier hs-var">t</span></a></span><span>
-</span><span id="line-53"></span><span>
-</span><span id="line-54"></span><span class="hs-comment">{- Explanation of precedence handling
+</span><span id="line-50"></span><span>
+</span><span id="line-51"></span><span class="hs-comment">{- Explanation of precedence handling
 
    We illustrate precedence rules as follows.
 
@@ -154,15 +151,16 @@ forall k a. Map k a
        0a -&gt; 0b
 
 -}</span><span>
-</span><span id="line-75"></span><span>
-</span><span id="line-76"></span><span class="annot"><a href="Unison.TypePrinter.html#pretty0"><span class="hs-identifier hs-type">pretty0</span></a></span><span>
-</span><span id="line-77"></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621680958974"><span class="annot"><a href="#local-6989586621680958974"><span class="hs-identifier hs-type">v</span></a></span></span><span> </span><span id="local-6989586621680958973"><span class="annot"><a href="#local-6989586621680958973"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Var</span></span><span> </span><span class="annot"><a href="#local-6989586621680958974"><span class="hs-identifier hs-type">v</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-78"></span><span>  </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Unison.PrettyPrintEnv.html#PrettyPrintEnv"><span class="hs-identifier hs-type">PrettyPrintEnv</span></a></span><span>
-</span><span id="line-79"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.PrettyPrintEnv.FQN.html#Imports"><span class="hs-identifier hs-type">Imports</span></a></span><span>
-</span><span id="line-80"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
-</span><span id="line-81"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="#local-6989586621680958974"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680958973"><span class="hs-identifier hs-type">a</span></a></span><span>
-</span><span id="line-82"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="annot"><a href="Unison.TypePrinter.html#SyntaxText"><span class="hs-identifier hs-type">SyntaxText</span></a></span><span>
-</span><span id="line-83"></span><span id="pretty0"><span class="annot"><span class="annottext">pretty0 :: PrettyPrintEnv
+</span><span id="line-72"></span><span>
+</span><span id="line-73"></span><span class="annot"><a href="Unison.TypePrinter.html#pretty0"><span class="hs-identifier hs-type">pretty0</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-74"></span><span>  </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621680958974"><span class="annot"><a href="#local-6989586621680958974"><span class="hs-identifier hs-type">v</span></a></span></span><span> </span><span id="local-6989586621680958973"><span class="annot"><a href="#local-6989586621680958973"><span class="hs-identifier hs-type">a</span></a></span></span><span class="hs-operator">.</span><span>
+</span><span id="line-75"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Var</span></span><span> </span><span class="annot"><a href="#local-6989586621680958974"><span class="hs-identifier hs-type">v</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-76"></span><span>  </span><span class="annot"><a href="Unison.PrettyPrintEnv.html#PrettyPrintEnv"><span class="hs-identifier hs-type">PrettyPrintEnv</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-77"></span><span>  </span><span class="annot"><a href="Unison.PrettyPrintEnv.FQN.html#Imports"><span class="hs-identifier hs-type">Imports</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-78"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-79"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="#local-6989586621680958974"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680958973"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-80"></span><span>  </span><span class="annot"><a href="Unison.Util.Pretty.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="annot"><a href="Unison.TypePrinter.html#SyntaxText"><span class="hs-identifier hs-type">SyntaxText</span></a></span><span>
+</span><span id="line-81"></span><span id="pretty0"><span class="annot"><span class="annottext">pretty0 :: PrettyPrintEnv
 -&gt; Imports -&gt; Int -&gt; Type v a -&gt; Pretty (SyntaxText' Reference)
 </span><a href="Unison.TypePrinter.html#pretty0"><span class="hs-identifier hs-var hs-var">pretty0</span></a></span></span><span> </span><span id="local-6989586621680958846"><span class="annot"><span class="annottext">PrettyPrintEnv
 </span><a href="#local-6989586621680958846"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621680958845"><span class="annot"><span class="annottext">Imports
@@ -183,18 +181,19 @@ forall v a. Var v =&gt; Type v a -&gt; Type v a
 forall v a. Var v =&gt; Type v a -&gt; Type v a
 </span><span class="hs-identifier hs-var">removePureEffects</span></span><span> </span><span class="annot"><span class="annottext">Type v a
 </span><a href="#local-6989586621680958843"><span class="hs-identifier hs-var">tp</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
-</span><span id="line-84"></span><span>
-</span><span id="line-85"></span><span class="annot"><a href="Unison.TypePrinter.html#prettyRaw"><span class="hs-identifier hs-type">prettyRaw</span></a></span><span>
-</span><span id="line-86"></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621680958840"><span class="annot"><a href="#local-6989586621680958840"><span class="hs-identifier hs-type">v</span></a></span></span><span> </span><span id="local-6989586621680958839"><span class="annot"><a href="#local-6989586621680958839"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Var</span></span><span> </span><span class="annot"><a href="#local-6989586621680958840"><span class="hs-identifier hs-type">v</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-87"></span><span>  </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Unison.PrettyPrintEnv.html#PrettyPrintEnv"><span class="hs-identifier hs-type">PrettyPrintEnv</span></a></span><span>
-</span><span id="line-88"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.PrettyPrintEnv.FQN.html#Imports"><span class="hs-identifier hs-type">Imports</span></a></span><span>
-</span><span id="line-89"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
-</span><span id="line-90"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="#local-6989586621680958840"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680958839"><span class="hs-identifier hs-type">a</span></a></span><span>
-</span><span id="line-91"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="annot"><a href="Unison.TypePrinter.html#SyntaxText"><span class="hs-identifier hs-type">SyntaxText</span></a></span><span>
-</span><span id="line-92"></span><span class="hs-comment">-- p is the operator precedence of the enclosing context (a number from 0 to</span><span>
-</span><span id="line-93"></span><span class="hs-comment">-- 11, or -1 to avoid outer parentheses unconditionally).  Function</span><span>
-</span><span id="line-94"></span><span class="hs-comment">-- application has precedence 10.</span><span>
-</span><span id="line-95"></span><span id="prettyRaw"><span class="annot"><span class="annottext">prettyRaw :: PrettyPrintEnv
+</span><span id="line-82"></span><span>
+</span><span id="line-83"></span><span class="annot"><a href="Unison.TypePrinter.html#prettyRaw"><span class="hs-identifier hs-type">prettyRaw</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-84"></span><span>  </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621680958840"><span class="annot"><a href="#local-6989586621680958840"><span class="hs-identifier hs-type">v</span></a></span></span><span> </span><span id="local-6989586621680958839"><span class="annot"><a href="#local-6989586621680958839"><span class="hs-identifier hs-type">a</span></a></span></span><span class="hs-operator">.</span><span>
+</span><span id="line-85"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Var</span></span><span> </span><span class="annot"><a href="#local-6989586621680958840"><span class="hs-identifier hs-type">v</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-86"></span><span>  </span><span class="annot"><a href="Unison.PrettyPrintEnv.html#PrettyPrintEnv"><span class="hs-identifier hs-type">PrettyPrintEnv</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-87"></span><span>  </span><span class="annot"><a href="Unison.PrettyPrintEnv.FQN.html#Imports"><span class="hs-identifier hs-type">Imports</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-88"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-89"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="#local-6989586621680958840"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680958839"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-90"></span><span>  </span><span class="annot"><a href="Unison.Util.Pretty.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="annot"><a href="Unison.TypePrinter.html#SyntaxText"><span class="hs-identifier hs-type">SyntaxText</span></a></span><span>
+</span><span id="line-91"></span><span class="hs-comment">-- p is the operator precedence of the enclosing context (a number from 0 to</span><span>
+</span><span id="line-92"></span><span class="hs-comment">-- 11, or -1 to avoid outer parentheses unconditionally).  Function</span><span>
+</span><span id="line-93"></span><span class="hs-comment">-- application has precedence 10.</span><span>
+</span><span id="line-94"></span><span id="prettyRaw"><span class="annot"><span class="annottext">prettyRaw :: PrettyPrintEnv
 -&gt; Imports -&gt; Int -&gt; Type v a -&gt; Pretty (SyntaxText' Reference)
 </span><a href="Unison.TypePrinter.html#prettyRaw"><span class="hs-identifier hs-var hs-var">prettyRaw</span></a></span></span><span> </span><span id="local-6989586621680958838"><span class="annot"><span class="annottext">PrettyPrintEnv
 </span><a href="#local-6989586621680958838"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621680958837"><span class="annot"><span class="annottext">Imports
@@ -207,9 +206,9 @@ forall v a. Var v =&gt; Type v a -&gt; Type v a
 </span><a href="#local-6989586621680958837"><span class="hs-identifier hs-var">im</span></a></span><span> </span><span class="annot"><span class="annottext">Int
 </span><a href="#local-6989586621680958836"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">Type v a
 </span><a href="#local-6989586621680958835"><span class="hs-identifier hs-var">tp</span></a></span><span>
-</span><span id="line-96"></span><span>  </span><span class="hs-keyword">where</span><span>
-</span><span id="line-97"></span><span>  </span><span class="annot"><a href="#local-6989586621680958834"><span class="hs-identifier hs-type">go</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.PrettyPrintEnv.html#PrettyPrintEnv"><span class="hs-identifier hs-type">PrettyPrintEnv</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.PrettyPrintEnv.FQN.html#Imports"><span class="hs-identifier hs-type">Imports</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="#local-6989586621680958840"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680958839"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="annot"><a href="Unison.TypePrinter.html#SyntaxText"><span class="hs-identifier hs-type">SyntaxText</span></a></span><span>
-</span><span id="line-98"></span><span>  </span><span id="local-6989586621680958834"><span class="annot"><span class="annottext">go :: PrettyPrintEnv
+</span><span id="line-95"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-96"></span><span>    </span><span class="annot"><a href="#local-6989586621680958834"><span class="hs-identifier hs-type">go</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.PrettyPrintEnv.html#PrettyPrintEnv"><span class="hs-identifier hs-type">PrettyPrintEnv</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.PrettyPrintEnv.FQN.html#Imports"><span class="hs-identifier hs-type">Imports</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="#local-6989586621680958840"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680958839"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="annot"><a href="Unison.TypePrinter.html#SyntaxText"><span class="hs-identifier hs-type">SyntaxText</span></a></span><span>
+</span><span id="line-97"></span><span>    </span><span id="local-6989586621680958834"><span class="annot"><span class="annottext">go :: PrettyPrintEnv
 -&gt; Imports -&gt; Int -&gt; Type v a -&gt; Pretty (SyntaxText' Reference)
 </span><a href="#local-6989586621680958834"><span class="hs-identifier hs-var hs-var">go</span></a></span></span><span> </span><span id="local-6989586621680958833"><span class="annot"><span class="annottext">PrettyPrintEnv
 </span><a href="#local-6989586621680958833"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621680958832"><span class="annot"><span class="annottext">Imports
@@ -219,8 +218,8 @@ forall v a. Var v =&gt; Type v a -&gt; Type v a
 forall v a. Type v a -&gt; Type v a
 </span><span class="hs-identifier hs-var">stripIntroOuters</span></span><span> </span><span class="annot"><span class="annottext">Type v a
 </span><a href="#local-6989586621680958830"><span class="hs-identifier hs-var">tp</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-99"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Var'</span></span><span> </span><span id="local-6989586621680958827"><span class="annot"><span class="annottext">v
-</span><a href="#local-6989586621680958827"><span class="hs-identifier hs-var">v</span></a></span></span><span>     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Element Reference
+</span><span id="line-98"></span><span>      </span><span class="annot"><span class="hs-identifier hs-type">Var'</span></span><span> </span><span id="local-6989586621680958827"><span class="annot"><span class="annottext">v
+</span><a href="#local-6989586621680958827"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Element Reference
 -&gt; Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
 forall r.
 Element r -&gt; Pretty (SyntaxText' r) -&gt; Pretty (SyntaxText' r)
@@ -235,7 +234,7 @@ forall s. IsString s =&gt; Text -&gt; Pretty s
 forall v. Var v =&gt; v -&gt; Text
 </span><span class="hs-identifier hs-var">Var.name</span></span><span> </span><span class="annot"><span class="annottext">v
 </span><a href="#local-6989586621680958827"><span class="hs-identifier hs-var">v</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-100"></span><span>    </span><span class="annot"><a href="Unison.Builtin.Decls.html#TupleType%27"><span class="hs-identifier hs-type">DD.TupleType'</span></a></span><span> </span><span id="local-6989586621680958821"><span class="annot"><span class="annottext">[Type v a]
+</span><span id="line-99"></span><span>      </span><span class="annot"><a href="Unison.Builtin.Decls.html#TupleType%27"><span class="hs-identifier hs-type">DD.TupleType'</span></a></span><span> </span><span id="local-6989586621680958821"><span class="annot"><span class="annottext">[Type v a]
 </span><a href="#local-6989586621680958821"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">[Type v a] -&gt; Int
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
 </span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">[Type v a]
@@ -261,9 +260,9 @@ forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
 </span><a href="#local-6989586621680958832"><span class="hs-identifier hs-var">im</span></a></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">0</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Type v a]
 </span><a href="#local-6989586621680958821"><span class="hs-identifier hs-var">xs</span></a></span><span>
-</span><span id="line-101"></span><span>    </span><span class="hs-comment">-- Would be nice to use a different SyntaxHighlights color if the reference is an ability.</span><span>
-</span><span id="line-102"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Ref'</span></span><span> </span><span id="local-6989586621680958816"><span class="annot"><span class="annottext">Reference
-</span><a href="#local-6989586621680958816"><span class="hs-identifier hs-var">r</span></a></span></span><span>     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">(Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference))
+</span><span id="line-100"></span><span>      </span><span class="hs-comment">-- Would be nice to use a different SyntaxHighlights color if the reference is an ability.</span><span>
+</span><span id="line-101"></span><span>      </span><span class="annot"><span class="hs-identifier hs-type">Ref'</span></span><span> </span><span id="local-6989586621680958816"><span class="annot"><span class="annottext">Reference
+</span><a href="#local-6989586621680958816"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">(Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference))
 -&gt; HashQualified Name -&gt; Pretty (SyntaxText' Reference)
 </span><a href="Unison.NamePrinter.html#styleHashQualified%27%27"><span class="hs-identifier hs-var">styleHashQualified''</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Element Reference
 -&gt; Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
@@ -288,27 +287,27 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><a href="Unison.PrettyPrintEnv.html#typeName"><span class="hs-identifier hs-var">PrettyPrintEnv.typeName</span></a></span><span> </span><span class="annot"><span class="annottext">PrettyPrintEnv
 </span><a href="#local-6989586621680958833"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Reference
 </span><a href="#local-6989586621680958816"><span class="hs-identifier hs-var">r</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-103"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Cycle'</span></span><span> </span><span class="annot"><span class="annottext">[v]
+</span><span id="line-102"></span><span>      </span><span class="annot"><span class="hs-identifier hs-type">Cycle'</span></span><span> </span><span class="annot"><span class="annottext">[v]
 </span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">F (Type v a)
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Pretty (SyntaxText' Reference)
 forall a. IsString a =&gt; String -&gt; a
 </span><span class="hs-identifier hs-var">fromString</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;error: TypeParser does not currently emit Cycle&quot;</span></span><span>
-</span><span id="line-104"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Abs'</span></span><span> </span><span class="annot"><span class="annottext">Subst F v a
-</span><span class="hs-identifier">_</span></span><span>     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Pretty (SyntaxText' Reference)
+</span><span id="line-103"></span><span>      </span><span class="annot"><span class="hs-identifier hs-type">Abs'</span></span><span> </span><span class="annot"><span class="annottext">Subst F v a
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Pretty (SyntaxText' Reference)
 forall a. IsString a =&gt; String -&gt; a
 </span><span class="hs-identifier hs-var">fromString</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;error: TypeParser does not currently emit Abs&quot;</span></span><span>
-</span><span id="line-105"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Ann'</span></span><span> </span><span class="annot"><span class="annottext">Type v a
+</span><span id="line-104"></span><span>      </span><span class="annot"><span class="hs-identifier hs-type">Ann'</span></span><span> </span><span class="annot"><span class="annottext">Type v a
 </span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Kind
-</span><span class="hs-identifier">_</span></span><span>   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Pretty (SyntaxText' Reference)
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Pretty (SyntaxText' Reference)
 forall a. IsString a =&gt; String -&gt; a
 </span><span class="hs-identifier hs-var">fromString</span></span><span> </span><span class="annot"><span class="annottext">String
 </span><span class="hs-string">&quot;error: TypeParser does not currently emit Ann&quot;</span></span><span>
-</span><span id="line-106"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">App'</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Ref'</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Builtin</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span id="line-105"></span><span>      </span><span class="annot"><span class="hs-identifier hs-type">App'</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Ref'</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Builtin</span></span><span> </span><span class="annot"><span class="annottext">Text
 </span><span class="hs-string">&quot;Sequence&quot;</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span id="local-6989586621680958809"><span class="annot"><span class="annottext">Type v a
 </span><a href="#local-6989586621680958809"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
-</span><span id="line-107"></span><span>      </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
+</span><span id="line-106"></span><span>        </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
 forall s. Pretty s -&gt; Pretty s
 </span><a href="Unison.Util.Pretty.html#group"><span class="hs-identifier hs-var">PP.group</span></a></span><span> </span><span class="annot"><span class="annottext">(Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference))
 -&gt; Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
@@ -340,9 +339,10 @@ Element r -&gt; Pretty (SyntaxText' r) -&gt; Pretty (SyntaxText' r)
 forall r. Element r
 </span><a href="Unison.Util.SyntaxText.html#DelimiterChar"><span class="hs-identifier hs-var">S.DelimiterChar</span></a></span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
 </span><span class="hs-string">&quot;]&quot;</span></span><span class="hs-special">)</span><span>
-</span><span id="line-108"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Apps'</span></span><span> </span><span id="local-6989586621680958805"><span class="annot"><span class="annottext">Type v a
+</span><span id="line-107"></span><span>      </span><span class="annot"><span class="hs-identifier hs-type">Apps'</span></span><span> </span><span id="local-6989586621680958805"><span class="annot"><span class="annottext">Type v a
 </span><a href="#local-6989586621680958805"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621680958804"><span class="annot"><span class="annottext">[Type v a]
-</span><a href="#local-6989586621680958804"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621680958804"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-108"></span><span>        </span><span class="annot"><span class="annottext">Bool
 -&gt; Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
 forall s. IsString s =&gt; Bool -&gt; Pretty s -&gt; Pretty s
 </span><a href="Unison.Util.Pretty.html#parenthesizeIf"><span class="hs-identifier hs-var">PP.parenthesizeIf</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
@@ -352,13 +352,15 @@ forall a. Ord a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-number">10</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference))
 -&gt; Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
 forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">PrettyPrintEnv
+</span><span class="hs-operator hs-var">$</span></span><span>
+</span><span id="line-109"></span><span>          </span><span class="annot"><span class="annottext">PrettyPrintEnv
 -&gt; Imports -&gt; Int -&gt; Type v a -&gt; Pretty (SyntaxText' Reference)
 </span><a href="#local-6989586621680958834"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="annot"><span class="annottext">PrettyPrintEnv
 </span><a href="#local-6989586621680958833"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Imports
 </span><a href="#local-6989586621680958832"><span class="hs-identifier hs-var">im</span></a></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">9</span></span><span> </span><span class="annot"><span class="annottext">Type v a
-</span><a href="#local-6989586621680958805"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
+</span><a href="#local-6989586621680958805"><span class="hs-identifier hs-var">f</span></a></span><span>
+</span><span id="line-110"></span><span>            </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
 -&gt; Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
 forall s.
 (ListLike s Char, IsString s) =&gt;
@@ -368,7 +370,7 @@ forall (f :: * -&gt; *) s.
 (Foldable f, IsString s) =&gt;
 f (Pretty s) -&gt; Pretty s
 </span><a href="Unison.Util.Pretty.html#spaced"><span class="hs-identifier hs-var">PP.spaced</span></a></span><span>
-</span><span id="line-109"></span><span>      </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PrettyPrintEnv
+</span><span id="line-111"></span><span>              </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PrettyPrintEnv
 -&gt; Imports -&gt; Int -&gt; Type v a -&gt; Pretty (SyntaxText' Reference)
 </span><a href="#local-6989586621680958834"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="annot"><span class="annottext">PrettyPrintEnv
 </span><a href="#local-6989586621680958833"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Imports
@@ -378,10 +380,10 @@ f (Pretty s) -&gt; Pretty s
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">[Type v a]
 </span><a href="#local-6989586621680958804"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-110"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Effect1'</span></span><span> </span><span id="local-6989586621680958798"><span class="annot"><span class="annottext">Type v a
+</span><span id="line-112"></span><span>      </span><span class="annot"><span class="hs-identifier hs-type">Effect1'</span></span><span> </span><span id="local-6989586621680958798"><span class="annot"><span class="annottext">Type v a
 </span><a href="#local-6989586621680958798"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span id="local-6989586621680958797"><span class="annot"><span class="annottext">Type v a
 </span><a href="#local-6989586621680958797"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
-</span><span id="line-111"></span><span>      </span><span class="annot"><span class="annottext">Bool
+</span><span id="line-113"></span><span>        </span><span class="annot"><span class="annottext">Bool
 -&gt; Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
 forall s. IsString s =&gt; Bool -&gt; Pretty s -&gt; Pretty s
 </span><a href="Unison.Util.Pretty.html#parenthesizeIf"><span class="hs-identifier hs-var">PP.parenthesizeIf</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
@@ -411,8 +413,8 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><a href="#local-6989586621680958832"><span class="hs-identifier hs-var">im</span></a></span><span> </span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">10</span></span><span> </span><span class="annot"><span class="annottext">Type v a
 </span><a href="#local-6989586621680958797"><span class="hs-identifier hs-var">t</span></a></span><span>
-</span><span id="line-112"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Effects'</span></span><span> </span><span id="local-6989586621680958795"><span class="annot"><span class="annottext">[Type v a]
-</span><a href="#local-6989586621680958795"><span class="hs-identifier hs-var">es</span></a></span></span><span>         </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe [Type v a] -&gt; Pretty (SyntaxText' Reference)
+</span><span id="line-114"></span><span>      </span><span class="annot"><span class="hs-identifier hs-type">Effects'</span></span><span> </span><span id="local-6989586621680958795"><span class="annot"><span class="annottext">[Type v a]
+</span><a href="#local-6989586621680958795"><span class="hs-identifier hs-var">es</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe [Type v a] -&gt; Pretty (SyntaxText' Reference)
 forall (f :: * -&gt; *).
 (Foldable f, Functor f) =&gt;
 Maybe (f (Type v a)) -&gt; Pretty (SyntaxText' Reference)
@@ -420,10 +422,10 @@ Maybe (f (Type v a)) -&gt; Pretty (SyntaxText' Reference)
 forall a. a -&gt; Maybe a
 </span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">[Type v a]
 </span><a href="#local-6989586621680958795"><span class="hs-identifier hs-var">es</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-113"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">ForallsNamed'</span></span><span> </span><span id="local-6989586621680958792"><span class="annot"><span class="annottext">[v]
+</span><span id="line-115"></span><span>      </span><span class="annot"><span class="hs-identifier hs-type">ForallsNamed'</span></span><span> </span><span id="local-6989586621680958792"><span class="annot"><span class="annottext">[v]
 </span><a href="#local-6989586621680958792"><span class="hs-identifier hs-var">vs'</span></a></span></span><span> </span><span id="local-6989586621680958791"><span class="annot"><span class="annottext">Type v a
 </span><a href="#local-6989586621680958791"><span class="hs-identifier hs-var">body</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
-</span><span id="line-114"></span><span>      </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621680958790"><span class="annot"><span class="annottext">vs :: [v]
+</span><span id="line-116"></span><span>        </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621680958790"><span class="annot"><span class="annottext">vs :: [v]
 </span><a href="#local-6989586621680958790"><span class="hs-identifier hs-var hs-var">vs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(v -&gt; Bool) -&gt; [v] -&gt; [v]
 forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
 </span><span class="hs-identifier hs-var">filter</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621680958789"><span class="annot"><span class="annottext">v
@@ -435,7 +437,7 @@ forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">/=</span></span><span> </span><span class="annot"><span class="annottext">Text
 </span><span class="hs-string">&quot;()&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[v]
 </span><a href="#local-6989586621680958792"><span class="hs-identifier hs-var">vs'</span></a></span><span>
-</span><span id="line-115"></span><span>      </span><span class="hs-keyword">in</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Int
+</span><span id="line-117"></span><span>         </span><span class="hs-keyword">in</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Int
 </span><a href="#local-6989586621680958831"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
 forall a. Ord a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">&lt;</span></span><span> </span><span class="annot"><span class="annottext">Int
@@ -446,14 +448,15 @@ forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
 forall v. Var v =&gt; v -&gt; Bool
 </span><span class="hs-identifier hs-var">Var.universallyQuantifyIfFree</span></span><span> </span><span class="annot"><span class="annottext">[v]
 </span><a href="#local-6989586621680958790"><span class="hs-identifier hs-var">vs</span></a></span><span>
-</span><span id="line-116"></span><span>         </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">PrettyPrintEnv
+</span><span id="line-118"></span><span>              </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">PrettyPrintEnv
 -&gt; Imports -&gt; Int -&gt; Type v a -&gt; Pretty (SyntaxText' Reference)
 </span><a href="#local-6989586621680958834"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="annot"><span class="annottext">PrettyPrintEnv
 </span><a href="#local-6989586621680958833"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Imports
 </span><a href="#local-6989586621680958832"><span class="hs-identifier hs-var">im</span></a></span><span> </span><span class="annot"><span class="annottext">Int
 </span><a href="#local-6989586621680958831"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">Type v a
 </span><a href="#local-6989586621680958791"><span class="hs-identifier hs-var">body</span></a></span><span>
-</span><span id="line-117"></span><span>         </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span id="line-119"></span><span>              </span><span class="hs-keyword">else</span><span>
+</span><span id="line-120"></span><span>                </span><span class="annot"><span class="annottext">Bool
 -&gt; Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
 forall r. Bool -&gt; Pretty (SyntaxText' r) -&gt; Pretty (SyntaxText' r)
 </span><a href="#local-6989586621680958784"><span class="hs-identifier hs-var">paren</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
@@ -464,7 +467,7 @@ forall a. Ord a =&gt; a -&gt; a -&gt; Bool
 -&gt; Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span>
-</span><span id="line-118"></span><span>           </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621680958783"><span class="annot"><span class="annottext">vformatted :: Pretty (SyntaxText' r)
+</span><span id="line-121"></span><span>                  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621680958783"><span class="annot"><span class="annottext">vformatted :: Pretty (SyntaxText' r)
 </span><a href="#local-6989586621680958783"><span class="hs-identifier hs-var hs-var">vformatted</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' r)
 -&gt; [Pretty (SyntaxText' r)] -&gt; Pretty (SyntaxText' r)
 forall (f :: * -&gt; *) s.
@@ -490,7 +493,7 @@ forall v. Var v =&gt; v -&gt; Text
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">[v]
 </span><a href="#local-6989586621680958790"><span class="hs-identifier hs-var">vs</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-119"></span><span>           </span><span class="hs-keyword">in</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Element Reference
+</span><span id="line-122"></span><span>                   </span><span class="hs-keyword">in</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Element Reference
 -&gt; Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
 forall r.
 Element r -&gt; Pretty (SyntaxText' r) -&gt; Pretty (SyntaxText' r)
@@ -513,7 +516,7 @@ Element r -&gt; Pretty (SyntaxText' r) -&gt; Pretty (SyntaxText' r)
 forall r. Element r
 </span><a href="Unison.Util.SyntaxText.html#TypeOperator"><span class="hs-identifier hs-var">S.TypeOperator</span></a></span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
 </span><span class="hs-string">&quot;.&quot;</span></span><span class="hs-special">)</span><span>
-</span><span id="line-120"></span><span>              </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
+</span><span id="line-123"></span><span>                        </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
 -&gt; Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
 forall s.
 (ListLike s Char, IsString s) =&gt;
@@ -525,15 +528,15 @@ Pretty s -&gt; Pretty s -&gt; Pretty s
 </span><a href="#local-6989586621680958832"><span class="hs-identifier hs-var">im</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">-</span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Type v a
 </span><a href="#local-6989586621680958791"><span class="hs-identifier hs-var">body</span></a></span><span>
-</span><span id="line-121"></span><span>    </span><span id="local-6989586621680958780"><span class="annot"><span class="annottext">t :: Type v a
+</span><span id="line-124"></span><span>      </span><span id="local-6989586621680958780"><span class="annot"><span class="annottext">t :: Type v a
 </span><a href="#local-6989586621680958780"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Arrow'</span></span><span> </span><span class="annot"><span class="annottext">Type v a
 </span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Type v a
 </span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Type v a
 </span><a href="#local-6989586621680958780"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-122"></span><span>      </span><span class="annot"><span class="hs-identifier hs-type">EffectfulArrows'</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Ref'</span></span><span> </span><span class="annot"><span class="annottext">Reference
+</span><span id="line-125"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">EffectfulArrows'</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Ref'</span></span><span> </span><span class="annot"><span class="annottext">Reference
 </span><a href="Unison.Builtin.Decls.html#UnitRef"><span class="hs-identifier hs-var">DD.UnitRef</span></a></span><span class="hs-special">)</span><span> </span><span id="local-6989586621680958776"><span class="annot"><span class="annottext">[(Maybe [Type v a], Type v a)]
 </span><a href="#local-6989586621680958776"><span class="hs-identifier hs-var">rest</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
-</span><span id="line-123"></span><span>        </span><span class="annot"><span class="annottext">Bool
+</span><span id="line-126"></span><span>          </span><span class="annot"><span class="annottext">Bool
 -&gt; Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
 forall s. IsString s =&gt; Bool -&gt; Pretty s -&gt; Pretty s
 </span><a href="Unison.Util.Pretty.html#parenthesizeIf"><span class="hs-identifier hs-var">PP.parenthesizeIf</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
@@ -557,20 +560,21 @@ Bool
 </span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">[(Maybe [Type v a], Type v a)]
 </span><a href="#local-6989586621680958776"><span class="hs-identifier hs-var">rest</span></a></span><span>
-</span><span id="line-124"></span><span>      </span><span class="annot"><span class="hs-identifier hs-type">EffectfulArrows'</span></span><span> </span><span id="local-6989586621680958774"><span class="annot"><span class="annottext">Type v a
+</span><span id="line-127"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">EffectfulArrows'</span></span><span> </span><span id="local-6989586621680958774"><span class="annot"><span class="annottext">Type v a
 </span><a href="#local-6989586621680958774"><span class="hs-identifier hs-var">fst</span></a></span></span><span> </span><span id="local-6989586621680958773"><span class="annot"><span class="annottext">[(Maybe [Type v a], Type v a)]
 </span><a href="#local-6989586621680958773"><span class="hs-identifier hs-var">rest</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
-</span><span id="line-125"></span><span>        </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Type v a
+</span><span id="line-128"></span><span>          </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Type v a
 </span><a href="#local-6989586621680958774"><span class="hs-identifier hs-var">fst</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-126"></span><span>          </span><span class="annot"><span class="hs-identifier hs-type">Var'</span></span><span> </span><span id="local-6989586621680958772"><span class="annot"><span class="annottext">v
-</span><a href="#local-6989586621680958772"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">v -&gt; Text
+</span><span id="line-129"></span><span>            </span><span class="annot"><span class="hs-identifier hs-type">Var'</span></span><span> </span><span id="local-6989586621680958772"><span class="annot"><span class="annottext">v
+</span><a href="#local-6989586621680958772"><span class="hs-identifier hs-var">v</span></a></span></span><span>
+</span><span id="line-130"></span><span>              </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">v -&gt; Text
 forall v. Var v =&gt; v -&gt; Text
 </span><span class="hs-identifier hs-var">Var.name</span></span><span> </span><span class="annot"><span class="annottext">v
 </span><a href="#local-6989586621680958772"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Text
 </span><span class="hs-string">&quot;()&quot;</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
-</span><span id="line-127"></span><span>            </span><span class="annot"><span class="annottext">Bool
+</span><span id="line-131"></span><span>                  </span><span class="annot"><span class="annottext">Bool
 -&gt; Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
 forall s. IsString s =&gt; Bool -&gt; Pretty s -&gt; Pretty s
 </span><a href="Unison.Util.Pretty.html#parenthesizeIf"><span class="hs-identifier hs-var">PP.parenthesizeIf</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
@@ -594,8 +598,9 @@ Bool
 </span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">[(Maybe [Type v a], Type v a)]
 </span><a href="#local-6989586621680958773"><span class="hs-identifier hs-var">rest</span></a></span><span>
-</span><span id="line-128"></span><span>          </span><span class="annot"><span class="annottext">Type v a
-</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span id="line-132"></span><span>            </span><span class="annot"><span class="annottext">Type v a
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-133"></span><span>              </span><span class="annot"><span class="annottext">Bool
 -&gt; Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
 forall s. IsString s =&gt; Bool -&gt; Pretty s -&gt; Pretty s
 </span><a href="Unison.Util.Pretty.html#parenthesizeIf"><span class="hs-identifier hs-var">PP.parenthesizeIf</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
@@ -606,7 +611,7 @@ forall a. Ord a =&gt; a -&gt; a -&gt; Bool
 -&gt; Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span>
-</span><span id="line-129"></span><span>                 </span><span class="annot"><span class="annottext">PrettyPrintEnv
+</span><span id="line-134"></span><span>                </span><span class="annot"><span class="annottext">PrettyPrintEnv
 -&gt; Imports -&gt; Int -&gt; Type v a -&gt; Pretty (SyntaxText' Reference)
 </span><a href="#local-6989586621680958834"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="annot"><span class="annottext">PrettyPrintEnv
 </span><a href="#local-6989586621680958833"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Imports
@@ -629,18 +634,18 @@ Bool
 </span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">[(Maybe [Type v a], Type v a)]
 </span><a href="#local-6989586621680958773"><span class="hs-identifier hs-var">rest</span></a></span><span>
-</span><span id="line-130"></span><span>      </span><span class="annot"><span class="annottext">Type v a
+</span><span id="line-135"></span><span>        </span><span class="annot"><span class="annottext">Type v a
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
 </span><span class="hs-string">&quot;error&quot;</span></span><span>
-</span><span id="line-131"></span><span>    </span><span class="annot"><span class="annottext">Type v a
+</span><span id="line-136"></span><span>      </span><span class="annot"><span class="annottext">Type v a
 </span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
 </span><span class="hs-string">&quot;error&quot;</span></span><span>
-</span><span id="line-132"></span><span>  </span><span id="local-6989586621680958794"><span class="annot"><span class="annottext">effects :: Maybe (f (Type v a)) -&gt; Pretty (SyntaxText' Reference)
+</span><span id="line-137"></span><span>    </span><span id="local-6989586621680958794"><span class="annot"><span class="annottext">effects :: Maybe (f (Type v a)) -&gt; Pretty (SyntaxText' Reference)
 </span><a href="#local-6989586621680958794"><span class="hs-identifier hs-var hs-var">effects</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe (f (Type v a))
-</span><span class="hs-identifier hs-var">Nothing</span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
 forall a. Monoid a =&gt; a
 </span><span class="hs-identifier hs-var">mempty</span></span><span>
-</span><span id="line-133"></span><span>  </span><span class="annot"><a href="#local-6989586621680958794"><span class="hs-identifier hs-var">effects</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621680958771"><span class="annot"><span class="annottext">f (Type v a)
+</span><span id="line-138"></span><span>    </span><span class="annot"><a href="#local-6989586621680958794"><span class="hs-identifier hs-var">effects</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621680958771"><span class="annot"><span class="annottext">f (Type v a)
 </span><a href="#local-6989586621680958771"><span class="hs-identifier hs-var">es</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
 forall s. Pretty s -&gt; Pretty s
 </span><a href="Unison.Util.Pretty.html#group"><span class="hs-identifier hs-var">PP.group</span></a></span><span> </span><span class="annot"><span class="annottext">(Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference))
@@ -681,15 +686,15 @@ Element r -&gt; Pretty (SyntaxText' r) -&gt; Pretty (SyntaxText' r)
 forall r. Element r
 </span><a href="Unison.Util.SyntaxText.html#AbilityBraces"><span class="hs-identifier hs-var">S.AbilityBraces</span></a></span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
 </span><span class="hs-string">&quot;}&quot;</span></span><span class="hs-special">)</span><span>
-</span><span id="line-134"></span><span>  </span><span class="hs-comment">-- `first`: is this the first argument?</span><span>
-</span><span id="line-135"></span><span>  </span><span class="hs-comment">-- `mes`: list of effects</span><span>
-</span><span id="line-136"></span><span>  </span><span id="local-6989586621680958768"><span class="annot"><span class="annottext">arrow :: Bool
+</span><span id="line-139"></span><span>    </span><span class="hs-comment">-- `first`: is this the first argument?</span><span>
+</span><span id="line-140"></span><span>    </span><span class="hs-comment">-- `mes`: list of effects</span><span>
+</span><span id="line-141"></span><span>    </span><span id="local-6989586621680958768"><span class="annot"><span class="annottext">arrow :: Bool
 -&gt; Bool -&gt; Maybe (f (Type v a)) -&gt; Pretty (SyntaxText' Reference)
 </span><a href="#local-6989586621680958768"><span class="hs-identifier hs-var hs-var">arrow</span></a></span></span><span> </span><span id="local-6989586621680958767"><span class="annot"><span class="annottext">Bool
 </span><a href="#local-6989586621680958767"><span class="hs-identifier hs-var">delay</span></a></span></span><span> </span><span id="local-6989586621680958766"><span class="annot"><span class="annottext">Bool
 </span><a href="#local-6989586621680958766"><span class="hs-identifier hs-var">first</span></a></span></span><span> </span><span id="local-6989586621680958765"><span class="annot"><span class="annottext">Maybe (f (Type v a))
 </span><a href="#local-6989586621680958765"><span class="hs-identifier hs-var">mes</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-137"></span><span>    </span><span class="hs-special">(</span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span id="line-142"></span><span>      </span><span class="hs-special">(</span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
 </span><a href="#local-6989586621680958766"><span class="hs-identifier hs-var">first</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
 forall a. Monoid a =&gt; a
 </span><span class="hs-identifier hs-var">mempty</span></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
@@ -705,7 +710,7 @@ Element r -&gt; Pretty (SyntaxText' r) -&gt; Pretty (SyntaxText' r)
 forall r. Element r
 </span><a href="Unison.Util.SyntaxText.html#TypeOperator"><span class="hs-identifier hs-var">S.TypeOperator</span></a></span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
 </span><span class="hs-string">&quot;-&gt;&quot;</span></span><span class="hs-special">)</span><span>
-</span><span id="line-138"></span><span>      </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
+</span><span id="line-143"></span><span>        </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
 -&gt; Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="hs-special">(</span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
@@ -727,7 +732,7 @@ forall r. Element r
 </span><span class="hs-string">&quot; '&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
 forall a. Monoid a =&gt; a
 </span><span class="hs-identifier hs-var">mempty</span></span><span class="hs-special">)</span><span>
-</span><span id="line-139"></span><span>      </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
+</span><span id="line-144"></span><span>        </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
 -&gt; Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Maybe (f (Type v a)) -&gt; Pretty (SyntaxText' Reference)
@@ -736,7 +741,7 @@ forall (f :: * -&gt; *).
 Maybe (f (Type v a)) -&gt; Pretty (SyntaxText' Reference)
 </span><a href="#local-6989586621680958794"><span class="hs-identifier hs-var">effects</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe (f (Type v a))
 </span><a href="#local-6989586621680958765"><span class="hs-identifier hs-var">mes</span></a></span><span>
-</span><span id="line-140"></span><span>      </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
+</span><span id="line-145"></span><span>        </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
 -&gt; Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Maybe (f (Type v a)) -&gt; Bool
@@ -752,8 +757,8 @@ forall a. Maybe a -&gt; Bool
 </span><span class="hs-string">&quot; &quot;</span></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
 forall a. Monoid a =&gt; a
 </span><span class="hs-identifier hs-var">mempty</span></span><span>
-</span><span id="line-141"></span><span>
-</span><span id="line-142"></span><span>  </span><span id="local-6989586621680958775"><span class="annot"><span class="annottext">arrows :: Bool
+</span><span id="line-146"></span><span>
+</span><span id="line-147"></span><span>    </span><span id="local-6989586621680958775"><span class="annot"><span class="annottext">arrows :: Bool
 -&gt; Bool
 -&gt; [(Maybe (f (Type v a)), Type v a)]
 -&gt; Pretty (SyntaxText' Reference)
@@ -781,13 +786,13 @@ Element r -&gt; Pretty (SyntaxText' r) -&gt; Pretty (SyntaxText' r)
 forall r. Element r
 </span><a href="Unison.Util.SyntaxText.html#Unit"><span class="hs-identifier hs-var">S.Unit</span></a></span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
 </span><span class="hs-string">&quot;()&quot;</span></span><span>
-</span><span id="line-143"></span><span>  </span><span class="annot"><a href="#local-6989586621680958775"><span class="hs-identifier hs-var">arrows</span></a></span><span> </span><span id="local-6989586621680958755"><span class="annot"><span class="annottext">Bool
+</span><span id="line-148"></span><span>    </span><span class="annot"><a href="#local-6989586621680958775"><span class="hs-identifier hs-var">arrows</span></a></span><span> </span><span id="local-6989586621680958755"><span class="annot"><span class="annottext">Bool
 </span><a href="#local-6989586621680958755"><span class="hs-identifier hs-var">delay</span></a></span></span><span> </span><span id="local-6989586621680958754"><span class="annot"><span class="annottext">Bool
 </span><a href="#local-6989586621680958754"><span class="hs-identifier hs-var">first</span></a></span></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span id="local-6989586621680958753"><span class="annot"><span class="annottext">Maybe (f (Type v a))
 </span><a href="#local-6989586621680958753"><span class="hs-identifier hs-var">mes</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Ref'</span></span><span> </span><span class="annot"><span class="annottext">Reference
 </span><a href="Unison.Builtin.Decls.html#UnitRef"><span class="hs-identifier hs-var">DD.UnitRef</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span id="local-6989586621680958752"><span class="annot"><span class="annottext">[(Maybe (f (Type v a)), Type v a)]
 </span><a href="#local-6989586621680958752"><span class="hs-identifier hs-var">rest</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-144"></span><span>    </span><span class="annot"><span class="annottext">Bool
+</span><span id="line-149"></span><span>      </span><span class="annot"><span class="annottext">Bool
 -&gt; Bool -&gt; Maybe (f (Type v a)) -&gt; Pretty (SyntaxText' Reference)
 forall (f :: * -&gt; *).
 (Foldable f, Functor f) =&gt;
@@ -811,13 +816,13 @@ forall r. Bool -&gt; Pretty (SyntaxText' r) -&gt; Pretty (SyntaxText' r)
 </span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">[(Maybe (f (Type v a)), Type v a)]
 </span><a href="#local-6989586621680958752"><span class="hs-identifier hs-var">rest</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-145"></span><span>  </span><span class="annot"><a href="#local-6989586621680958775"><span class="hs-identifier hs-var">arrows</span></a></span><span> </span><span id="local-6989586621680958750"><span class="annot"><span class="annottext">Bool
+</span><span id="line-150"></span><span>    </span><span class="annot"><a href="#local-6989586621680958775"><span class="hs-identifier hs-var">arrows</span></a></span><span> </span><span id="local-6989586621680958750"><span class="annot"><span class="annottext">Bool
 </span><a href="#local-6989586621680958750"><span class="hs-identifier hs-var">delay</span></a></span></span><span> </span><span id="local-6989586621680958749"><span class="annot"><span class="annottext">Bool
 </span><a href="#local-6989586621680958749"><span class="hs-identifier hs-var">first</span></a></span></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span id="local-6989586621680958748"><span class="annot"><span class="annottext">Maybe (f (Type v a))
 </span><a href="#local-6989586621680958748"><span class="hs-identifier hs-var">mes</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680958747"><span class="annot"><span class="annottext">Type v a
 </span><a href="#local-6989586621680958747"><span class="hs-identifier hs-var">arg</span></a></span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span id="local-6989586621680958746"><span class="annot"><span class="annottext">[(Maybe (f (Type v a)), Type v a)]
 </span><a href="#local-6989586621680958746"><span class="hs-identifier hs-var">rest</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-146"></span><span>    </span><span class="annot"><span class="annottext">Bool
+</span><span id="line-151"></span><span>      </span><span class="annot"><span class="annottext">Bool
 -&gt; Bool -&gt; Maybe (f (Type v a)) -&gt; Pretty (SyntaxText' Reference)
 forall (f :: * -&gt; *).
 (Foldable f, Functor f) =&gt;
@@ -826,21 +831,22 @@ Bool
 </span><a href="#local-6989586621680958768"><span class="hs-identifier hs-var">arrow</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><a href="#local-6989586621680958750"><span class="hs-identifier hs-var">delay</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><a href="#local-6989586621680958749"><span class="hs-identifier hs-var">first</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe (f (Type v a))
-</span><a href="#local-6989586621680958748"><span class="hs-identifier hs-var">mes</span></a></span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
+</span><a href="#local-6989586621680958748"><span class="hs-identifier hs-var">mes</span></a></span><span>
+</span><span id="line-152"></span><span>        </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
 -&gt; Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Bool
 -&gt; Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
 forall r. Bool -&gt; Pretty (SyntaxText' r) -&gt; Pretty (SyntaxText' r)
 </span><a href="#local-6989586621680958751"><span class="hs-identifier hs-var">parenNoGroup</span></a></span><span>
-</span><span id="line-147"></span><span>      </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool
+</span><span id="line-153"></span><span>          </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool
 </span><a href="#local-6989586621680958750"><span class="hs-identifier hs-var">delay</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
 </span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
 </span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[(Maybe (f (Type v a)), Type v a)] -&gt; Bool
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
 </span><span class="hs-identifier hs-var">null</span></span><span> </span><span class="annot"><span class="annottext">[(Maybe (f (Type v a)), Type v a)]
 </span><a href="#local-6989586621680958746"><span class="hs-identifier hs-var">rest</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
-</span><span id="line-148"></span><span>      </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PrettyPrintEnv
+</span><span id="line-154"></span><span>          </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PrettyPrintEnv
 -&gt; Imports -&gt; Int -&gt; Type v a -&gt; Pretty (SyntaxText' Reference)
 </span><a href="#local-6989586621680958834"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="annot"><span class="annottext">PrettyPrintEnv
 </span><a href="#local-6989586621680958838"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Imports
@@ -857,26 +863,24 @@ forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">[(Maybe (f (Type v a)), Type v a)]
 </span><a href="#local-6989586621680958746"><span class="hs-identifier hs-var">rest</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-149"></span><span>
-</span><span id="line-150"></span><span>  </span><span class="annot"><a href="#local-6989586621680958775"><span class="hs-identifier hs-var">arrows</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span id="line-155"></span><span>    </span><span class="annot"><a href="#local-6989586621680958775"><span class="hs-identifier hs-var">arrows</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
 forall a. Monoid a =&gt; a
 </span><span class="hs-identifier hs-var">mempty</span></span><span>
-</span><span id="line-151"></span><span>  </span><span class="annot"><a href="#local-6989586621680958775"><span class="hs-identifier hs-var">arrows</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span id="line-156"></span><span>    </span><span class="annot"><a href="#local-6989586621680958775"><span class="hs-identifier hs-var">arrows</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><span class="hs-identifier hs-var">True</span></span><span>  </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
+</span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
 forall a. Monoid a =&gt; a
-</span><span class="hs-identifier hs-var">mempty</span></span><span>  </span><span class="hs-comment">-- not reachable</span><span>
-</span><span id="line-152"></span><span>  </span><span class="annot"><a href="#local-6989586621680958775"><span class="hs-identifier hs-var">arrows</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><span class="hs-identifier hs-var">True</span></span><span>  </span><span class="annot"><span class="annottext">Bool
-</span><span class="hs-identifier">_</span></span><span>     </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
+</span><span class="hs-identifier hs-var">mempty</span></span><span> </span><span class="hs-comment">-- not reachable</span><span>
+</span><span id="line-157"></span><span>    </span><span class="annot"><a href="#local-6989586621680958775"><span class="hs-identifier hs-var">arrows</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
 forall a. Monoid a =&gt; a
-</span><span class="hs-identifier hs-var">mempty</span></span><span>  </span><span class="hs-comment">-- not reachable</span><span>
-</span><span id="line-153"></span><span>
-</span><span id="line-154"></span><span>  </span><span id="local-6989586621680958784"><span class="annot"><span class="annottext">paren :: Bool -&gt; Pretty (SyntaxText' r) -&gt; Pretty (SyntaxText' r)
+</span><span class="hs-identifier hs-var">mempty</span></span><span> </span><span class="hs-comment">-- not reachable</span><span>
+</span><span id="line-158"></span><span>    </span><span id="local-6989586621680958784"><span class="annot"><span class="annottext">paren :: Bool -&gt; Pretty (SyntaxText' r) -&gt; Pretty (SyntaxText' r)
 </span><a href="#local-6989586621680958784"><span class="hs-identifier hs-var hs-var">paren</span></a></span></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><span class="hs-identifier hs-var">True</span></span><span>  </span><span id="local-6989586621680958744"><span class="annot"><span class="annottext">Pretty (SyntaxText' r)
+</span><span class="hs-identifier hs-var">True</span></span><span> </span><span id="local-6989586621680958744"><span class="annot"><span class="annottext">Pretty (SyntaxText' r)
 </span><a href="#local-6989586621680958744"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' r) -&gt; Pretty (SyntaxText' r)
 forall s. Pretty s -&gt; Pretty s
 </span><a href="Unison.Util.Pretty.html#group"><span class="hs-identifier hs-var">PP.group</span></a></span><span> </span><span class="annot"><span class="annottext">(Pretty (SyntaxText' r) -&gt; Pretty (SyntaxText' r))
@@ -902,16 +906,16 @@ Element r -&gt; Pretty (SyntaxText' r) -&gt; Pretty (SyntaxText' r)
 forall r. Element r
 </span><a href="Unison.Util.SyntaxText.html#Parenthesis"><span class="hs-identifier hs-var">S.Parenthesis</span></a></span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' r)
 </span><span class="hs-string">&quot;)&quot;</span></span><span>
-</span><span id="line-155"></span><span>  </span><span class="annot"><a href="#local-6989586621680958784"><span class="hs-identifier hs-var">paren</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span id="line-159"></span><span>    </span><span class="annot"><a href="#local-6989586621680958784"><span class="hs-identifier hs-var">paren</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">False</span></span><span> </span><span id="local-6989586621680958742"><span class="annot"><span class="annottext">Pretty (SyntaxText' r)
 </span><a href="#local-6989586621680958742"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' r) -&gt; Pretty (SyntaxText' r)
 forall s. Pretty s -&gt; Pretty s
 </span><a href="Unison.Util.Pretty.html#group"><span class="hs-identifier hs-var">PP.group</span></a></span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' r)
 </span><a href="#local-6989586621680958742"><span class="hs-identifier hs-var">s</span></a></span><span>
-</span><span id="line-156"></span><span>
-</span><span id="line-157"></span><span>  </span><span id="local-6989586621680958751"><span class="annot"><span class="annottext">parenNoGroup :: Bool -&gt; Pretty (SyntaxText' r) -&gt; Pretty (SyntaxText' r)
+</span><span id="line-160"></span><span>
+</span><span id="line-161"></span><span>    </span><span id="local-6989586621680958751"><span class="annot"><span class="annottext">parenNoGroup :: Bool -&gt; Pretty (SyntaxText' r) -&gt; Pretty (SyntaxText' r)
 </span><a href="#local-6989586621680958751"><span class="hs-identifier hs-var hs-var">parenNoGroup</span></a></span></span><span> </span><span class="annot"><span class="annottext">Bool
-</span><span class="hs-identifier hs-var">True</span></span><span>  </span><span id="local-6989586621680958741"><span class="annot"><span class="annottext">Pretty (SyntaxText' r)
+</span><span class="hs-identifier hs-var">True</span></span><span> </span><span id="local-6989586621680958741"><span class="annot"><span class="annottext">Pretty (SyntaxText' r)
 </span><a href="#local-6989586621680958741"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Element r -&gt; Pretty (SyntaxText' r) -&gt; Pretty (SyntaxText' r)
 forall r.
 Element r -&gt; Pretty (SyntaxText' r) -&gt; Pretty (SyntaxText' r)
@@ -932,24 +936,25 @@ Element r -&gt; Pretty (SyntaxText' r) -&gt; Pretty (SyntaxText' r)
 forall r. Element r
 </span><a href="Unison.Util.SyntaxText.html#Parenthesis"><span class="hs-identifier hs-var">S.Parenthesis</span></a></span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' r)
 </span><span class="hs-string">&quot;)&quot;</span></span><span>
-</span><span id="line-158"></span><span>  </span><span class="annot"><a href="#local-6989586621680958751"><span class="hs-identifier hs-var">parenNoGroup</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span id="line-162"></span><span>    </span><span class="annot"><a href="#local-6989586621680958751"><span class="hs-identifier hs-var">parenNoGroup</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">False</span></span><span> </span><span id="local-6989586621680958740"><span class="annot"><span class="annottext">Pretty (SyntaxText' r)
 </span><a href="#local-6989586621680958740"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' r)
 </span><a href="#local-6989586621680958740"><span class="hs-identifier hs-var">s</span></a></span><span>
-</span><span id="line-159"></span><span>
-</span><span id="line-160"></span><span id="local-6989586621680958947"><span class="annot"><a href="Unison.TypePrinter.html#fmt"><span class="hs-identifier hs-type">fmt</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Util.SyntaxText.html#Element"><span class="hs-identifier hs-type">S.Element</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680958947"><span class="hs-identifier hs-type">r</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.SyntaxText.html#SyntaxText%27"><span class="hs-identifier hs-type">S.SyntaxText'</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680958947"><span class="hs-identifier hs-type">r</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.SyntaxText.html#SyntaxText%27"><span class="hs-identifier hs-type">S.SyntaxText'</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680958947"><span class="hs-identifier hs-type">r</span></a></span><span class="hs-special">)</span></span><span>
-</span><span id="line-161"></span><span id="fmt"><span class="annot"><span class="annottext">fmt :: Element r -&gt; Pretty (SyntaxText' r) -&gt; Pretty (SyntaxText' r)
+</span><span id="line-163"></span><span>
+</span><span id="line-164"></span><span id="local-6989586621680958947"><span class="annot"><a href="Unison.TypePrinter.html#fmt"><span class="hs-identifier hs-type">fmt</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Unison.Util.SyntaxText.html#Element"><span class="hs-identifier hs-type">S.Element</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680958947"><span class="hs-identifier hs-type">r</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.SyntaxText.html#SyntaxText%27"><span class="hs-identifier hs-type">S.SyntaxText'</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680958947"><span class="hs-identifier hs-type">r</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Unison.Util.SyntaxText.html#SyntaxText%27"><span class="hs-identifier hs-type">S.SyntaxText'</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680958947"><span class="hs-identifier hs-type">r</span></a></span><span class="hs-special">)</span></span><span>
+</span><span id="line-165"></span><span id="fmt"><span class="annot"><span class="annottext">fmt :: Element r -&gt; Pretty (SyntaxText' r) -&gt; Pretty (SyntaxText' r)
 </span><a href="Unison.TypePrinter.html#fmt"><span class="hs-identifier hs-var hs-var">fmt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Element r -&gt; Pretty (SyntaxText' r) -&gt; Pretty (SyntaxText' r)
 forall r.
 Element r -&gt; Pretty (SyntaxText' r) -&gt; Pretty (SyntaxText' r)
 </span><a href="Unison.Util.Pretty.html#withSyntax"><span class="hs-identifier hs-var">PP.withSyntax</span></a></span><span>
-</span><span id="line-162"></span><span>
-</span><span id="line-163"></span><span class="hs-comment">-- todo: provide sample output in comment</span><span>
-</span><span id="line-164"></span><span id="local-6989586621680958895"><span id="local-6989586621680958896"><span class="annot"><a href="Unison.TypePrinter.html#prettySignaturesCT"><span class="hs-identifier hs-type">prettySignaturesCT</span></a></span><span>
-</span><span id="line-165"></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Var</span></span><span> </span><span class="annot"><a href="#local-6989586621680958896"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Unison.PrettyPrintEnv.html#PrettyPrintEnv"><span class="hs-identifier hs-type">PrettyPrintEnv</span></a></span><span>
-</span><span id="line-166"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Referent</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">HashQualified</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Name</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="#local-6989586621680958896"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680958895"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
-</span><span id="line-167"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Unison.Util.Pretty.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html#ColorText"><span class="hs-identifier hs-type">ColorText</span></a></span><span class="hs-special">]</span></span></span><span>
-</span><span id="line-168"></span><span id="prettySignaturesCT"><span class="annot"><span class="annottext">prettySignaturesCT :: PrettyPrintEnv
+</span><span id="line-166"></span><span>
+</span><span id="line-167"></span><span class="hs-comment">-- todo: provide sample output in comment</span><span>
+</span><span id="line-168"></span><span id="local-6989586621680958895"><span id="local-6989586621680958896"><span class="annot"><a href="Unison.TypePrinter.html#prettySignaturesCT"><span class="hs-identifier hs-type">prettySignaturesCT</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-169"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Var</span></span><span> </span><span class="annot"><a href="#local-6989586621680958896"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-170"></span><span>  </span><span class="annot"><a href="Unison.PrettyPrintEnv.html#PrettyPrintEnv"><span class="hs-identifier hs-type">PrettyPrintEnv</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-171"></span><span>  </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Referent</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">HashQualified</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Name</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="#local-6989586621680958896"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680958895"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-172"></span><span>  </span><span class="hs-special">[</span><span class="annot"><a href="Unison.Util.Pretty.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html#ColorText"><span class="hs-identifier hs-type">ColorText</span></a></span><span class="hs-special">]</span></span></span><span>
+</span><span id="line-173"></span><span id="prettySignaturesCT"><span class="annot"><span class="annottext">prettySignaturesCT :: PrettyPrintEnv
 -&gt; [(Referent, HashQualified Name, Type v a)] -&gt; [Pretty ColorText]
 </span><a href="Unison.TypePrinter.html#prettySignaturesCT"><span class="hs-identifier hs-var hs-var">prettySignaturesCT</span></a></span></span><span> </span><span id="local-6989586621680958738"><span class="annot"><span class="annottext">PrettyPrintEnv
 </span><a href="#local-6989586621680958738"><span class="hs-identifier hs-var">env</span></a></span></span><span> </span><span id="local-6989586621680958737"><span class="annot"><span class="annottext">[(Referent, HashQualified Name, Type v a)]
@@ -972,17 +977,18 @@ PrettyPrintEnv
 </span><a href="Unison.TypePrinter.html#prettySignaturesST"><span class="hs-identifier hs-var">prettySignaturesST</span></a></span><span> </span><span class="annot"><span class="annottext">PrettyPrintEnv
 </span><a href="#local-6989586621680958738"><span class="hs-identifier hs-var">env</span></a></span><span> </span><span class="annot"><span class="annottext">[(Referent, HashQualified Name, Type v a)]
 </span><a href="#local-6989586621680958737"><span class="hs-identifier hs-var">ts</span></a></span><span>
-</span><span id="line-169"></span><span>
-</span><span id="line-170"></span><span id="local-6989586621680958735"><span id="local-6989586621680958736"><span class="annot"><a href="Unison.TypePrinter.html#prettySignaturesCTCollapsed"><span class="hs-identifier hs-type">prettySignaturesCTCollapsed</span></a></span><span>
-</span><span id="line-171"></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Var</span></span><span> </span><span class="annot"><a href="#local-6989586621680958736"><span class="hs-identifier hs-type">v</span></a></span><span>
-</span><span id="line-172"></span><span>  </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Unison.PrettyPrintEnv.html#PrettyPrintEnv"><span class="hs-identifier hs-type">PrettyPrintEnv</span></a></span><span>
-</span><span id="line-173"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Referent</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">HashQualified</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Name</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="#local-6989586621680958736"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680958735"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
-</span><span id="line-174"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html#ColorText"><span class="hs-identifier hs-type">ColorText</span></a></span></span></span><span>
-</span><span id="line-175"></span><span id="prettySignaturesCTCollapsed"><span class="annot"><span class="annottext">prettySignaturesCTCollapsed :: PrettyPrintEnv
+</span><span id="line-174"></span><span>
+</span><span id="line-175"></span><span id="local-6989586621680958735"><span id="local-6989586621680958736"><span class="annot"><a href="Unison.TypePrinter.html#prettySignaturesCTCollapsed"><span class="hs-identifier hs-type">prettySignaturesCTCollapsed</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-176"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Var</span></span><span> </span><span class="annot"><a href="#local-6989586621680958736"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-177"></span><span>  </span><span class="annot"><a href="Unison.PrettyPrintEnv.html#PrettyPrintEnv"><span class="hs-identifier hs-type">PrettyPrintEnv</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-178"></span><span>  </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Referent</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">HashQualified</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Name</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="#local-6989586621680958736"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680958735"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-179"></span><span>  </span><span class="annot"><a href="Unison.Util.Pretty.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html#ColorText"><span class="hs-identifier hs-type">ColorText</span></a></span></span></span><span>
+</span><span id="line-180"></span><span id="prettySignaturesCTCollapsed"><span class="annot"><span class="annottext">prettySignaturesCTCollapsed :: PrettyPrintEnv
 -&gt; [(Referent, HashQualified Name, Type v a)] -&gt; Pretty ColorText
 </span><a href="Unison.TypePrinter.html#prettySignaturesCTCollapsed"><span class="hs-identifier hs-var hs-var">prettySignaturesCTCollapsed</span></a></span></span><span> </span><span id="local-6989586621680958734"><span class="annot"><span class="annottext">PrettyPrintEnv
 </span><a href="#local-6989586621680958734"><span class="hs-identifier hs-var">env</span></a></span></span><span> </span><span id="local-6989586621680958733"><span class="annot"><span class="annottext">[(Referent, HashQualified Name, Type v a)]
-</span><a href="#local-6989586621680958733"><span class="hs-identifier hs-var">ts</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Pretty ColorText] -&gt; Pretty ColorText
+</span><a href="#local-6989586621680958733"><span class="hs-identifier hs-var">ts</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-181"></span><span>  </span><span class="annot"><span class="annottext">[Pretty ColorText] -&gt; Pretty ColorText
 forall (f :: * -&gt; *) s.
 (Foldable f, IsString s) =&gt;
 f (Pretty s) -&gt; Pretty s
@@ -990,7 +996,7 @@ f (Pretty s) -&gt; Pretty s
 -&gt; [Pretty ColorText] -&gt; Pretty ColorText
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span>
-</span><span id="line-176"></span><span>  </span><span class="annot"><span class="annottext">Pretty ColorText -&gt; Pretty ColorText
+</span><span id="line-182"></span><span>    </span><span class="annot"><span class="annottext">Pretty ColorText -&gt; Pretty ColorText
 forall s. Pretty s -&gt; Pretty s
 </span><a href="Unison.Util.Pretty.html#group"><span class="hs-identifier hs-var">PP.group</span></a></span><span> </span><span class="annot"><span class="annottext">(Pretty ColorText -&gt; Pretty ColorText)
 -&gt; [Pretty ColorText] -&gt; [Pretty ColorText]
@@ -1004,24 +1010,24 @@ PrettyPrintEnv
 </span><a href="Unison.TypePrinter.html#prettySignaturesCT"><span class="hs-identifier hs-var">prettySignaturesCT</span></a></span><span> </span><span class="annot"><span class="annottext">PrettyPrintEnv
 </span><a href="#local-6989586621680958734"><span class="hs-identifier hs-var">env</span></a></span><span> </span><span class="annot"><span class="annottext">[(Referent, HashQualified Name, Type v a)]
 </span><a href="#local-6989586621680958733"><span class="hs-identifier hs-var">ts</span></a></span><span>
-</span><span id="line-177"></span><span>
-</span><span id="line-178"></span><span>
-</span><span id="line-179"></span><span id="local-6989586621680958899"><span id="local-6989586621680958900"><span class="annot"><a href="Unison.TypePrinter.html#prettySignaturesST"><span class="hs-identifier hs-type">prettySignaturesST</span></a></span><span>
-</span><span id="line-180"></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Var</span></span><span> </span><span class="annot"><a href="#local-6989586621680958900"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Unison.PrettyPrintEnv.html#PrettyPrintEnv"><span class="hs-identifier hs-type">PrettyPrintEnv</span></a></span><span>
-</span><span id="line-181"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Referent</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">HashQualified</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Name</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="#local-6989586621680958900"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680958899"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
-</span><span id="line-182"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Unison.Util.Pretty.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="annot"><a href="Unison.TypePrinter.html#SyntaxText"><span class="hs-identifier hs-type">SyntaxText</span></a></span><span class="hs-special">]</span></span></span><span>
-</span><span id="line-183"></span><span id="prettySignaturesST"><span class="annot"><span class="annottext">prettySignaturesST :: PrettyPrintEnv
+</span><span id="line-183"></span><span>
+</span><span id="line-184"></span><span id="local-6989586621680958899"><span id="local-6989586621680958900"><span class="annot"><a href="Unison.TypePrinter.html#prettySignaturesST"><span class="hs-identifier hs-type">prettySignaturesST</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-185"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Var</span></span><span> </span><span class="annot"><a href="#local-6989586621680958900"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-186"></span><span>  </span><span class="annot"><a href="Unison.PrettyPrintEnv.html#PrettyPrintEnv"><span class="hs-identifier hs-type">PrettyPrintEnv</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-187"></span><span>  </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Referent</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">HashQualified</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Name</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="#local-6989586621680958900"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680958899"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-188"></span><span>  </span><span class="hs-special">[</span><span class="annot"><a href="Unison.Util.Pretty.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="annot"><a href="Unison.TypePrinter.html#SyntaxText"><span class="hs-identifier hs-type">SyntaxText</span></a></span><span class="hs-special">]</span></span></span><span>
+</span><span id="line-189"></span><span id="prettySignaturesST"><span class="annot"><span class="annottext">prettySignaturesST :: PrettyPrintEnv
 -&gt; [(Referent, HashQualified Name, Type v a)]
 -&gt; [Pretty (SyntaxText' Reference)]
 </span><a href="Unison.TypePrinter.html#prettySignaturesST"><span class="hs-identifier hs-var hs-var">prettySignaturesST</span></a></span></span><span> </span><span id="local-6989586621680958731"><span class="annot"><span class="annottext">PrettyPrintEnv
 </span><a href="#local-6989586621680958731"><span class="hs-identifier hs-var">env</span></a></span></span><span> </span><span id="local-6989586621680958730"><span class="annot"><span class="annottext">[(Referent, HashQualified Name, Type v a)]
 </span><a href="#local-6989586621680958730"><span class="hs-identifier hs-var">ts</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-184"></span><span>  </span><span class="annot"><span class="annottext">[(Pretty (SyntaxText' Reference), Pretty (SyntaxText' Reference))]
+</span><span id="line-190"></span><span>  </span><span class="annot"><span class="annottext">[(Pretty (SyntaxText' Reference), Pretty (SyntaxText' Reference))]
 -&gt; [Pretty (SyntaxText' Reference)]
 forall s.
 (ListLike s Char, IsString s) =&gt;
 [(Pretty s, Pretty s)] -&gt; [Pretty s]
-</span><a href="Unison.Util.Pretty.html#align"><span class="hs-identifier hs-var">PP.align</span></a></span><span> </span><span class="hs-special">[</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Referent -&gt; HashQualified Name -&gt; Pretty (SyntaxText' Reference)
+</span><a href="Unison.Util.Pretty.html#align"><span class="hs-identifier hs-var">PP.align</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="annottext">Referent -&gt; HashQualified Name -&gt; Pretty (SyntaxText' Reference)
 </span><a href="#local-6989586621680958728"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">Referent
 </span><a href="#local-6989586621680958727"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="annot"><span class="annottext">HashQualified Name
 </span><a href="#local-6989586621680958726"><span class="hs-identifier hs-var">hq</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Type v a -&gt; Pretty (SyntaxText' Reference)
@@ -1031,13 +1037,13 @@ forall v a. Var v =&gt; Type v a -&gt; Pretty (SyntaxText' Reference)
 </span><a href="#local-6989586621680958727"><span class="hs-identifier hs-var">r</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680958726"><span class="annot"><span class="annottext">HashQualified Name
 </span><a href="#local-6989586621680958726"><span class="hs-identifier hs-var">hq</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680958724"><span class="annot"><span class="annottext">Type v a
 </span><a href="#local-6989586621680958724"><span class="hs-identifier hs-var">typ</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[(Referent, HashQualified Name, Type v a)]
-</span><a href="#local-6989586621680958730"><span class="hs-identifier hs-var">ts</span></a></span><span> </span><span class="hs-special">]</span><span>
-</span><span id="line-185"></span><span>  </span><span class="hs-keyword">where</span><span>
-</span><span id="line-186"></span><span>  </span><span id="local-6989586621680958728"><span class="annot"><span class="annottext">name :: Referent -&gt; HashQualified Name -&gt; Pretty (SyntaxText' Reference)
+</span><a href="#local-6989586621680958730"><span class="hs-identifier hs-var">ts</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-191"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-192"></span><span>    </span><span id="local-6989586621680958728"><span class="annot"><span class="annottext">name :: Referent -&gt; HashQualified Name -&gt; Pretty (SyntaxText' Reference)
 </span><a href="#local-6989586621680958728"><span class="hs-identifier hs-var hs-var">name</span></a></span></span><span> </span><span id="local-6989586621680958723"><span class="annot"><span class="annottext">Referent
 </span><a href="#local-6989586621680958723"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span id="local-6989586621680958722"><span class="annot"><span class="annottext">HashQualified Name
 </span><a href="#local-6989586621680958722"><span class="hs-identifier hs-var">hq</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-187"></span><span>    </span><span class="annot"><span class="annottext">(Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference))
+</span><span id="line-193"></span><span>      </span><span class="annot"><span class="annottext">(Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference))
 -&gt; HashQualified Name -&gt; Pretty (SyntaxText' Reference)
 </span><a href="Unison.NamePrinter.html#styleHashQualified%27%27"><span class="hs-identifier hs-var">styleHashQualified''</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Element Reference
 -&gt; Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
@@ -1055,10 +1061,10 @@ forall r. Referent' r -&gt; Element r
 </span><a href="Unison.Util.SyntaxText.html#TermReference"><span class="hs-identifier hs-var">S.TermReference</span></a></span><span> </span><span class="annot"><span class="annottext">Referent
 </span><a href="#local-6989586621680958723"><span class="hs-identifier hs-var">r</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">HashQualified Name
 </span><a href="#local-6989586621680958722"><span class="hs-identifier hs-var">hq</span></a></span><span>
-</span><span id="line-188"></span><span>  </span><span id="local-6989586621680958725"><span class="annot"><span class="annottext">sig :: Type v a -&gt; Pretty (SyntaxText' Reference)
+</span><span id="line-194"></span><span>    </span><span id="local-6989586621680958725"><span class="annot"><span class="annottext">sig :: Type v a -&gt; Pretty (SyntaxText' Reference)
 </span><a href="#local-6989586621680958725"><span class="hs-identifier hs-var hs-var">sig</span></a></span></span><span> </span><span id="local-6989586621680958720"><span class="annot"><span class="annottext">Type v a
 </span><a href="#local-6989586621680958720"><span class="hs-identifier hs-var">typ</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-189"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Element Reference
+</span><span id="line-195"></span><span>      </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Element Reference
 -&gt; Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
 forall r.
 Element r -&gt; Pretty (SyntaxText' r) -&gt; Pretty (SyntaxText' r)
@@ -1080,11 +1086,10 @@ forall k a. Map k a
 </span><span class="hs-identifier hs-var">Map.empty</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">-</span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Type v a
 </span><a href="#local-6989586621680958720"><span class="hs-identifier hs-var">typ</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-190"></span><span>    </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
+</span><span id="line-196"></span><span>        </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
 -&gt; Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
 forall s. Pretty s -&gt; Pretty s -&gt; Pretty s
-</span><a href="Unison.Util.Pretty.html#orElse"><span class="hs-operator hs-var">`PP.orElse`</span></a></span><span>
-</span><span id="line-191"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Element Reference
+</span><a href="Unison.Util.Pretty.html#orElse"><span class="hs-operator hs-var">`PP.orElse`</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Element Reference
 -&gt; Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
 forall r.
 Element r -&gt; Pretty (SyntaxText' r) -&gt; Pretty (SyntaxText' r)
@@ -1112,17 +1117,19 @@ forall k a. Map k a
 </span><span class="hs-identifier hs-var">Map.empty</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">-</span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Type v a
 </span><a href="#local-6989586621680958720"><span class="hs-identifier hs-var">typ</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
-</span><span id="line-192"></span><span>
-</span><span id="line-193"></span><span class="hs-comment">-- todo: provide sample output in comment; different from prettySignatures'</span><span>
-</span><span id="line-194"></span><span id="local-6989586621680958878"><span id="local-6989586621680958879"><span class="annot"><a href="Unison.TypePrinter.html#prettySignaturesAlt%27"><span class="hs-identifier hs-type">prettySignaturesAlt'</span></a></span><span>
-</span><span id="line-195"></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Var</span></span><span> </span><span class="annot"><a href="#local-6989586621680958879"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Unison.PrettyPrintEnv.html#PrettyPrintEnv"><span class="hs-identifier hs-type">PrettyPrintEnv</span></a></span><span>
-</span><span id="line-196"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">HashQualified</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Name</span></span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="#local-6989586621680958879"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680958878"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
-</span><span id="line-197"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Unison.Util.Pretty.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html#ColorText"><span class="hs-identifier hs-type">ColorText</span></a></span><span class="hs-special">]</span></span></span><span>
-</span><span id="line-198"></span><span id="prettySignaturesAlt%27"><span class="annot"><span class="annottext">prettySignaturesAlt' :: PrettyPrintEnv
+</span><span id="line-197"></span><span>
+</span><span id="line-198"></span><span class="hs-comment">-- todo: provide sample output in comment; different from prettySignatures'</span><span>
+</span><span id="line-199"></span><span id="local-6989586621680958878"><span id="local-6989586621680958879"><span class="annot"><a href="Unison.TypePrinter.html#prettySignaturesAlt%27"><span class="hs-identifier hs-type">prettySignaturesAlt'</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-200"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Var</span></span><span> </span><span class="annot"><a href="#local-6989586621680958879"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-201"></span><span>  </span><span class="annot"><a href="Unison.PrettyPrintEnv.html#PrettyPrintEnv"><span class="hs-identifier hs-type">PrettyPrintEnv</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-202"></span><span>  </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">HashQualified</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Name</span></span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="#local-6989586621680958879"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680958878"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-203"></span><span>  </span><span class="hs-special">[</span><span class="annot"><a href="Unison.Util.Pretty.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html#ColorText"><span class="hs-identifier hs-type">ColorText</span></a></span><span class="hs-special">]</span></span></span><span>
+</span><span id="line-204"></span><span id="prettySignaturesAlt%27"><span class="annot"><span class="annottext">prettySignaturesAlt' :: PrettyPrintEnv
 -&gt; [([HashQualified Name], Type v a)] -&gt; [Pretty ColorText]
 </span><a href="Unison.TypePrinter.html#prettySignaturesAlt%27"><span class="hs-identifier hs-var hs-var">prettySignaturesAlt'</span></a></span></span><span> </span><span id="local-6989586621680958716"><span class="annot"><span class="annottext">PrettyPrintEnv
 </span><a href="#local-6989586621680958716"><span class="hs-identifier hs-var">env</span></a></span></span><span> </span><span id="local-6989586621680958715"><span class="annot"><span class="annottext">[([HashQualified Name], Type v a)]
-</span><a href="#local-6989586621680958715"><span class="hs-identifier hs-var">ts</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Pretty (SyntaxText' Reference) -&gt; Pretty ColorText)
+</span><a href="#local-6989586621680958715"><span class="hs-identifier hs-var">ts</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-205"></span><span>  </span><span class="annot"><span class="annottext">(Pretty (SyntaxText' Reference) -&gt; Pretty ColorText)
 -&gt; [Pretty (SyntaxText' Reference)] -&gt; [Pretty ColorText]
 forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
 </span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference) -&gt; Pretty ColorText
@@ -1130,13 +1137,14 @@ forall r. Pretty (SyntaxText' r) -&gt; Pretty ColorText
 </span><a href="Unison.Util.Pretty.html#syntaxToColor"><span class="hs-identifier hs-var">PP.syntaxToColor</span></a></span><span> </span><span class="annot"><span class="annottext">([Pretty (SyntaxText' Reference)] -&gt; [Pretty ColorText])
 -&gt; [Pretty (SyntaxText' Reference)] -&gt; [Pretty ColorText]
 forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[(Pretty (SyntaxText' Reference), Pretty (SyntaxText' Reference))]
+</span><span class="hs-operator hs-var">$</span></span><span>
+</span><span id="line-206"></span><span>    </span><span class="annot"><span class="annottext">[(Pretty (SyntaxText' Reference), Pretty (SyntaxText' Reference))]
 -&gt; [Pretty (SyntaxText' Reference)]
 forall s.
 (ListLike s Char, IsString s) =&gt;
 [(Pretty s, Pretty s)] -&gt; [Pretty s]
 </span><a href="Unison.Util.Pretty.html#align"><span class="hs-identifier hs-var">PP.align</span></a></span><span>
-</span><span id="line-199"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="annottext">[Pretty (SyntaxText' Reference)] -&gt; Pretty (SyntaxText' Reference)
+</span><span id="line-207"></span><span>      </span><span class="hs-special">[</span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="annottext">[Pretty (SyntaxText' Reference)] -&gt; Pretty (SyntaxText' Reference)
 forall (f :: * -&gt; *) s.
 (Foldable f, IsString s) =&gt;
 f (Pretty s) -&gt; Pretty s
@@ -1171,8 +1179,8 @@ forall r. HashQualified Name -&gt; Element r
 -&gt; [HashQualified Name] -&gt; Pretty (SyntaxText' Reference)
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[HashQualified Name]
-</span><a href="#local-6989586621680958712"><span class="hs-identifier hs-var">names</span></a></span><span>
-</span><span id="line-200"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Element Reference
+</span><a href="#local-6989586621680958712"><span class="hs-identifier hs-var">names</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-208"></span><span>          </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Element Reference
 -&gt; Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
 forall r.
 Element r -&gt; Pretty (SyntaxText' r) -&gt; Pretty (SyntaxText' r)
@@ -1194,10 +1202,10 @@ forall k a. Map k a
 </span><span class="hs-identifier hs-var">Map.empty</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">-</span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Type v a
 </span><a href="#local-6989586621680958711"><span class="hs-identifier hs-var">typ</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-201"></span><span>      </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
+</span><span id="line-209"></span><span>            </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
 -&gt; Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
 forall s. Pretty s -&gt; Pretty s -&gt; Pretty s
-</span><a href="Unison.Util.Pretty.html#orElse"><span class="hs-operator hs-var">`PP.orElse`</span></a></span><span> </span><span class="hs-special">(</span><span>  </span><span class="annot"><span class="annottext">Element Reference
+</span><a href="Unison.Util.Pretty.html#orElse"><span class="hs-operator hs-var">`PP.orElse`</span></a></span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="annottext">Element Reference
 -&gt; Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
 forall r.
 Element r -&gt; Pretty (SyntaxText' r) -&gt; Pretty (SyntaxText' r)
@@ -1205,7 +1213,7 @@ Element r -&gt; Pretty (SyntaxText' r) -&gt; Pretty (SyntaxText' r)
 forall r. Element r
 </span><a href="Unison.Util.SyntaxText.html#TypeAscriptionColon"><span class="hs-identifier hs-var">S.TypeAscriptionColon</span></a></span><span> </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
 </span><span class="hs-string">&quot;: &quot;</span></span><span>
-</span><span id="line-202"></span><span>                  </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
+</span><span id="line-210"></span><span>                            </span><span class="annot"><span class="annottext">Pretty (SyntaxText' Reference)
 -&gt; Pretty (SyntaxText' Reference) -&gt; Pretty (SyntaxText' Reference)
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Width
@@ -1226,27 +1234,28 @@ forall k a. Map k a
 </span><span class="hs-identifier hs-var">Map.empty</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">-</span><span class="annot"><span class="annottext">Int
 </span><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Type v a
 </span><a href="#local-6989586621680958711"><span class="hs-identifier hs-var">typ</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-203"></span><span>                  </span><span class="hs-special">)</span><span>
-</span><span id="line-204"></span><span>    </span><span class="hs-special">)</span><span>
-</span><span id="line-205"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680958712"><span class="annot"><span class="annottext">[HashQualified Name]
+</span><span id="line-211"></span><span>                        </span><span class="hs-special">)</span><span>
+</span><span id="line-212"></span><span>        </span><span class="hs-special">)</span><span>
+</span><span id="line-213"></span><span>        </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span id="local-6989586621680958712"><span class="annot"><span class="annottext">[HashQualified Name]
 </span><a href="#local-6989586621680958712"><span class="hs-identifier hs-var">names</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621680958711"><span class="annot"><span class="annottext">Type v a
 </span><a href="#local-6989586621680958711"><span class="hs-identifier hs-var">typ</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[([HashQualified Name], Type v a)]
 </span><a href="#local-6989586621680958715"><span class="hs-identifier hs-var">ts</span></a></span><span>
-</span><span id="line-206"></span><span>  </span><span class="hs-special">]</span><span>
-</span><span id="line-207"></span><span>
-</span><span id="line-208"></span><span class="hs-comment">-- prettySignatures'' :: Var v =&gt; PrettyPrintEnv -&gt; [(Name, Type v a)] -&gt; [Pretty ColorText]</span><span>
-</span><span id="line-209"></span><span class="hs-comment">-- prettySignatures'' env ts = prettySignatures' env (first HQ.fromName &lt;$&gt; ts)</span><span>
-</span><span id="line-210"></span><span>
-</span><span id="line-211"></span><span id="local-6989586621680958709"><span id="local-6989586621680958710"><span class="annot"><a href="Unison.TypePrinter.html#prettySignaturesAlt"><span class="hs-identifier hs-type">prettySignaturesAlt</span></a></span><span>
-</span><span id="line-212"></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Var</span></span><span> </span><span class="annot"><a href="#local-6989586621680958710"><span class="hs-identifier hs-type">v</span></a></span><span>
-</span><span id="line-213"></span><span>  </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Unison.PrettyPrintEnv.html#PrettyPrintEnv"><span class="hs-identifier hs-type">PrettyPrintEnv</span></a></span><span>
-</span><span id="line-214"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">HashQualified</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Name</span></span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="#local-6989586621680958710"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680958709"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
-</span><span id="line-215"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html#ColorText"><span class="hs-identifier hs-type">ColorText</span></a></span></span></span><span>
-</span><span id="line-216"></span><span id="prettySignaturesAlt"><span class="annot"><span class="annottext">prettySignaturesAlt :: PrettyPrintEnv
+</span><span id="line-214"></span><span>      </span><span class="hs-special">]</span><span>
+</span><span id="line-215"></span><span>
+</span><span id="line-216"></span><span class="hs-comment">-- prettySignatures'' :: Var v =&gt; PrettyPrintEnv -&gt; [(Name, Type v a)] -&gt; [Pretty ColorText]</span><span>
+</span><span id="line-217"></span><span class="hs-comment">-- prettySignatures'' env ts = prettySignatures' env (first HQ.fromName &lt;$&gt; ts)</span><span>
+</span><span id="line-218"></span><span>
+</span><span id="line-219"></span><span id="local-6989586621680958709"><span id="local-6989586621680958710"><span class="annot"><a href="Unison.TypePrinter.html#prettySignaturesAlt"><span class="hs-identifier hs-type">prettySignaturesAlt</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-220"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Var</span></span><span> </span><span class="annot"><a href="#local-6989586621680958710"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-221"></span><span>  </span><span class="annot"><a href="Unison.PrettyPrintEnv.html#PrettyPrintEnv"><span class="hs-identifier hs-type">PrettyPrintEnv</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-222"></span><span>  </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">HashQualified</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Name</span></span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="#local-6989586621680958710"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="annot"><a href="#local-6989586621680958709"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-223"></span><span>  </span><span class="annot"><a href="Unison.Util.Pretty.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="annot"><a href="Unison.Util.Pretty.html#ColorText"><span class="hs-identifier hs-type">ColorText</span></a></span></span></span><span>
+</span><span id="line-224"></span><span id="prettySignaturesAlt"><span class="annot"><span class="annottext">prettySignaturesAlt :: PrettyPrintEnv
 -&gt; [([HashQualified Name], Type v a)] -&gt; Pretty ColorText
 </span><a href="Unison.TypePrinter.html#prettySignaturesAlt"><span class="hs-identifier hs-var hs-var">prettySignaturesAlt</span></a></span></span><span> </span><span id="local-6989586621680958708"><span class="annot"><span class="annottext">PrettyPrintEnv
 </span><a href="#local-6989586621680958708"><span class="hs-identifier hs-var">env</span></a></span></span><span> </span><span id="local-6989586621680958707"><span class="annot"><span class="annottext">[([HashQualified Name], Type v a)]
-</span><a href="#local-6989586621680958707"><span class="hs-identifier hs-var">ts</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Pretty ColorText] -&gt; Pretty ColorText
+</span><a href="#local-6989586621680958707"><span class="hs-identifier hs-var">ts</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-225"></span><span>  </span><span class="annot"><span class="annottext">[Pretty ColorText] -&gt; Pretty ColorText
 forall (f :: * -&gt; *) s.
 (Foldable f, IsString s) =&gt;
 f (Pretty s) -&gt; Pretty s
@@ -1254,7 +1263,7 @@ f (Pretty s) -&gt; Pretty s
 -&gt; [Pretty ColorText] -&gt; Pretty ColorText
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span>
-</span><span id="line-217"></span><span>  </span><span class="annot"><span class="annottext">Pretty ColorText -&gt; Pretty ColorText
+</span><span id="line-226"></span><span>    </span><span class="annot"><span class="annottext">Pretty ColorText -&gt; Pretty ColorText
 forall s. Pretty s -&gt; Pretty s
 </span><a href="Unison.Util.Pretty.html#group"><span class="hs-identifier hs-var">PP.group</span></a></span><span> </span><span class="annot"><span class="annottext">(Pretty ColorText -&gt; Pretty ColorText)
 -&gt; [Pretty ColorText] -&gt; [Pretty ColorText]
@@ -1268,4 +1277,4 @@ PrettyPrintEnv
 </span><a href="Unison.TypePrinter.html#prettySignaturesAlt%27"><span class="hs-identifier hs-var">prettySignaturesAlt'</span></a></span><span> </span><span class="annot"><span class="annottext">PrettyPrintEnv
 </span><a href="#local-6989586621680958708"><span class="hs-identifier hs-var">env</span></a></span><span> </span><span class="annot"><span class="annottext">[([HashQualified Name], Type v a)]
 </span><a href="#local-6989586621680958707"><span class="hs-identifier hs-var">ts</span></a></span><span>
-</span><span id="line-218"></span></pre></body></html>
+</span><span id="line-227"></span></pre></body></html>

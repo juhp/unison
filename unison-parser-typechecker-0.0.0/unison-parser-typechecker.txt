@@ -1583,7 +1583,6 @@ anyToken :: Ord v => P v (Token Lexeme)
 failCommitted :: Ord v => Error v -> P v x
 proxy :: Proxy Input
 root :: Ord v => P v a -> P v a
-
 rootFile :: Ord v => P v a -> P v a
 run' :: Ord v => P v a -> String -> String -> ParsingEnv -> Either (Err v) a
 run :: Ord v => P v a -> String -> ParsingEnv -> Either (Err v) a

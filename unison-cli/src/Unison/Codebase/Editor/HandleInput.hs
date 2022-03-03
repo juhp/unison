@@ -109,7 +109,7 @@ import qualified Unison.PrettyPrintEnv as PPE
 import qualified Unison.PrettyPrintEnv.Names as PPE
 import qualified Unison.PrettyPrintEnvDecl as PPE
 import qualified Unison.PrettyPrintEnvDecl.Names as PPE
-import Unison.Reference (Reference (..), TermReference, TermReferenceId, TypeReference, TypeReferenceId)
+import Unison.Reference (Reference, TermReference, TermReferenceId, TypeReference, TypeReferenceId)
 import qualified Unison.Reference as Reference
 import Unison.Referent (Referent)
 import qualified Unison.Referent as Referent
@@ -160,6 +160,7 @@ import qualified Unison.Codebase.Editor.Input as Input
 import qualified Unison.Codebase.Editor.Slurp as Slurp
 import qualified Unison.Codebase.Editor.SlurpResult as SlurpResult
 import qualified Unison.Codebase.Editor.Git as Git
+import Data.Generics.Labels ()
 
 defaultPatchNameSegment :: NameSegment
 defaultPatchNameSegment = "patch"
@@ -1963,9 +1964,10 @@ structureToUpdates :: forall m v. Var v => Branch0 m -> Structure v -> [(Path, B
 structureToUpdates branch structure =
   let declUpsertToOps :: DeclUpsertOp v -> [(Path, Branch0 m -> Branch0 m)]
       declUpsertToOps = \case
-        DeclUpsertOpAdd DeclAddOp {declAddVar, declAddRef, declAddDecl} ->
-          ( BranchUtil.makeAddTypeName (Path.splitFromName (Name.unsafeFromVar declAddVar)) declAddRef Metadata.empty :
-            constructorAdditions declAddRef declAddDecl
+        DeclUpsertOpAdd DeclAddOp {add = DeclrefId {decl, ref}, var} ->
+          ( BranchUtil.makeAddTypeName (Path.splitFromName (Name.unsafeFromVar var)) (Reference.fromId ref)
+             Metadata.empty :
+            constructorAdditions ref decl
           )
         -- TODO constructors
         -- TODO hmm what about pulled-out decls, how do we add their constructors? >__<
@@ -1974,6 +1976,8 @@ structureToUpdates branch structure =
         --   -> add each one to the namespace under its existing name
         --
         -- Update with an actual name: yeah use the vars in the decl; they're good shit yo
+        --
+        {-
         DeclUpsertOpUpdate DeclUpdateOp {ref0, ref1, var} ->
           concat
             [ let f (name, metadata) =
@@ -1990,8 +1994,9 @@ structureToUpdates branch structure =
               map
                 (\(name, term) -> BranchUtil.makeDeleteTermName (Path.splitFromName name) term)
                 (Names.constructorsForType ref0 (Branch.toNames branch))
+        -}
         where
-          constructorAdditions :: TypeReference -> Decl v a -> [(Path, Branch0 m -> Branch0 m)]
+          constructorAdditions :: TypeReferenceId -> Decl v a -> [(Path, Branch0 m -> Branch0 m)]
           constructorAdditions ref decl =
             decl
                 & DD.asLabeledDataDecl
@@ -2003,7 +2008,7 @@ structureToUpdates branch structure =
                           ( \(cid, var) ->
                               BranchUtil.makeAddTermName
                                 (Path.splitFromName (Name.unsafeFromVar var))
-                                (Referent.Con (ConstructorReference ref cid) ctype)
+                                (Referent.Con (ConstructorReference (Reference.fromId ref) cid) ctype)
                                 Metadata.empty
                           )
                   )
@@ -2066,25 +2071,47 @@ data DeclUpsertOp v
 declUpsertOpUpdate :: DeclUpsertOp v -> Maybe (TypeReference, TypeReference)
 declUpsertOpUpdate = \case
   DeclUpsertOpAdd _ -> Nothing
-  DeclUpsertOpUpdate DeclUpdateOp {ref0, ref1} -> Just (ref0, Reference.fromId ref1)
+  -- DeclUpsertOpUpdate DeclUpdateOp {ref0, ref1} -> Just (ref0, Reference.fromId ref1)
 
 -- FIXME add -> addOp
 data DeclAddOp v
   = DeclAddOp
-  { declAddVar :: v
-  , declAddRef :: TypeReference
-  , declAddDecl :: Decl v Ann
+  { add :: DeclrefId v Ann
+  , var :: v
   }
 
 data DeclUpdateOp v
   = DeclUpdateOp
-  { decl0 :: Decl v Ann,
-    decl1 :: Decl v Ann,
-    explicit :: Bool,
-    ref0 :: TypeReference,
-    ref1 :: TypeReferenceId,
+  { -- For an explicit update, it doesn't (currently) matter what the old decl was, so we just track its reference.
+    update :: Upd TypeReference (DeclrefId v Ann),
     var :: v
   } deriving stock (Generic)
+
+data Upd a b
+  = Explicit (Upd1 a b)
+  | Implicit (Upd1 b b)
+
+updAfter :: Upd a b -> b
+updAfter = \case
+  Explicit Upd1 {after} -> after
+  Implicit Upd1 {after} -> after
+
+data Upd1 a b
+  = Upd1
+  { before :: a
+  , after :: b
+  }
+
+-- FIXME move to DataDeclaration.hs
+data DeclrefId v a
+  = DeclrefId
+  { decl :: Decl v a
+  , ref :: TypeReferenceId
+  }
+
+data OrBuiltin a b
+  = Builtin a
+  | NotBuiltin b
 
 data TermUpsertOp v
   = TermUpsertOpAdd (TermAddOp v)
@@ -2179,6 +2206,37 @@ makeSlurpForUpdate allNames selection unisonFile =
     slurpedTermVarOldReference = Names.theRefTermNamed allNames . Name.unsafeFromVar
     slurpedTermVars = SC.terms (Slurp.updates slurpResult)
 
+-- SlurpResult++
+-- Meant to replace SlurpForUpdate
+-- FIXME document fields
+data SlurpResult2 v
+  = SlurpResult2
+  { slurp :: SlurpResult v
+  , declMapping :: Map TypeReference TypeReferenceId
+  , declNames :: TypeReferenceId -> Set Name
+  , declRef0 :: v -> TypeReference
+    -- FIXME just get from unison file right?
+  , declRef1 :: v -> TypeReferenceId
+  , termNames :: TermReferenceId -> Set Name
+  }
+  deriving stock (Generic)
+
+makeSlurp2 :: Var v => Names -> Set v -> TypecheckedUnisonFile v Ann -> SlurpResult2 v
+makeSlurp2 allNames selection unisonFile =
+  SlurpResult2
+  { slurp,
+    declMapping = foldl' (\acc var -> Map.insert (declRef0 var) (declRef1 var) acc) Map.empty (SC.types (Slurp.updates slurp)),
+    declNames = Names.namesForReference allNames . Reference.fromId,
+    declRef0,
+    declRef1,
+    termNames = Names.namesForReferent allNames . Referent.fromTermReferenceId
+  }
+  where
+    declRef0 = Names.theTypeNamed allNames . Name.unsafeFromVar
+    declRef1 = Reference.unsafeId . Names.theTypeNamed fileNames . Name.unsafeFromVar
+    fileNames = UF.typecheckedToNames unisonFile
+    slurp = Slurp.slurpFile unisonFile selection Slurp.UpdateOp allNames
+
 oink ::
   forall m v.
   (Monad m, Var v) =>
@@ -2189,39 +2247,78 @@ oink selection unisonFile0 = do
   allNames <- currentPathNames
   let slurp = makeSlurpForUpdate allNames selection
 
-  let slurp0 = slurp unisonFile0
-  maybeDecls <- hydrateUnisonFileDecls loadDeclComponent unisonFile0 slurp0
-                      -- (v, undefined, ref1, decl, Just (DD.constructorIdMapping decl0 decl))
+  let slurp0 = makeSlurp2 allNames selection unisonFile0
+  maybeDeclUpserts <- hydrateUnisonFileDecls loadDeclComponent slurp0
+
   let unisonFile1 =
-        case maybeDecls of
+        case maybeDeclUpserts of
           Nothing -> unisonFile0
-          Just decls ->
+          Just declUpserts ->
             let (effects, datas) =
-                  decls
-                    & undefined
-                    -- & map untangle
-                    -- & partitionEithers
-                    -- & \(xs, ys) -> (Map.fromList xs, Map.fromList ys)
+                  declUpserts
+                    & map untangle
+                    & partitionEithers
+                    & \(xs, ys) -> (Map.fromList xs, Map.fromList ys)
                   where
+                    untangle ::
+                      DeclUpsertOp v ->
+                      Either
+                        (v, (TypeReferenceId, DD.EffectDeclaration v Ann))
+                        (v, (TypeReferenceId, DD.DataDeclaration v Ann))
                     untangle = \case
-                      (v, _ref0, ref1, Left e, _) -> Left (v, (ref1, e))
-                      (v, _ref0, ref1, Right d, _) -> Right (v, (ref1, d))
-            in
-              unisonFile0
-                { UF.dataDeclarationsId' = datas,
-                  UF.effectDeclarationsId' = effects
-                }
+                      DeclUpsertOpAdd DeclAddOp {add, var} -> go var add
+                      DeclUpsertOpUpdate DeclUpdateOp {update, var} -> go var (updAfter update)
+                      where
+                        go var DeclrefId {decl, ref} =
+                          case decl of
+                            Left e -> Left (var, (ref, e))
+                            Right d -> Right (var, (ref, d))
+             in unisonFile0
+                  { UF.dataDeclarationsId' = datas,
+                    UF.effectDeclarationsId' = effects
+                  }
   unisonFile2 <- hydrateUnisonFileTerms loadTermComponent typecheck unisonFile1 (slurp unisonFile1)
 
+  let declUpserts =
+        case maybeDeclUpserts of
+          Nothing ->
+            let after var =
+                  -- FIXME make this return a DeclrefId
+                  case UF.tcDeclarationsByVar unisonFile0 Map.! var of
+                    (ref, decl) -> DeclrefId { decl, ref }
+            in
+            concat
+              [ (slurp0 ^. #slurp)
+                  & Slurp.adds
+                  & SC.types
+                  & Set.toList
+                  & map \var -> DeclUpsertOpAdd DeclAddOp { add = after var, var },
+                (slurp0 ^. #slurp)
+                  & Slurp.updates
+                  & SC.types
+                  & Set.toList
+                  & map \var ->
+                    DeclUpsertOpUpdate
+                      DeclUpdateOp
+                        { update = Explicit Upd1
+                            { before = (slurp0 ^. #declRef0) var
+                            , after = after var
+                            },
+                          var
+                        }
+              ]
+          Just declUpserts -> declUpserts
+
   undefined
-  -- pure Structure
-  --   { structureDecls =
-  --       case maybeDecls of
-  --         Nothing -> undefined
-  --         Just decls -> decls & map \(v, ref, decl, mf) ->
-  --           case mf of
-  --             Nothing -> undefined
-  --             Just f -> DeclUpdateOp { declUpdateVar = Nothing, ref0 = undefined, ref1 = ref }
+
+-- pure Structure
+--   { structureDecls =
+--       case maybeDecls of
+--         Nothing -> undefined
+--         Just decls -> decls & map \(v, ref, decl, mf) ->
+--           case mf of
+--             Nothing -> undefined
+--             Just f -> DeclUpdateOp { declUpdateVar = Nothing, ref0 = undefined, ref1 = ref }
 
 -- data DeclUpsertOp v
 --   = DeclUpsertOpAdd (DeclAddOp v)
@@ -2345,30 +2442,29 @@ hydrateUnisonFileDecls ::
   forall m v.
   (Monad m, Var v) =>
   (Hash -> m [(TypeReferenceId, Decl v Ann)]) ->
-  TypecheckedUnisonFile v Ann ->
-  SlurpForUpdate v ->
+  SlurpResult2 v ->
   m (Maybe [DeclUpsertOp v])
-  -- m (Maybe [(v, TypeReferenceId, TypeReferenceId, Decl v Ann, Maybe (ConstructorId -> ConstructorId))])
-hydrateUnisonFileDecls loadDeclComponent unisonFile SlurpForUpdate {preUpdateDeclNames, slurpedDeclHashes, slurpedDeclMapping, slurpedDeclVars} = do
+hydrateUnisonFileDecls loadDeclComponent SlurpResult2{declMapping, declNames, declRef0, slurp} = do
   extraDecls <- loadExtraDecls
   pure
     if Map.null extraDecls
       then Nothing
-      else hydrateDecls unisonFile extraDecls
+      else hydrateDecls (Slurp.originalFile slurp) extraDecls
   where
     loadExtraDecls :: m (Map TypeReferenceId (Decl v Ann))
     loadExtraDecls =
       -- FIXME pretty sure this could be Map.fromAscList
       fmap Map.fromList do
         let notBeingUpdated (ref0, _) =
-              Set.disjoint slurpedDeclVars (Set.map Name.toVar (preUpdateDeclNames ref0))
-        foldMapM (\hash -> filter notBeingUpdated <$> loadDeclComponent hash) slurpedDeclHashes
+              Set.disjoint (SC.types (Slurp.updates slurp)) (Set.map Name.toVar (declNames ref0))
+        foldMapM
+          (\hash -> filter notBeingUpdated <$> loadDeclComponent hash)
+          (Set.mapMaybe (Reference.toHash . declRef0) (SC.types (Slurp.updates slurp)))
 
     hydrateDecls ::
       TypecheckedUnisonFile v Ann ->
       Map TypeReferenceId (Decl v Ann) ->
       Maybe [DeclUpsertOp v]
-      -- Maybe [(v, TypeReferenceId, TypeReferenceId, Decl v Ann, Maybe (ConstructorId -> ConstructorId))]
     hydrateDecls unisonFile extraDecls =
       allUnhashedDecls
         & Map.elems
@@ -2377,38 +2473,58 @@ hydrateUnisonFileDecls loadDeclComponent unisonFile SlurpForUpdate {preUpdateDec
         & \case
           -- FIXME determine what to do here
           Left _resolutionFailure -> Nothing
-          Right decls ->
-            decls
-              & map
-                ( \(v, ref1, decl1) ->
-                  case randomNameToUserSuppliedName v of
-                    Nothing ->
-                      let ref0 = randomNameToOldRef Map.! v
-                          decl0 = extraDecls Map.! ref0
-                      in
-                      DeclUpsertOpUpdate DeclUpdateOp
-                        { decl0,
-                          decl1,
-                          explicit = False,
-                          ref0 = Reference.fromId ref0,
-                          ref1,
-                          var = v
-                        }
-                    Just v1 ->
-                      if Set.member v1 slurpedDeclVars
-                        then DeclUpsertOpUpdate DeclUpdateOp
-                          { decl0 = undefined,
-                            decl1,
-                            explicit = True,
-                            ref0 = undefined,
-                            ref1,
-                            var = v1
-                          }
-                        else DeclUpsertOpAdd undefined
-                          -- (v1, undefined, ref1, decl, Nothing)
-                )
-              & Just
+          Right decls -> Just (map classify decls)
       where
+        classify :: (v, TypeReferenceId, Decl v Ann) -> DeclUpsertOp v
+        classify (randomName, ref1, decl1) =
+          if isExtraDecl
+            then
+              let ref0 = randomNameToOldRef Map.! randomName
+               in DeclUpsertOpUpdate
+                    DeclUpdateOp
+                      { update =
+                          Implicit
+                            Upd1
+                              { before =
+                                  DeclrefId
+                                    { decl = extraDecls Map.! ref0,
+                                      ref = ref0
+                                    },
+                                after
+                              },
+                        var
+                      }
+            else
+              if isExplicitUpdate
+                then
+                  DeclUpsertOpUpdate
+                    DeclUpdateOp
+                      { update =
+                          Explicit
+                            Upd1
+                              { before = declRef0 var,
+                                after
+                              },
+                        var
+                      }
+                else
+                  DeclUpsertOpAdd
+                    DeclAddOp
+                      { add = after,
+                        var
+                      }
+          where
+            maybeUserSuppliedName = randomNameToUserSuppliedName randomName
+            isExtraDecl = isNothing maybeUserSuppliedName
+            isExplicitUpdate = Set.member var (SC.types (Slurp.updates slurp))
+            var = fromMaybe randomName maybeUserSuppliedName
+            after :: DeclrefId v Ann
+            after =
+              DeclrefId
+                { decl = decl1,
+                  ref = ref1
+                }
+
         allUnhashedDecls :: Map TypeReferenceId (v, Decl v Ann)
         allUnhashedDecls =
           extraDecls
@@ -2441,7 +2557,7 @@ hydrateUnisonFileDecls loadDeclComponent unisonFile SlurpForUpdate {preUpdateDec
     substituteType :: Type.F a -> Type.F a
     substituteType = \case
       Type.Ref ref0 ->
-        case Map.lookup ref0 slurpedDeclMapping of
+        case Map.lookup ref0 declMapping of
           Nothing -> Type.Ref ref0
           Just ref1 -> Type.Ref (Reference.fromId ref1)
       ty -> ty

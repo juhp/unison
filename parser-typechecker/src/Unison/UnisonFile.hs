@@ -25,6 +25,7 @@ module Unison.UnisonFile
     tcDataDeclarationsById,
     tcEffectDeclarationsById,
     tcDeclarationsById,
+    tcDeclarationsByVar,
     hashConstructors,
     constructorsForDecls,
     hashTerms,
@@ -113,6 +114,11 @@ tcEffectDeclarationsById =
 tcDeclarationsById :: TypecheckedUnisonFile v a -> Map Reference.Id (Decl v a)
 tcDeclarationsById file =
   Map.union (Map.map Right (tcDataDeclarationsById file)) (Map.map Left (tcEffectDeclarationsById file))
+
+-- | Get all declarations (and their references) in a typechecked unison file, keyed by var.
+tcDeclarationsByVar :: Ord v => TypecheckedUnisonFile v a -> Map v (Reference.Id, Decl v a)
+tcDeclarationsByVar file =
+  Map.union (Map.map (over _2 Right) (dataDeclarationsId' file)) (Map.map (over _2 Left) (effectDeclarationsId' file))
 
 typecheckedUnisonFile :: forall v a. Var v
                       => Map v (Reference.Id, DataDeclaration v a)

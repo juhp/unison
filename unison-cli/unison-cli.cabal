@@ -65,12 +65,14 @@ library
       DeriveGeneric
       DerivingStrategies
       DoAndIfThenElse
+      DuplicateRecordFields
       FlexibleContexts
       FlexibleInstances
       GeneralizedNewtypeDeriving
       LambdaCase
       MultiParamTypeClasses
       NamedFieldPuns
+      OverloadedLabels
       OverloadedStrings
       PatternSynonyms
       RankNTypes
@@ -91,6 +93,7 @@ library
     , errors
     , extra
     , filepath
+    , generic-lens
     , haskeline
     , lens
     , megaparsec >=5.0.0 && <7.0.0
@@ -135,12 +138,14 @@ executable integration-tests
       DeriveGeneric
       DerivingStrategies
       DoAndIfThenElse
+      DuplicateRecordFields
       FlexibleContexts
       FlexibleInstances
       GeneralizedNewtypeDeriving
       LambdaCase
       MultiParamTypeClasses
       NamedFieldPuns
+      OverloadedLabels
       OverloadedStrings
       PatternSynonyms
       RankNTypes
@@ -162,6 +167,7 @@ executable integration-tests
     , errors
     , extra
     , filepath
+    , generic-lens
     , haskeline
     , lens
     , megaparsec >=5.0.0 && <7.0.0
@@ -205,12 +211,14 @@ executable transcripts
       DeriveGeneric
       DerivingStrategies
       DoAndIfThenElse
+      DuplicateRecordFields
       FlexibleContexts
       FlexibleInstances
       GeneralizedNewtypeDeriving
       LambdaCase
       MultiParamTypeClasses
       NamedFieldPuns
+      OverloadedLabels
       OverloadedStrings
       PatternSynonyms
       RankNTypes
@@ -234,6 +242,7 @@ executable transcripts
     , errors
     , extra
     , filepath
+    , generic-lens
     , haskeline
     , lens
     , megaparsec >=5.0.0 && <7.0.0
@@ -279,12 +288,14 @@ executable unison
       DeriveGeneric
       DerivingStrategies
       DoAndIfThenElse
+      DuplicateRecordFields
       FlexibleContexts
       FlexibleInstances
       GeneralizedNewtypeDeriving
       LambdaCase
       MultiParamTypeClasses
       NamedFieldPuns
+      OverloadedLabels
       OverloadedStrings
       PatternSynonyms
       RankNTypes
@@ -305,6 +316,7 @@ executable unison
     , errors
     , extra
     , filepath
+    , generic-lens
     , haskeline
     , lens
     , megaparsec >=5.0.0 && <7.0.0
@@ -357,12 +369,14 @@ test-suite tests
       DeriveGeneric
       DerivingStrategies
       DoAndIfThenElse
+      DuplicateRecordFields
       FlexibleContexts
       FlexibleInstances
       GeneralizedNewtypeDeriving
       LambdaCase
       MultiParamTypeClasses
       NamedFieldPuns
+      OverloadedLabels
       OverloadedStrings
       PatternSynonyms
       RankNTypes
@@ -384,6 +398,7 @@ test-suite tests
     , errors
     , extra
     , filepath
+    , generic-lens
     , haskeline
     , here
     , lens

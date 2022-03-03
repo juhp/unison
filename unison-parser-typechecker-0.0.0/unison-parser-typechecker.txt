@@ -72,6 +72,7 @@ OpenCodebaseDoesntExist :: OpenCodebaseError
 -- | The codebase exists, but its schema version is unknown to this
 --   application.
 OpenCodebaseUnknownSchemaVersion :: Word64 -> OpenCodebaseError
+instance GHC.Exception.Type.Exception Unison.Codebase.Init.OpenCodebaseError.OpenCodebaseError
 instance GHC.Show.Show Unison.Codebase.Init.OpenCodebaseError.OpenCodebaseError
 
 module Unison.Codebase.Path
@@ -2495,7 +2496,15 @@ NoRootBranch :: GetRootBranchError
 CouldntParseRootBranch :: String -> GetRootBranchError
 CouldntLoadRootBranch :: Hash -> GetRootBranchError
 type SyncToDir m = CodebasePath -> SyncMode -> Branch m -> m ()
+
+-- | Whether a codebase is local or remote.
+data LocalOrRemote
+Local :: LocalOrRemote
+Remote :: LocalOrRemote
 gitErrorFromOpenCodebaseError :: CodebasePath -> ReadRepo -> OpenCodebaseError -> GitSqliteCodebaseError
+instance GHC.Classes.Ord Unison.Codebase.Type.LocalOrRemote
+instance GHC.Classes.Eq Unison.Codebase.Type.LocalOrRemote
+instance GHC.Show.Show Unison.Codebase.Type.LocalOrRemote
 instance GHC.Show.Show Unison.Codebase.Type.GetRootBranchError
 instance GHC.Show.Show Unison.Codebase.Type.GitError
 instance GHC.Exception.Type.Exception Unison.Codebase.Type.GitError
@@ -2554,7 +2563,7 @@ namesegment2to1 :: NameSegment -> NameSegment
 namesegment1to2 :: NameSegment -> NameSegment
 branch2to1 :: Monad m => (Reference -> m ConstructorType) -> Branch m -> m (Branch0 m)
 
-module Unison.Codebase.SqliteCodebase.MigrateSchema12.DbHelpers
+module Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.DbHelpers
 dbBranchHash :: EDB m => DbBranch -> m Hash
 dbPatchHash :: forall m. EDB m => Patch -> m Hash
 
@@ -3412,9 +3421,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5iIv loc_a5iIw. Lens' (Env v_a5iIv loc_a5iIw) (TypeLookup v_a5iIv loc_a5iIw)
-termsByShortname :: forall v_a5iIv loc_a5iIw. Lens' (Env v_a5iIv loc_a5iIw) (Map Name [NamedReference v_a5iIv loc_a5iIw])
-ambientAbilities :: forall v_a5iIv loc_a5iIw. Lens' (Env v_a5iIv loc_a5iIw) [Type v_a5iIv loc_a5iIw]
+typeLookup :: forall v_a5j25 loc_a5j26. Lens' (Env v_a5j25 loc_a5j26) (TypeLookup v_a5j25 loc_a5j26)
+termsByShortname :: forall v_a5j25 loc_a5j26. Lens' (Env v_a5j25 loc_a5j26) (Map Name [NamedReference v_a5j25 loc_a5j26])
+ambientAbilities :: forall v_a5j25 loc_a5j26. Lens' (Env v_a5j25 loc_a5j26) [Type v_a5j25 loc_a5j26]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.
@@ -4141,19 +4150,56 @@ toCodeLookup :: Monad m => Codebase m Symbol Ann -> CodeLookup Symbol m Ann
 typeLookupForDependencies :: (Monad m, BuiltinAnnotation a) => Codebase m Symbol a -> Set Reference -> m (TypeLookup Symbol a)
 unsafeGetComponentLength :: (HasCallStack, Monad m) => Codebase m v a -> Hash -> m CycleSize
 
-module Unison.Codebase.SqliteCodebase.MigrateSchema12
-migrateSchema12 :: forall a m v. (MonadUnliftIO m, Var v) => Connection -> Codebase m v a -> m ()
-instance GHC.Show.Show Unison.Codebase.SqliteCodebase.MigrateSchema12.Entity
-instance GHC.Classes.Ord Unison.Codebase.SqliteCodebase.MigrateSchema12.Entity
-instance GHC.Classes.Eq Unison.Codebase.SqliteCodebase.MigrateSchema12.Entity
-instance Data.Traversable.Traversable Unison.Codebase.SqliteCodebase.MigrateSchema12.SomeReference
-instance Data.Foldable.Foldable Unison.Codebase.SqliteCodebase.MigrateSchema12.SomeReference
-instance GHC.Show.Show ref => GHC.Show.Show (Unison.Codebase.SqliteCodebase.MigrateSchema12.SomeReference ref)
-instance GHC.Classes.Ord ref => GHC.Classes.Ord (Unison.Codebase.SqliteCodebase.MigrateSchema12.SomeReference ref)
-instance GHC.Generics.Generic (Unison.Codebase.SqliteCodebase.MigrateSchema12.SomeReference ref)
-instance GHC.Base.Functor Unison.Codebase.SqliteCodebase.MigrateSchema12.SomeReference
-instance GHC.Classes.Eq ref => GHC.Classes.Eq (Unison.Codebase.SqliteCodebase.MigrateSchema12.SomeReference ref)
-instance GHC.Generics.Generic Unison.Codebase.SqliteCodebase.MigrateSchema12.MigrationState
+module Unison.Codebase.SqliteCodebase.Paths
+
+-- | Prefer makeCodebasePath or makeCodebaseDirPath when possible.
+codebasePath :: FilePath
+
+-- | Makes a path to a sqlite database from a codebase path.
+makeCodebasePath :: CodebasePath -> FilePath
+
+-- | Makes a path to the location where sqlite files are stored within a
+--   codebase path.
+makeCodebaseDirPath :: CodebasePath -> FilePath
+
+-- | Makes a path to store a backup of a sqlite database given the current
+--   time.
+backupCodebasePath :: NominalDiffTime -> FilePath
+
+module Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2
+migrateSchema1To2 :: forall a m v. (MonadUnliftIO m, Var v) => Connection -> Codebase m v a -> m ()
+instance GHC.Show.Show Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.Entity
+instance GHC.Classes.Ord Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.Entity
+instance GHC.Classes.Eq Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.Entity
+instance Data.Traversable.Traversable Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.SomeReference
+instance Data.Foldable.Foldable Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.SomeReference
+instance GHC.Show.Show ref => GHC.Show.Show (Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.SomeReference ref)
+instance GHC.Classes.Ord ref => GHC.Classes.Ord (Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.SomeReference ref)
+instance GHC.Generics.Generic (Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.SomeReference ref)
+instance GHC.Base.Functor Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.SomeReference
+instance GHC.Classes.Eq ref => GHC.Classes.Eq (Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.SomeReference ref)
+instance GHC.Generics.Generic Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.MigrationState
+
+module Unison.Codebase.SqliteCodebase.Migrations
+type Migration m a v = Connection -> Codebase m v a -> m ()
+
+-- | The highest schema that this ucm knows how to migrate to.
+currentSchemaVersion :: SchemaVersion
+
+-- | Mapping from schema version to the migration required to get there.
+--   Each migration may only be run on a schema of its immediate
+--   predecessor, E.g. The migration at index 2 must be run on a codebase
+--   at version 1.
+migrations :: forall m v a. (MonadUnliftIO m, Var v) => Map SchemaVersion (Migration m a v)
+
+-- | Migrates a codebase up to the most recent version known to ucm. This
+--   is a No-op if it's up to date Returns an error if the schema version
+--   is newer than this ucm knows about.
+ensureCodebaseIsUpToDate :: (MonadUnliftIO m, Var v) => LocalOrRemote -> CodebasePath -> Connection -> Codebase m v a -> m (Either OpenCodebaseError ())
+
+-- | Copy the sqlite database to a new file with a unique name based on
+--   current time.
+backupCodebase :: CodebasePath -> MonadIO m => m ()
 
 module Unison.Codebase.Init.Type
 data Init m v a

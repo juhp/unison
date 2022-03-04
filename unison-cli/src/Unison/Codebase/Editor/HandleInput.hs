@@ -1918,7 +1918,7 @@ handleUpdate input maybePatchPath requestedNames = do
 
 -- FIXME just separate into add/updates? what's the benefit of upsert?
 data Structure v = Structure
-  { structureDecls :: [DeclUpsertOp v]
+  { structureDecls :: [UpsertDecl v]
   , structureTerms :: [TermUpsertOp v],
     -- Look up the type of a term in the structure. Only valid for terms in the structure (old or new).
     structureTermType :: TermReference -> Type v Ann
@@ -1962,9 +1962,9 @@ structureIsEmpty structure =
 
 structureToUpdates :: forall m v. Var v => Branch0 m -> Structure v -> [(Path, Branch0 m -> Branch0 m)]
 structureToUpdates branch structure =
-  let declUpsertToOps :: DeclUpsertOp v -> [(Path, Branch0 m -> Branch0 m)]
+  let declUpsertToOps :: UpsertDecl v -> [(Path, Branch0 m -> Branch0 m)]
       declUpsertToOps = \case
-        DeclUpsertOpAdd DeclAddOp {add = DeclrefId {decl, ref}, var} ->
+        Add AddDecl {declref = DeclrefId {decl, ref}, var} ->
           ( BranchUtil.makeAddTypeName (Path.splitFromName (Name.unsafeFromVar var)) (Reference.fromId ref)
              Metadata.empty :
             constructorAdditions ref decl
@@ -2062,26 +2062,27 @@ structureTermEdits structure =
 
 structureTypeEdits :: Structure v -> [(TypeReference, TypeReference)]
 structureTypeEdits structure =
-  mapMaybe declUpsertOpUpdate (structureDecls structure)
+  mapMaybe declUpsertUpdate (structureDecls structure)
 
-data DeclUpsertOp v
-  = DeclUpsertOpAdd (DeclAddOp v)
-  | DeclUpsertOpUpdate (DeclUpdateOp v)
+data Upsert a b
+  = Add a
+  | Update b
 
-declUpsertOpUpdate :: DeclUpsertOp v -> Maybe (TypeReference, TypeReference)
-declUpsertOpUpdate = \case
-  DeclUpsertOpAdd _ -> Nothing
+type UpsertDecl v = Upsert (AddDecl v) (UpdateDecl v)
+
+declUpsertUpdate :: UpsertDecl v -> Maybe (TypeReference, TypeReference)
+declUpsertUpdate = \case
+  Add _ -> Nothing
   -- DeclUpsertOpUpdate DeclUpdateOp {ref0, ref1} -> Just (ref0, Reference.fromId ref1)
 
--- FIXME add -> addOp
-data DeclAddOp v
-  = DeclAddOp
-  { add :: DeclrefId v Ann
+data AddDecl v
+  = AddDecl
+  { declref :: DeclrefId v Ann
   , var :: v
   }
 
-data DeclUpdateOp v
-  = DeclUpdateOp
+data UpdateDecl v
+  = UpdateDecl
   { -- For an explicit update, it doesn't (currently) matter what the old decl was, so we just track its reference.
     update :: Upd TypeReference (DeclrefId v Ann),
     var :: v
@@ -2213,11 +2214,13 @@ data SlurpResult2 v
   = SlurpResult2
   { slurp :: SlurpResult v
   , declMapping :: Map TypeReference TypeReferenceId
+    -- | Get the set of names a decl reference has in the current namespace.
   , declNames :: TypeReferenceId -> Set Name
   , declRef0 :: v -> TypeReference
-    -- FIXME just get from unison file right?
-  , declRef1 :: v -> TypeReferenceId
+  , termMapping :: Map TermReference TermReferenceId
+    -- | Get the set of names a term reference has in the current namespace.
   , termNames :: TermReferenceId -> Set Name
+  , termRef0 :: v -> TermReference
   }
   deriving stock (Generic)
 
@@ -2228,13 +2231,16 @@ makeSlurp2 allNames selection unisonFile =
     declMapping = foldl' (\acc var -> Map.insert (declRef0 var) (declRef1 var) acc) Map.empty (SC.types (Slurp.updates slurp)),
     declNames = Names.namesForReference allNames . Reference.fromId,
     declRef0,
-    declRef1,
+    termMapping = foldl' (\acc var -> Map.insert (termRef0 var) (termRef1 var) acc) Map.empty (SC.terms (Slurp.updates slurp)),
     termNames = Names.namesForReferent allNames . Referent.fromTermReferenceId
   }
   where
     declRef0 = Names.theTypeNamed allNames . Name.unsafeFromVar
+    -- FIXME just get from unison file right?
     declRef1 = Reference.unsafeId . Names.theTypeNamed fileNames . Name.unsafeFromVar
     fileNames = UF.typecheckedToNames unisonFile
+    termRef0 = Names.theRefTermNamed allNames . Name.unsafeFromVar
+    termRef1 = Reference.unsafeId . Names.theRefTermNamed fileNames . Name.unsafeFromVar
     slurp = Slurp.slurpFile unisonFile selection Slurp.UpdateOp allNames
 
 oink ::
@@ -2245,14 +2251,14 @@ oink ::
   Action' m v (Structure v)
 oink selection unisonFile0 = do
   allNames <- currentPathNames
-  let slurp = makeSlurpForUpdate allNames selection
 
-  let slurp0 = makeSlurp2 allNames selection unisonFile0
+  let makeSlurp = makeSlurp2 allNames selection
+  let slurp0 = makeSlurp unisonFile0
   maybeDeclUpserts <- hydrateUnisonFileDecls loadDeclComponent slurp0
 
-  let unisonFile1 =
+  let (unisonFile1, slurp1) =
         case maybeDeclUpserts of
-          Nothing -> unisonFile0
+          Nothing -> (unisonFile0, slurp0)
           Just declUpserts ->
             let (effects, datas) =
                   declUpserts
@@ -2261,23 +2267,29 @@ oink selection unisonFile0 = do
                     & \(xs, ys) -> (Map.fromList xs, Map.fromList ys)
                   where
                     untangle ::
-                      DeclUpsertOp v ->
+                      UpsertDecl v ->
                       Either
                         (v, (TypeReferenceId, DD.EffectDeclaration v Ann))
                         (v, (TypeReferenceId, DD.DataDeclaration v Ann))
                     untangle = \case
-                      DeclUpsertOpAdd DeclAddOp {add, var} -> go var add
-                      DeclUpsertOpUpdate DeclUpdateOp {update, var} -> go var (updAfter update)
+                      Add AddDecl {declref, var} -> go var declref
+                      Update UpdateDecl {update, var} -> go var (updAfter update)
                       where
                         go var DeclrefId {decl, ref} =
                           case decl of
                             Left e -> Left (var, (ref, e))
                             Right d -> Right (var, (ref, d))
-             in unisonFile0
-                  { UF.dataDeclarationsId' = datas,
-                    UF.effectDeclarationsId' = effects
-                  }
-  unisonFile2 <- hydrateUnisonFileTerms loadTermComponent typecheck unisonFile1 (slurp unisonFile1)
+                uf1 =
+                  unisonFile0
+                    { UF.dataDeclarationsId' = datas,
+                      UF.effectDeclarationsId' = effects
+                    }
+             in (uf1, makeSlurp uf1) -- FIXME makeSlurp does a bit too much work - term stuff hasn't changed
+
+  -- TODO:
+  --   * Return Maybe [TermUpsertOp v]
+  --   * apply constructor reference mapping
+  unisonFile2 <- hydrateUnisonFileTerms loadTermComponent typecheck unisonFile1 slurp1
 
   let declUpserts =
         case maybeDeclUpserts of
@@ -2292,14 +2304,14 @@ oink selection unisonFile0 = do
                   & Slurp.adds
                   & SC.types
                   & Set.toList
-                  & map \var -> DeclUpsertOpAdd DeclAddOp { add = after var, var },
+                  & map \var -> Add AddDecl { declref = after var, var },
                 (slurp0 ^. #slurp)
                   & Slurp.updates
                   & SC.types
                   & Set.toList
                   & map \var ->
-                    DeclUpsertOpUpdate
-                      DeclUpdateOp
+                    Update
+                      UpdateDecl
                         { update = Explicit Upd1
                             { before = (slurp0 ^. #declRef0) var
                             , after = after var
@@ -2319,34 +2331,6 @@ oink selection unisonFile0 = do
 --           case mf of
 --             Nothing -> undefined
 --             Just f -> DeclUpdateOp { declUpdateVar = Nothing, ref0 = undefined, ref1 = ref }
-
--- data DeclUpsertOp v
---   = DeclUpsertOpAdd (DeclAddOp v)
---   | DeclUpsertOpUpdate (DeclUpdateOp v)
-
--- declUpsertOpUpdate :: DeclUpsertOp v -> Maybe (TypeReference, TypeReference)
--- declUpsertOpUpdate = \case
---   DeclUpsertOpAdd _ -> Nothing
---   DeclUpsertOpUpdate DeclUpdateOp {declUpdateOldRef, declUpdateNewRef} -> Just (declUpdateOldRef, declUpdateNewRef)
-
--- -- FIXME add -> addOp
--- data DeclAddOp v
---   = DeclAddOp
---   { declAddVar :: v
---   , declAddRef :: TypeReference
---   , declAddDecl :: Decl v Ann
---   }
-
--- -- FIXME update -> updateOp
--- data DeclUpdateOp v
---   = DeclUpdateOp
---   { declUpdateVar :: Maybe v, -- FIXME is this needed?
---     declUpdateOldRef :: TypeReference,
---     declUpdateNewRef :: TypeReference
---   }
-    -- , structureTerms = undefined
-    -- , structureTermType = undefined
-    -- }
 
   -- let -- replace generated names with their originals, wherever possible
   --     -- FIXME think a little bit about if that works - they can't overlap right? printf debug a little
@@ -2443,7 +2427,7 @@ hydrateUnisonFileDecls ::
   (Monad m, Var v) =>
   (Hash -> m [(TypeReferenceId, Decl v Ann)]) ->
   SlurpResult2 v ->
-  m (Maybe [DeclUpsertOp v])
+  m (Maybe [UpsertDecl v])
 hydrateUnisonFileDecls loadDeclComponent SlurpResult2{declMapping, declNames, declRef0, slurp} = do
   extraDecls <- loadExtraDecls
   pure
@@ -2464,7 +2448,7 @@ hydrateUnisonFileDecls loadDeclComponent SlurpResult2{declMapping, declNames, de
     hydrateDecls ::
       TypecheckedUnisonFile v Ann ->
       Map TypeReferenceId (Decl v Ann) ->
-      Maybe [DeclUpsertOp v]
+      Maybe [UpsertDecl v]
     hydrateDecls unisonFile extraDecls =
       allUnhashedDecls
         & Map.elems
@@ -2475,13 +2459,13 @@ hydrateUnisonFileDecls loadDeclComponent SlurpResult2{declMapping, declNames, de
           Left _resolutionFailure -> Nothing
           Right decls -> Just (map classify decls)
       where
-        classify :: (v, TypeReferenceId, Decl v Ann) -> DeclUpsertOp v
+        classify :: (v, TypeReferenceId, Decl v Ann) -> UpsertDecl v
         classify (randomName, ref1, decl1) =
           if isExtraDecl
             then
               let ref0 = randomNameToOldRef Map.! randomName
-               in DeclUpsertOpUpdate
-                    DeclUpdateOp
+               in Update
+                    UpdateDecl
                       { update =
                           Implicit
                             Upd1
@@ -2497,8 +2481,8 @@ hydrateUnisonFileDecls loadDeclComponent SlurpResult2{declMapping, declNames, de
             else
               if isExplicitUpdate
                 then
-                  DeclUpsertOpUpdate
-                    DeclUpdateOp
+                  Update
+                    UpdateDecl
                       { update =
                           Explicit
                             Upd1
@@ -2508,9 +2492,9 @@ hydrateUnisonFileDecls loadDeclComponent SlurpResult2{declMapping, declNames, de
                         var
                       }
                 else
-                  DeclUpsertOpAdd
-                    DeclAddOp
-                      { add = after,
+                  Add
+                    AddDecl
+                      { declref = after,
                         var
                       }
           where
@@ -2572,9 +2556,9 @@ hydrateUnisonFileTerms ::
   (Hash -> m [(TermReferenceId, Term v Ann)]) ->
   (UF.UnisonFile v Ann -> m (Maybe (TypecheckedUnisonFile v Ann))) ->
   TypecheckedUnisonFile v Ann ->
-  SlurpForUpdate v ->
+  SlurpResult2 v ->
   m (TypecheckedUnisonFile v Ann)
-hydrateUnisonFileTerms loadTermComponent typecheck unisonFile SlurpForUpdate{preUpdateTermNames, slurpedDeclMapping, slurpedTermHashes, slurpedTermMapping, slurpedTermVars} = do
+hydrateUnisonFileTerms loadTermComponent typecheck unisonFile SlurpResult2{declMapping, slurp, termMapping, termNames, termRef0}= do
   extraTerms <- loadExtraTerms
 
   if Map.null extraTerms
@@ -2586,8 +2570,10 @@ hydrateUnisonFileTerms loadTermComponent typecheck unisonFile SlurpForUpdate{pre
       -- FIXME pretty sure this could be Map.fromAscList
       fmap Map.fromList do
         let notBeingUpdated (ref, _) =
-              Set.disjoint slurpedTermVars (Set.map Name.toVar (preUpdateTermNames ref))
-        foldMapM (\hash -> filter notBeingUpdated <$> loadTermComponent hash) slurpedTermHashes
+              Set.disjoint (SC.terms (Slurp.updates slurp)) (Set.map Name.toVar (termNames ref))
+        foldMapM
+          (\hash -> filter notBeingUpdated <$> loadTermComponent hash)
+          (Set.mapMaybe (Reference.toHash . termRef0) (SC.terms (Slurp.updates slurp)))
 
     hydrateTerms :: TypecheckedUnisonFile v Ann -> Map TermReferenceId (Term v Ann) -> m (TypecheckedUnisonFile v Ann)
     hydrateTerms unisonFile extraTerms = do
@@ -2660,9 +2646,9 @@ hydrateUnisonFileTerms loadTermComponent typecheck unisonFile SlurpForUpdate{pre
     substituteTerm =
       ABT.rebuildUp \case
         Term.Ref ref0 ->
-          case Map.lookup ref0 slurpedTermMapping of
+          case Map.lookup ref0 termMapping of
             Nothing -> Term.Ref ref0
-            Just ref1 -> Term.Ref ref1
+            Just ref1 -> Term.Ref (Reference.fromId ref1)
         Term.Ann ann ty -> Term.Ann ann (substituteType ty)
         term -> term
 
@@ -2670,7 +2656,7 @@ hydrateUnisonFileTerms loadTermComponent typecheck unisonFile SlurpForUpdate{pre
     substituteType =
       ABT.rebuildUp \case
         Type.Ref ref0 ->
-          case Map.lookup ref0 slurpedDeclMapping of
+          case Map.lookup ref0 declMapping of
             Nothing -> Type.Ref ref0
             Just ref1 -> Type.Ref (Reference.fromId ref1)
         ty -> ty

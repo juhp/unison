@@ -328,6 +328,14 @@ Worktree :: FilePath -> GitRepo
 gitCacheDir :: MonadIO m => Text -> m FilePath
 instance GHC.Show.Show Unison.Codebase.Editor.Git.GitRepo
 
+module Unison.Codebase.SqliteCodebase.Migrations.Errors
+data MigrationError
+IncorrectStartingSchemaVersion :: SchemaVersion -> MigrationError
+instance GHC.Exception.Type.Exception Unison.Codebase.SqliteCodebase.Migrations.Errors.MigrationError
+instance GHC.Classes.Ord Unison.Codebase.SqliteCodebase.Migrations.Errors.MigrationError
+instance GHC.Classes.Eq Unison.Codebase.SqliteCodebase.Migrations.Errors.MigrationError
+instance GHC.Show.Show Unison.Codebase.SqliteCodebase.Migrations.Errors.MigrationError
+
 module Unison.Codebase.SqliteCodebase.SyncEphemeral
 data Dependencies
 Dependencies :: Set Hash -> Set Hash -> Dependencies
@@ -3420,9 +3428,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5j25 loc_a5j26. Lens' (Env v_a5j25 loc_a5j26) (TypeLookup v_a5j25 loc_a5j26)
-termsByShortname :: forall v_a5j25 loc_a5j26. Lens' (Env v_a5j25 loc_a5j26) (Map Name [NamedReference v_a5j25 loc_a5j26])
-ambientAbilities :: forall v_a5j25 loc_a5j26. Lens' (Env v_a5j25 loc_a5j26) [Type v_a5j25 loc_a5j26]
+typeLookup :: forall v_a5jkU loc_a5jkV. Lens' (Env v_a5jkU loc_a5jkV) (TypeLookup v_a5jkU loc_a5jkV)
+termsByShortname :: forall v_a5jkU loc_a5jkV. Lens' (Env v_a5jkU loc_a5jkV) (Map Name [NamedReference v_a5jkU loc_a5jkV])
+ambientAbilities :: forall v_a5jkU loc_a5jkV. Lens' (Env v_a5jkU loc_a5jkV) [Type v_a5jkU loc_a5jkV]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.
@@ -4165,8 +4173,30 @@ makeCodebaseDirPath :: CodebasePath -> FilePath
 --   time.
 backupCodebasePath :: NominalDiffTime -> FilePath
 
+module Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema2To3
+
+-- | The 1 to 2 migration kept around hash objects of hash version 1,
+--   unfortunately this caused an issue:
+--   
+--   The migration would detect causals whose value hash did not have a
+--   corresponding branch object, this was caused by a race-condition in
+--   sync which could end up in a partial sync. When a branch object was
+--   determined to be missing, the migration would replace it with the
+--   empty branch. This worked well, but led to a situation where related
+--   parent or successors of that causal would have their hash objects
+--   mapped to the new v2 object which contained the empty branch in place
+--   of missing branches. This is fine, but, if a different codebase
+--   migrated the same branch and wasn't missing the branch in question it
+--   would migrate successfully and each database now have the same v1 hash
+--   object mapped to two distinct v2 objects, which rightfully causes a
+--   crash when syncing.
+--   
+--   This migration drops all the v1 hash objects to avoid this issue,
+--   since these hash objects weren't being used for anything anyways.
+migrateSchema2To3 :: forall a m v. (MonadUnliftIO m, Var v) => Connection -> Codebase m v a -> m (Either MigrationError ())
+
 module Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2
-migrateSchema1To2 :: forall a m v. (MonadUnliftIO m, Var v) => Connection -> Codebase m v a -> m ()
+migrateSchema1To2 :: forall a m v. (MonadUnliftIO m, Var v) => Connection -> Codebase m v a -> m (Either MigrationError ())
 instance GHC.Show.Show Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.Entity
 instance GHC.Classes.Ord Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.Entity
 instance GHC.Classes.Eq Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.Entity
@@ -4180,7 +4210,7 @@ instance GHC.Classes.Eq ref => GHC.Classes.Eq (Unison.Codebase.SqliteCodebase.Mi
 instance GHC.Generics.Generic Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.MigrationState
 
 module Unison.Codebase.SqliteCodebase.Migrations
-type Migration m a v = Connection -> Codebase m v a -> m ()
+type Migration m a v = Connection -> Codebase m v a -> m (Either MigrationError ())
 
 -- | The highest schema that this ucm knows how to migrate to.
 currentSchemaVersion :: SchemaVersion

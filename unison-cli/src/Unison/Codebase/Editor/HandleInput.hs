@@ -58,6 +58,9 @@ import qualified Unison.Codebase.Editor.Output.DumpNamespace as Output.DN
 import qualified Unison.Codebase.Editor.Propagate as Propagate
 import Unison.Codebase.Editor.RemoteRepo (ReadRemoteNamespace, WriteRemotePath, WriteRepo, printNamespace, writePathToRead, writeToRead)
 import qualified Unison.Codebase.Editor.Slurp as Slurp
+import Unison.Codebase.Editor.RemoteRepo (ReadRemoteNamespace, WriteRemotePath, WriteRepo, printNamespace, writePathToRead, writeToRead)
+import Unison.Codebase.Editor.RemoteRepo (ReadRemoteNamespace, WriteRemotePath, WriteRepo, printNamespace, writePathToRead)
+import qualified Unison.Codebase.Editor.Slurp as Slurp
 import Unison.Codebase.Editor.SlurpComponent (SlurpComponent (..))
 import qualified Unison.Codebase.Editor.SlurpComponent as SC
 import Unison.Codebase.Editor.SlurpResult (SlurpResult (..))
@@ -78,11 +81,14 @@ import qualified Unison.Codebase.Reflog as Reflog
 import Unison.Codebase.ShortBranchHash (ShortBranchHash)
 import qualified Unison.Codebase.ShortBranchHash as SBH
 import Unison.Codebase.SqliteCodebase.GitError (GitSqliteCodebaseError (NoDatabaseFile))
+import Unison.Codebase.SqliteCodebase.GitError (GitSqliteCodebaseError(NoDatabaseFile))
 import qualified Unison.Codebase.SyncMode as SyncMode
 import Unison.Codebase.TermEdit (TermEdit (..))
 import qualified Unison.Codebase.TermEdit as TermEdit
 import qualified Unison.Codebase.TermEdit.Typing as TermEdit
 import Unison.Codebase.Type (GitError (GitSqliteCodebaseError))
+import Unison.Codebase.Type (GitError(GitSqliteCodebaseError))
+import Unison.Codebase.Type (GitError)
 import qualified Unison.Codebase.TypeEdit as TypeEdit
 import qualified Unison.Codebase.Verbosity as Verbosity
 import qualified Unison.CommandLine.DisplayValues as DisplayValues
@@ -91,6 +97,8 @@ import qualified Unison.CommandLine.InputPattern as InputPattern
 import qualified Unison.CommandLine.InputPatterns as InputPatterns
 import Unison.ConstructorReference (ConstructorReferenceId, GConstructorReference (..))
 import Unison.DataDeclaration (Decl)
+import Unison.ConstructorReference (GConstructorReference(..))
+import Unison.ConstructorReference (GConstructorReference (..))
 import qualified Unison.DataDeclaration as DD
 import Unison.DataDeclaration.ConstructorId (ConstructorId)
 import Unison.Hash (Hash)
@@ -401,7 +409,7 @@ loop = do
             MergeBuiltinsI -> "builtins.merge"
             MergeIOBuiltinsI -> "builtins.mergeio"
             MakeStandaloneI out nm ->
-              "compile.output " <> Text.pack out <> " " <> HQ.toText nm
+              "compile " <> Text.pack out <> " " <> HQ.toText nm
             PullRemoteBranchI orepo dest _syncMode pullMode _ ->
               ( Text.pack . InputPattern.patternName $
                   case pullMode of
@@ -1727,25 +1735,23 @@ doPushRemoteBranch repo localPath syncMode remoteTarget = do
       case remoteTarget of
         Nothing -> do
           let opts = PushGitBranchOpts {setRoot = False, syncMode}
-          syncRemoteBranch sourceBranch repo opts
+          syncRemoteBranch repo opts (\_remoteRoot -> pure (Right sourceBranch))
           sbhLength <- (eval BranchHashLength)
           respond (GistCreated sbhLength repo (Branch.headHash sourceBranch))
         Just (remotePath, pushBehavior) -> do
-          let withRemoteRoot remoteRoot = do
+          let withRemoteRoot :: Branch m -> m (Either (Output v) (Branch m))
+              withRemoteRoot remoteRoot = do
                 let -- We don't merge `sourceBranch` with `remoteBranch`, we just replace it. This push will be rejected if this
                     -- rewinds time or misses any new updates in the remote branch that aren't in `sourceBranch` already.
                     f remoteBranch = if shouldPushTo pushBehavior remoteBranch then Just sourceBranch else Nothing
                 Branch.modifyAtM remotePath f remoteRoot & \case
-                  Nothing -> respond (RefusedToPush pushBehavior)
-                  Just newRemoteRoot -> do
-                    let opts = PushGitBranchOpts {setRoot = True, syncMode}
-                    runExceptT (syncRemoteBranch newRemoteRoot repo opts) >>= \case
-                      Left gitErr -> respond (Output.GitError gitErr)
-                      Right () -> respond Success
-          viewRemoteBranch (writeToRead repo, Nothing, Path.empty) Git.CreateBranchIfMissing withRemoteRoot >>= \case
-            Left (GitSqliteCodebaseError NoDatabaseFile {}) -> withRemoteRoot Branch.empty
-            Left err -> throwError err
-            Right () -> pure ()
+                  Nothing -> pure (Left $ RefusedToPush pushBehavior)
+                  Just newRemoteRoot -> pure (Right newRemoteRoot)
+          let opts = PushGitBranchOpts {setRoot = True, syncMode}
+          runExceptT (syncRemoteBranch repo opts withRemoteRoot) >>= \case
+            Left gitErr -> respond (Output.GitError gitErr)
+            Right (Left output) -> respond output
+            Right (Right _branch) -> respond Success
   where
     -- Per `pushBehavior`, we are either:
     --
@@ -2904,9 +2910,17 @@ viewRemoteBranch ::
 viewRemoteBranch ns gitBranchBehavior action = do
   eval $ ViewRemoteBranch ns gitBranchBehavior action
 
-syncRemoteBranch :: MonadCommand n m i v => Branch m -> WriteRepo -> PushGitBranchOpts -> ExceptT GitError n ()
-syncRemoteBranch b repo opts =
-  ExceptT . eval $ SyncRemoteBranch b repo opts
+-- | Given the current root branch of a remote
+-- (or an empty branch if no root branch exists)
+-- compute a new branch, which will then be synced and pushed.
+syncRemoteBranch ::
+  MonadCommand n m i v =>
+  WriteRepo ->
+  PushGitBranchOpts ->
+  (Branch m -> m (Either e (Branch m))) ->
+  ExceptT GitError n (Either e (Branch m))
+syncRemoteBranch repo opts action =
+  ExceptT . eval $ SyncRemoteBranch repo opts action
 
 -- todo: compare to `getHQTerms` / `getHQTypes`.  Is one universally better?
 resolveHQToLabeledDependencies :: Functor m => HQ.HashQualified Name -> Action' m v (Set LabeledDependency)

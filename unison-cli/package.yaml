@@ -52,6 +52,7 @@ library:
 tests:
   tests:
     dependencies:
+      - code-page
       - easytest
       - here
       - shellmet
@@ -66,6 +67,7 @@ executables:
     main: Main.hs
     ghc-options: -threaded -rtsopts -with-rtsopts=-I0 -optP-Wno-nonportable-include-path
     dependencies:
+      - code-page
       - optparse-applicative >= 0.16.1.0
       - shellmet
       - template-haskell
@@ -77,21 +79,24 @@ executables:
     main: Transcripts.hs
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -v0
     dependencies:
+      - code-page
       - easytest
       - process
       - shellmet
-    build-tools:
-      - unison-cli:unison
+      - unison-cli
 
   integration-tests:
     source-dirs: integration-tests
     main: Suite.hs
     ghc-options: -W -threaded -rtsopts "-with-rtsopts=-N -T" -v0
     dependencies:
+      - code-page
       - easytest
       - process
       - shellmet
       - time
+    build-tools:
+      - unison-cli:unison
 
 when:
   - condition: flag(optimized)

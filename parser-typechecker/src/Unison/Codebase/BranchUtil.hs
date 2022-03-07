@@ -43,6 +43,10 @@ import Unison.Names (Names)
 import qualified Unison.Names as Names
 import Unison.Prelude
 import Unison.Reference (Reference, TypeReference)
+import qualified Unison.Referent as Referent
+import qualified Unison.Names as Names
+import Unison.Prelude
+import Unison.Reference (Reference)
 import qualified Unison.Reference as Reference
 import Unison.Referent (Referent)
 import qualified Unison.Referent as Referent

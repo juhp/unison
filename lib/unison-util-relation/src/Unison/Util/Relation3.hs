@@ -94,6 +94,11 @@ mapD2Monotonic f Relation3 {d1, d2, d3} =
 member :: (Ord a, Ord b, Ord c) => a -> b -> c -> Relation3 a b c -> Bool
 member a b c = R.member b c . lookupD1 a
 
+-- | Does some @(_, b, c)@ tuple exist in the relation?
+memberD23 :: (Ord b, Ord c) => b -> c -> Relation3 a b c -> Bool
+memberD23 b c =
+  maybe False (R.memberRan c) . Map.lookup b . d2
+
 lookupD1 :: (Ord a, Ord b, Ord c) => a -> Relation3 a b c -> Relation b c
 lookupD1 a = fromMaybe mempty . Map.lookup a . d1
 

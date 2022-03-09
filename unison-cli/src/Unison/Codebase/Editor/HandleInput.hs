@@ -2258,6 +2258,7 @@ makeSlurpForUpdate allNames selection unisonFile =
 -- SlurpResult++
 -- Meant to replace SlurpForUpdate
 -- FIXME document fields
+-- FIXME remove declNames/termNames - they don't really have anything to do with the slurp
 data SlurpResult2 v = SlurpResult2
   { slurp :: SlurpResult v,
     declMapping :: Map TypeReference TypeReferenceId,
@@ -2297,7 +2298,17 @@ oink ::
   TypecheckedUnisonFile v Ann ->
   Action' m v (Structure v)
 oink selection unisonFile0 = do
-  allNames <- currentPathNames
+  currentPath' <- use LoopState.currentPath
+  currentBranch' <- getAt currentPath'
+  let currentBranch0 = Branch.head currentBranch'
+  let allNames = Branch.toNames currentBranch0
+
+  -- Helper function that determine whether a term reference appears to be a test, per whether it contains the isTest
+  -- metadata type/value pair.
+  let termIsTest :: TermReference -> Bool
+      termIsTest ref =
+        let (isTestType, isTestValue) = isTest
+         in Metadata.hasMetadata' (Referent.fromTermReference ref) isTestType isTestValue (Branch.deepTermMetadata currentBranch0)
 
   let makeSlurp = makeSlurp2 allNames selection
   let slurp0 = makeSlurp unisonFile0
@@ -2336,7 +2347,7 @@ oink selection unisonFile0 = do
   -- TODO:
   --   * Return Maybe [TermUpsertOp v]
   --   * apply constructor reference mapping
-  unisonFile2 <- hydrateUnisonFileTerms loadTermComponent typecheck slurp1
+  unisonFile2 <- hydrateUnisonFileTerms loadTermComponent typecheck termIsTest slurp1
 
   -- FIXME move to top-level
   let slurpToDeclUpserts slurp =
@@ -2585,9 +2596,10 @@ hydrateUnisonFileTerms ::
   (Monad m, Var v) =>
   (Hash -> m [(TermReferenceId, Term v Ann)]) ->
   (UF.UnisonFile v Ann -> m (Maybe (TypecheckedUnisonFile v Ann))) ->
+  (TermReference -> Bool) ->
   SlurpResult2 v ->
   m (Maybe [UpsertTerm v])
-hydrateUnisonFileTerms loadTermComponent typecheck SlurpResult2 {declMapping, slurp, termMapping, termNames, termRef0} = do
+hydrateUnisonFileTerms loadTermComponent typecheck termIsTest SlurpResult2 {declMapping, slurp, termMapping, termNames, termRef0} = do
   extraTerms <- loadExtraObjects loadTermComponent termRef0 termNames (SC.terms (Slurp.updates slurp))
 
   if Map.null extraTerms
@@ -2612,15 +2624,8 @@ hydrateUnisonFileTerms loadTermComponent typecheck SlurpResult2 {declMapping, sl
         Nothing -> Nothing
         Just unisonFile1 -> Just (mapMaybe classify (Map.toList (UF.hashTermsId unisonFile1)))
       where
-        -- Just
-        --   unisonFile1
-        --     { UF.topLevelComponents' = over (mapped . mapped . _1) restoreName (UF.topLevelComponents' unisonFile1),
-        --       UF.watchComponents = over (mapped . _2 . mapped . _1) restoreName (UF.watchComponents unisonFile1),
-        --       UF.hashTermsId = Map.mapKeys restoreName (UF.hashTermsId unisonFile1)
-        --     }
-
         classify :: (v, (TermReferenceId, Maybe WK.WatchKind, Term v Ann, Type v Ann)) -> Maybe (UpsertTerm v)
-        classify (randomName, (ref1, watchKind, term1, typ1)) = do
+        classify (randomName, (ref1, watchKind, term1, _typ1)) = do
           makeStoredTerm <-
             case watchKind of
               Nothing -> Just NormalTerm
@@ -2628,20 +2633,26 @@ hydrateUnisonFileTerms loadTermComponent typecheck SlurpResult2 {declMapping, sl
               _ -> Nothing
           let after :: StoredTerm (TermrefId v Ann)
               after =
-                makeStoredTerm
-                  Termref
-                    { term = term1,
-                      ref = ref1
-                    }
+                makeStoredTerm Termref {term = term1, ref = ref1}
           Just
             ( if
-                  | isExtraTerm -> undefined
-                  | isExplicitUpdate -> undefined
-              -- isExtraDecl ->
-              --   let ref0 = randomNameToOldRef Map.! randomName
-              --       before = Declref {decl = extraDecls Map.! ref0, ref = ref0}
-              --    in Update UpdateDecl {update = Implicit Upd1 {before, after}, var}
-              -- isExplicitUpdate -> Update UpdateDecl {update = Explicit Upd1 {before = declRef0 var, after}, var}
+                  | isExtraTerm ->
+                    let ref0 = randomNameToOldRef Map.! randomName
+                        termref0 = Termref {term = extraTerms Map.! ref0, ref = ref0}
+                        before = if termIsTest (Reference.fromId ref0) then TestWatch termref0 else NormalTerm termref0
+                     in Update UpdateTerm {update = Implicit Upd1 {before, after}, var}
+                  | isExplicitUpdate ->
+                    let ref0 = termRef0 var
+                     in Update
+                          UpdateTerm
+                            { update =
+                                Explicit
+                                  Upd1
+                                    { before = if termIsTest ref0 then TestWatch ref0 else NormalTerm ref0,
+                                      after
+                                    },
+                              var
+                            }
                   | otherwise -> Add AddTerm {termref = after, var}
             )
           where
@@ -2649,13 +2660,6 @@ hydrateUnisonFileTerms loadTermComponent typecheck SlurpResult2 {declMapping, sl
             maybeUserSuppliedName = randomNameToUserSuppliedName randomName
             isExplicitUpdate = Set.member var (SC.terms (Slurp.updates slurp))
             var = fromMaybe randomName maybeUserSuppliedName
-            after :: StoredTerm (TermrefId v Ann)
-            after =
-              (if watchKind == Just WK.TestWatch then TestWatch else NormalTerm)
-                Termref
-                  { term = term1,
-                    ref = ref1
-                  }
 
         -- in mates, perform ref->ref replacement, for all new ->ref that are being updated
         -- FIXME what about old type? currently just passing it along...

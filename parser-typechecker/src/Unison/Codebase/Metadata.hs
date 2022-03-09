@@ -31,6 +31,11 @@ type R4 a n = R4.Relation4 a n Type Value
 starToR4 :: (Ord r, Ord n) => Star r n -> Relation4 r n Type Value
 starToR4 = R4.fromList . fmap (\(r, n, _, (t, v)) -> (r, n, t, v)) . Star3.toList
 
+-- | Look up whether some @(a, _, t, v)@ value exists in the set of all @(a, n, t, v)@ metadata.
+hasMetadata' :: Ord a => a -> Type -> Value -> R4 a n -> Bool
+hasMetadata' =
+  R4.memberD134
+
 hasMetadata :: Ord a => a -> Type -> Value -> Star a n -> Bool
 hasMetadata a t v = Set.member (t, v) . R.lookupDom a . Star3.d3
 

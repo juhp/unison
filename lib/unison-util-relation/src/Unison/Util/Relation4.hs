@@ -55,6 +55,11 @@ fromList xs = insertAll xs empty
 filter :: (Ord a, Ord b, Ord c, Ord d) => ((a, b, c, d) -> Bool) -> Relation4 a b c d -> Relation4 a b c d
 filter f = fromList . Prelude.filter f . toList
 
+-- | Does some @(a, _, c, d)@ tuple exist in the relation?
+memberD134 :: (Ord a, Ord c, Ord d) => a -> c -> d -> Relation4 a b c d -> Bool
+memberD134 a c d =
+  maybe False (R3.memberD23 c d) . Map.lookup a . d1
+
 selectD3 ::
   (Ord a, Ord b, Ord c, Ord d) =>
   c ->

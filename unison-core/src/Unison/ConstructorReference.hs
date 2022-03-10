@@ -4,6 +4,8 @@ module Unison.ConstructorReference
     ConstructorReference,
     ConstructorReferenceId,
     reference_,
+    fromId,
+    toId,
     toShortHash,
   )
 where
@@ -29,6 +31,17 @@ type ConstructorReferenceId = GConstructorReference TypeReferenceId
 reference_ :: Lens (GConstructorReference r) (GConstructorReference s) r s
 reference_ =
   lens (\(ConstructorReference r _) -> r) \(ConstructorReference _ i) r -> ConstructorReference r i
+
+-- | Turn a 'ConstructorReferenceId' into a 'ConstructorReference'.
+fromId :: ConstructorReferenceId -> ConstructorReference
+fromId (ConstructorReference ref cid) =
+  ConstructorReference (Reference.fromId ref) cid
+
+-- | Turn a 'ConstructorReference' into a 'ConstructorReferenceId', if it isn't reference to a builtin.
+toId :: ConstructorReference -> Maybe ConstructorReferenceId
+toId (ConstructorReference ref0 cid) = do
+  ref1 <- Reference.toId ref0
+  Just (ConstructorReference ref1 cid)
 
 toShortHash :: ConstructorReference -> ShortHash
 toShortHash (ConstructorReference r i) =

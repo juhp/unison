@@ -90,7 +90,8 @@ import qualified Unison.CommandLine.DisplayValues as DisplayValues
 import qualified Unison.CommandLine.FuzzySelect as Fuzzy
 import qualified Unison.CommandLine.InputPattern as InputPattern
 import qualified Unison.CommandLine.InputPatterns as InputPatterns
-import Unison.ConstructorReference (ConstructorReferenceId, GConstructorReference (..))
+import Unison.ConstructorReference (ConstructorReference, ConstructorReferenceId, GConstructorReference (..))
+import qualified Unison.ConstructorReference as ConstructorReference
 import Unison.DataDeclaration (Decl)
 import qualified Unison.DataDeclaration as DD
 import Unison.DataDeclaration.ConstructorId (ConstructorId)
@@ -2106,6 +2107,36 @@ declUpsertUpdate = \case
       Explicit Upd1 {before, after} -> (before, Reference.fromId (after ^. #ref))
       Implicit Upd1 {before, after} -> (Reference.fromId (before ^. #ref), Reference.fromId (after ^. #ref))
 
+-- | Construct a mapping of old-to-new constructor references from a decl upsert.
+--
+-- For an add, there is no mapping.
+--
+-- For an explicit update, there could be in theory (perhaps with some matching of names), but we don't currently try to
+-- figure that out.
+--
+-- For an implicit update, there is a mapping (because all we did was unhash and rehash this thing - it has the same
+-- constructors, and they all have the same types, but they may be in a different canonical ordering per the new
+-- hashes).
+declUpsertConstructorMapping :: Ord v => UpsertDecl v -> Map ConstructorReferenceId ConstructorReferenceId
+declUpsertConstructorMapping = \case
+  Add _ -> Map.empty
+  Update update -> declUpdateConstructorMapping update
+
+-- | Construct a mapping of old-to-new constructor references from a decl update.
+--
+-- See 'declUpsertConstructorMapping'.
+declUpdateConstructorMapping :: Ord v => UpdateDecl v -> Map ConstructorReferenceId ConstructorReferenceId
+declUpdateConstructorMapping UpdateDecl {update} =
+  case update of
+    Explicit _ -> Map.empty
+    Implicit Upd1 {before, after} ->
+      let f = DD.constructorIdMapping (before ^. #decl) (after ^. #decl)
+       in Map.fromList
+            ( map
+                (\cid0 -> (ConstructorReference (before ^. #ref) cid0, ConstructorReference (after ^. #ref) (f cid0)))
+                (DD.constructorIds (DD.asDataDecl (before ^. #decl)))
+            )
+
 data AddDecl v = AddDecl
   { declref :: DeclrefId v Ann,
     var :: v
@@ -2344,10 +2375,18 @@ oink selection unisonFile0 = do
                       UF.effectDeclarationsId' = effects
                     }
 
-  -- TODO:
-  --   * Return Maybe [TermUpsertOp v]
-  --   * apply constructor reference mapping
-  unisonFile2 <- hydrateUnisonFileTerms loadTermComponent typecheck termIsTest slurp1
+  let constructorMapping :: Map ConstructorReferenceId ConstructorReferenceId
+      constructorMapping =
+        case maybeDeclUpserts of
+          -- Currently, no hydrated decls = no constructor mappings, because we don't attempt to compute the mappings
+          -- induced/implied by explicit decl updates.
+          --
+          -- If the Explicit branch of declUpdateConstructorMapping doesn't always return the empty mapping, this
+          -- comment is out-of-date.
+          Nothing -> Map.empty
+          Just declUpserts -> foldMap declUpsertConstructorMapping declUpserts
+
+  maybeTermUpserts <- hydrateUnisonFileTerms loadTermComponent typecheck termIsTest constructorMapping slurp1
 
   -- FIXME move to top-level
   let slurpToDeclUpserts slurp =
@@ -2587,19 +2626,17 @@ loadExtraObjects loadComponent varToRef objNames varsBeingUpdated =
       (\hash -> filter notBeingUpdated <$> loadComponent hash)
       (Set.mapMaybe (Reference.toHash . varToRef) varsBeingUpdated)
 
--- FIXME take constructor reference mapping, and use it
--- ... but kinda weird that we only maintain a constructor reference mapping for decls that are known not to have
--- changed shape (e.g. unmentioned component-mates of decls being updated), but not for decls that are being updated
--- themselves...
+-- FIXME want to apply constructor reference mapping, if non-empty even if empty extra terms or typechecking fails
 hydrateUnisonFileTerms ::
   forall m v.
   (Monad m, Var v) =>
   (Hash -> m [(TermReferenceId, Term v Ann)]) ->
   (UF.UnisonFile v Ann -> m (Maybe (TypecheckedUnisonFile v Ann))) ->
   (TermReference -> Bool) ->
+  Map ConstructorReferenceId ConstructorReferenceId ->
   SlurpResult2 v ->
   m (Maybe [UpsertTerm v])
-hydrateUnisonFileTerms loadTermComponent typecheck termIsTest SlurpResult2 {declMapping, slurp, termMapping, termNames, termRef0} = do
+hydrateUnisonFileTerms loadTermComponent typecheck termIsTest constructorMapping SlurpResult2 {declMapping, slurp, termMapping, termNames, termRef0} = do
   extraTerms <- loadExtraObjects loadTermComponent termRef0 termNames (SC.terms (Slurp.updates slurp))
 
   if Map.null extraTerms
@@ -2720,15 +2757,30 @@ hydrateUnisonFileTerms loadTermComponent typecheck termIsTest SlurpResult2 {decl
         randomNameToUserSuppliedName v =
           Map.lookup v (Map.compose oldRefToUserSuppliedName randomNameToOldRef)
 
+    substituteConstructorReference :: ConstructorReference -> Maybe ConstructorReference
+    substituteConstructorReference ref0 = do
+      ref1 <- ConstructorReference.toId ref0
+      ref2 <- Map.lookup ref1 constructorMapping
+      Just (ConstructorReference.fromId ref2)
+
     substituteTerm :: Term v Ann -> Term v Ann
     substituteTerm =
-      ABT.rebuildUp \case
-        Term.Ref ref0 ->
-          case Map.lookup ref0 termMapping of
-            Nothing -> Term.Ref ref0
-            Just ref1 -> Term.Ref (Reference.fromId ref1)
-        Term.Ann ann ty -> Term.Ann ann (substituteType ty)
-        term -> term
+      ABT.rebuildUp \term ->
+        case term of
+          Term.Constructor ref0 ->
+            fromMaybe term do
+              ref1 <- substituteConstructorReference ref0
+              Just (Term.Constructor ref1)
+          Term.Ref ref0 ->
+            case Map.lookup ref0 termMapping of
+              Nothing -> term
+              Just ref1 -> Term.Ref (Reference.fromId ref1)
+          Term.Request ref0 ->
+            fromMaybe term do
+              ref1 <- substituteConstructorReference ref0
+              Just (Term.Request ref1)
+          Term.Ann ann ty -> Term.Ann ann (substituteType ty)
+          _ -> term
 
     substituteType :: Type v Ann -> Type v Ann
     substituteType =

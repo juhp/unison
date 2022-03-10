@@ -59,6 +59,11 @@ instance (GHC.Classes.Ord b, GHC.Classes.Ord a) => GHC.Classes.Ord (Unison.Codeb
 instance (GHC.Classes.Eq b, GHC.Classes.Eq a) => GHC.Classes.Eq (Unison.Codebase.Editor.DisplayObject.DisplayObject b a)
 instance Data.Bifunctor.Bifunctor Unison.Codebase.Editor.DisplayObject.DisplayObject
 
+module Unison.Codebase.Init.CreateCodebaseError
+data CreateCodebaseError
+CreateCodebaseAlreadyExists :: CreateCodebaseError
+type Pretty = Pretty ColorText
+
 
 -- | Open codebase error type.
 module Unison.Codebase.Init.OpenCodebaseError
@@ -815,18 +820,33 @@ Patch :: Map Referent (Set TermEdit) -> Map Reference (Set TypeEdit) -> Patch
 hashPatch :: Patch -> Hash
 instance Unison.Hashing.V2.Tokenizable.Tokenizable Unison.Hashing.V2.Patch.Patch
 
-module Unison.Lexer.Pos
-data Pos
-Pos :: {-# UNPACK #-} !Line -> {-# UNPACK #-} !Column -> Pos
-type Line = Int
-type Column = Int
-line :: Pos -> Line
-column :: Pos -> Column
-instance GHC.Classes.Ord Unison.Lexer.Pos.Pos
-instance GHC.Classes.Eq Unison.Lexer.Pos.Pos
-instance GHC.Show.Show Unison.Lexer.Pos.Pos
-instance GHC.Base.Semigroup Unison.Lexer.Pos.Pos
-instance GHC.Base.Monoid Unison.Lexer.Pos.Pos
+module Unison.NamePrinter
+type SyntaxText = SyntaxText' Reference
+prettyName :: IsString s => Name -> Pretty s
+prettyHashQualified :: HashQualified Name -> Pretty SyntaxText
+prettyHashQualified' :: HashQualified Name -> Pretty SyntaxText
+prettyHashQualified0 :: IsString s => HashQualified Name -> Pretty s
+
+-- | Pretty-print a reference as a name and the given number of characters
+--   of its hash.
+prettyNamedReference :: Int -> Name -> Reference -> Pretty SyntaxText
+
+-- | Pretty-print a referent as a name and the given number of characters
+--   of its hash.
+prettyNamedReferent :: Int -> Name -> Referent -> Pretty SyntaxText
+
+-- | Pretty-print a reference as the given number of characters of its
+--   hash.
+prettyReference :: Int -> Reference -> Pretty SyntaxText
+
+-- | Pretty-print a referent as the given number of characters of its hash.
+prettyReferent :: Int -> Referent -> Pretty SyntaxText
+prettyLabeledDependency :: Int -> LabeledDependency -> Pretty SyntaxText
+prettyShortHash :: IsString s => ShortHash -> Pretty s
+styleHashQualified :: IsString s => (Pretty s -> Pretty s) -> HashQualified Name -> Pretty s
+styleHashQualified' :: IsString s => (Pretty s -> Pretty s) -> (Pretty s -> Pretty s) -> HashQualified Name -> Pretty s
+styleHashQualified'' :: (Pretty SyntaxText -> Pretty SyntaxText) -> HashQualified Name -> Pretty SyntaxText
+fmt :: Element r -> Pretty (SyntaxText' r) -> Pretty (SyntaxText' r)
 
 module Unison.Parser.Ann
 data Ann
@@ -987,6 +1007,76 @@ instance (GHC.Show.Show a, GHC.Show.Show v) => GHC.Show.Show (Unison.Server.Sear
 instance (Unison.ABT.Var v, GHC.Classes.Eq a) => GHC.Classes.Eq (Unison.Server.SearchResult'.TypeResult' v a)
 instance (GHC.Show.Show v, GHC.Show.Show a) => GHC.Show.Show (Unison.Server.SearchResult'.SearchResult' v a)
 instance (Unison.ABT.Var v, GHC.Classes.Eq a) => GHC.Classes.Eq (Unison.Server.SearchResult'.SearchResult' v a)
+
+
+-- | Duplicate of the Unison.Util.SyntaxText module, but we expect these to
+--   evolve separately. This is the version which is outward facing to the
+--   server frontend.
+module Unison.Server.Syntax
+type SyntaxText = AnnotatedText Element
+type SyntaxSegment = Segment Element
+convertElement :: Element Reference -> Element
+type UnisonHash = Text
+type HashQualifiedName = Text
+
+-- | The elements of the Unison grammar, for syntax highlighting purposes
+data Element
+NumericLiteral :: Element
+TextLiteral :: Element
+BytesLiteral :: Element
+CharLiteral :: Element
+BooleanLiteral :: Element
+Blank :: Element
+Var :: Element
+TypeReference :: UnisonHash -> Element
+DataConstructorReference :: UnisonHash -> Element
+AbilityConstructorReference :: UnisonHash -> Element
+TermReference :: UnisonHash -> Element
+Op :: SeqOp -> Element
+
+-- | Constructor Are these even used? | Request
+AbilityBraces :: Element
+ControlKeyword :: Element
+TypeOperator :: Element
+BindingEquals :: Element
+TypeAscriptionColon :: Element
+DataTypeKeyword :: Element
+DataTypeParams :: Element
+Unit :: Element
+DataTypeModifier :: Element
+UseKeyword :: Element
+UsePrefix :: Element
+UseSuffix :: Element
+HashQualifier :: HashQualifiedName -> Element
+DelayForceChar :: Element
+DelimiterChar :: Element
+Parenthesis :: Element
+LinkKeyword :: Element
+DocDelimiter :: Element
+DocKeyword :: Element
+syntax :: Element -> SyntaxText -> SyntaxText
+firstReference :: SyntaxText -> Maybe UnisonHash
+reference :: SyntaxSegment -> Maybe UnisonHash
+
+-- | Convert a <a>SyntaxText</a> to a <a>String</a>, ignoring syntax markup
+toPlain :: SyntaxText -> String
+toHtml :: SyntaxText -> Html ()
+nameToHtml :: Name -> Html ()
+segmentToHtml :: SyntaxSegment -> Html ()
+elementToClassName :: Element -> Text
+instance GHC.Generics.Generic Unison.Server.Syntax.Element
+instance GHC.Show.Show Unison.Server.Syntax.Element
+instance GHC.Classes.Ord Unison.Server.Syntax.Element
+instance GHC.Classes.Eq Unison.Server.Syntax.Element
+instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Syntax.Element
+instance Data.OpenApi.Internal.Schema.ToSchema a => Data.OpenApi.Internal.Schema.ToSchema (Unison.Util.AnnotatedText.Segment a)
+instance Data.OpenApi.Internal.Schema.ToSchema Unison.Pattern.SeqOp
+instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Syntax.SyntaxText
+instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Syntax.SyntaxText
+instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Syntax.Element
+instance Data.Aeson.Types.ToJSON.ToJSON a => Data.Aeson.Types.ToJSON.ToJSON (Unison.Util.AnnotatedText.Segment a)
+instance Data.Aeson.Types.ToJSON.ToJSON Unison.Pattern.SeqOp
+instance Data.OpenApi.Internal.Schema.ToSchema r => Data.OpenApi.Internal.Schema.ToSchema (Data.Sequence.Internal.Seq r)
 
 module Unison.Typechecker.Components
 
@@ -1163,6 +1253,14 @@ module Unison.Util.Exception
 tryAny :: MonadIO m => IO a -> m (Either SomeException a)
 catchAny :: IO a -> (SomeException -> IO a) -> IO a
 
+module Unison.Util.Find
+fuzzyFinder :: forall a. String -> [a] -> (a -> String) -> [(a, Pretty ColorText)]
+simpleFuzzyFinder :: forall a. String -> [a] -> (a -> String) -> [(a, Pretty ColorText)]
+simpleFuzzyScore :: String -> String -> Maybe Int
+fuzzyFindInBranch :: HasCallStack => Names -> HashQualified Name -> [(SearchResult, Pretty ColorText)]
+fuzzyFindMatchArray :: forall a. String -> [a] -> (a -> String) -> [(MatchArray, (a, Pretty ColorText))]
+prefixFindInBranch :: Names -> HashQualified Name -> [(SearchResult, Pretty ColorText)]
+
 module Unison.Util.Free
 data Free f a
 Pure :: a -> Free f a
@@ -1178,9 +1276,6 @@ instance GHC.Base.Functor (Unison.Util.Free.Free f)
 instance GHC.Base.Monad (Unison.Util.Free.Free f)
 instance GHC.Base.Applicative (Unison.Util.Free.Free f)
 instance Control.Monad.Trans.Class.MonadTrans Unison.Util.Free.Free
-
-module Unison.Util.Less
-less :: String -> IO ()
 
 
 -- | Small logging library. Typical usage, import qualified:
@@ -1277,66 +1372,6 @@ new :: MonadIO m => m (PinBoard a)
 pin :: forall a m. (Eq a, Hashable a, MonadIO m) => PinBoard a -> a -> m a
 debugDump :: MonadIO m => (a -> Text) -> PinBoard a -> m ()
 debugSize :: PinBoard a -> IO Int
-
-module Unison.Util.Range
-
--- | True if <tt>_x</tt> contains <tt>_y</tt>
-contains :: Range -> Range -> Bool
-overlaps :: Range -> Range -> Bool
-inRange :: Pos -> Range -> Bool
-isMultiLine :: Range -> Bool
-data Range
-Range :: Pos -> Pos -> Range
-[start] :: Range -> Pos
-[end] :: Range -> Pos
-startingLine :: Range -> Range
-instance GHC.Show.Show Unison.Util.Range.Range
-instance GHC.Classes.Ord Unison.Util.Range.Range
-instance GHC.Classes.Eq Unison.Util.Range.Range
-instance GHC.Base.Semigroup Unison.Util.Range.Range
-
-module Unison.Util.AnnotatedText
-data Segment a
-Segment :: String -> Maybe a -> Segment a
-[segment] :: Segment a -> String
-[annotation] :: Segment a -> Maybe a
-toPair :: Segment a -> (String, Maybe a)
-newtype AnnotatedText a
-AnnotatedText :: Seq (Segment a) -> AnnotatedText a
-data AnnotatedExcerpt a
-AnnotatedExcerpt :: Line -> String -> Map Range a -> AnnotatedExcerpt a
-[lineOffset] :: AnnotatedExcerpt a -> Line
-[text] :: AnnotatedExcerpt a -> String
-[annotations] :: AnnotatedExcerpt a -> Map Range a
-annotate' :: Maybe b -> AnnotatedText a -> AnnotatedText b
-deannotate :: AnnotatedText a -> AnnotatedText b
-annotate :: a -> AnnotatedText a -> AnnotatedText a
-annotateMaybe :: AnnotatedText (Maybe a) -> AnnotatedText a
-trailingNewLine :: AnnotatedText a -> Bool
-markup :: AnnotatedExcerpt a -> Map Range a -> AnnotatedExcerpt a
-textLength :: AnnotatedText a -> Int
-textEmpty :: AnnotatedText a -> Bool
-condensedExcerptToText :: Int -> AnnotatedExcerpt a -> AnnotatedText a
-excerptToText :: forall a. AnnotatedExcerpt a -> AnnotatedText a
-snipWithContext :: Int -> AnnotatedExcerpt a -> [AnnotatedExcerpt a]
-instance GHC.Generics.Generic (Unison.Util.AnnotatedText.Segment a)
-instance Data.Foldable.Foldable Unison.Util.AnnotatedText.Segment
-instance GHC.Base.Functor Unison.Util.AnnotatedText.Segment
-instance GHC.Show.Show a => GHC.Show.Show (Unison.Util.AnnotatedText.Segment a)
-instance GHC.Classes.Eq a => GHC.Classes.Eq (Unison.Util.AnnotatedText.Segment a)
-instance GHC.Generics.Generic (Unison.Util.AnnotatedText.AnnotatedText a)
-instance GHC.Show.Show a => GHC.Show.Show (Unison.Util.AnnotatedText.AnnotatedText a)
-instance Data.Foldable.Foldable Unison.Util.AnnotatedText.AnnotatedText
-instance GHC.Base.Functor Unison.Util.AnnotatedText.AnnotatedText
-instance GHC.Classes.Eq a => GHC.Classes.Eq (Unison.Util.AnnotatedText.AnnotatedText a)
-instance GHC.Base.Functor Unison.Util.AnnotatedText.AnnotatedExcerpt
-instance Data.String.IsString (Unison.Util.AnnotatedText.AnnotatedExcerpt a)
-instance GHC.Base.Semigroup (Unison.Util.AnnotatedText.AnnotatedText a)
-instance GHC.Base.Monoid (Unison.Util.AnnotatedText.AnnotatedText a)
-instance Data.ListLike.FoldableLL.FoldableLL (Unison.Util.AnnotatedText.AnnotatedText a) GHC.Types.Char
-instance Data.ListLike.Base.ListLike (Unison.Util.AnnotatedText.AnnotatedText a) GHC.Types.Char
-instance Data.String.IsString (Unison.Util.AnnotatedText.AnnotatedText a)
-instance GHC.Exts.IsList (Unison.Util.AnnotatedText.AnnotatedText a)
 
 module Unison.Util.Rope
 chunks :: Rope a -> [a]
@@ -2005,1044 +2040,6 @@ environmentFor :: forall v a. Var v => Names -> Map v (DataDeclaration v a) -> M
 module Unison.Codebase.CodeLookup.Util
 fromTypecheckedUnisonFile :: forall m v a. (Var v, Monad m) => TypecheckedUnisonFile v a -> CodeLookup v m a
 
-module Unison.TypeParser
-type TypeP v = P v (Type v Ann)
-valueType :: Var v => TypeP v
-computationType :: Var v => TypeP v
-valueTypeLeaf :: Var v => TypeP v
-typeAtom :: Var v => TypeP v
-type1 :: Var v => TypeP v
-type2a :: Var v => TypeP v
-delayed :: Var v => TypeP v
-type2 :: Var v => TypeP v
-effect :: Var v => TypeP v
-effectList :: Var v => TypeP v
-sequenceTyp :: Var v => TypeP v
-tupleOrParenthesizedType :: Var v => TypeP v -> TypeP v
-arrow :: Var v => TypeP v -> TypeP v
-forall :: Var v => TypeP v -> TypeP v
-
-module Unison.TermParser
-watch :: Show a => String -> a -> a
-type TermP v = P v (Term v Ann)
-term :: Var v => TermP v
-term2 :: Var v => TermP v
-term3 :: Var v => TermP v
-keywordBlock :: Var v => TermP v
-typeLink' :: Var v => P v (Token Reference)
-termLink' :: Var v => P v (Token Referent)
-link' :: Var v => P v (Either (Token Reference) (Token Referent))
-link :: Var v => TermP v
-blockTerm :: Var v => TermP v
-match :: Var v => TermP v
-matchCases1 :: Var v => Token () -> P v (NonEmpty (Int, MatchCase Ann (Term v Ann)))
-matchCase :: Var v => P v (Int, [MatchCase Ann (Term v Ann)])
-parsePattern :: forall v. Var v => P v (Pattern Ann, [(Ann, v)])
-lam :: Var v => TermP v -> TermP v
-letBlock :: Var v => TermP v
-handle :: Var v => TermP v
-ifthen :: Var v => TermP v
-checkCasesArities :: (Ord v, Annotated a) => NonEmpty (Int, a) -> P v (Int, NonEmpty a)
-lamCase :: Var v => TermP v
-text :: Var v => TermP v
-char :: Var v => TermP v
-boolean :: Var v => TermP v
-list :: Var v => TermP v -> TermP v
-hashQualifiedPrefixTerm :: Var v => TermP v
-hashQualifiedInfixTerm :: Var v => TermP v
-quasikeyword :: Ord v => String -> P v (Token ())
-resolveHashQualified :: Var v => Token (HashQualified Name) -> TermP v
-termLeaf :: forall v. Var v => TermP v
-doc2Block :: forall v. Var v => TermP v
-docBlock :: Var v => TermP v
-data UnbreakCase
-LineEnds :: UnbreakCase
-StartsIndented :: UnbreakCase
-StartsUnindented :: UnbreakCase
-docNormalize :: (Ord v, Show v) => Term v a -> Term v a
-delayQuote :: Var v => TermP v
-bang :: Var v => TermP v
-var :: Var v => Token v -> Term v Ann
-seqOp :: Ord v => P v SeqOp
-term4 :: Var v => TermP v
-infixAppOrBooleanOp :: Var v => TermP v
-typedecl :: Var v => P v (Token v, Type v Ann)
-verifyRelativeVarName :: Var v => P v (Token v) -> P v (Token v)
-verifyRelativeName :: Ord v => P v (Token Name) -> P v (Token Name)
-verifyRelativeName' :: Ord v => Token Name -> P v ()
-destructuringBind :: forall v. Var v => P v (Ann, Term v Ann -> Term v Ann)
-binding :: forall v. Var v => P v ((Ann, v), Term v Ann)
-customFailure :: MonadParsec e s m => e -> m a
-block :: forall v. Var v => String -> TermP v
-importp :: Ord v => P v [(Name, Name)]
-data BlockElement v
-Binding :: ((Ann, v), Term v Ann) -> BlockElement v
-DestructuringBind :: (Ann, Term v Ann -> Term v Ann) -> BlockElement v
-Action :: Term v Ann -> BlockElement v
-imports :: Var v => P v (NamesWithHistory, [(v, v)])
-substImports :: Var v => NamesWithHistory -> [(v, v)] -> Term v Ann -> Term v Ann
-block' :: Var v => IsTop -> String -> P v (Token ()) -> P v b -> TermP v
-block'' :: forall v b. Var v => IsTop -> Bool -> String -> P v (Token ()) -> P v b -> TermP v
-number :: Var v => TermP v
-bytes :: Var v => TermP v
-number' :: Ord v => (Token Int64 -> a) -> (Token Word64 -> a) -> (Token Double -> a) -> P v a
-tupleOrParenthesizedTerm :: Var v => TermP v
-instance GHC.Show.Show Unison.TermParser.UnbreakCase
-instance GHC.Classes.Eq Unison.TermParser.UnbreakCase
-instance GHC.Show.Show v => GHC.Show.Show (Unison.TermParser.BlockElement v)
-
-module Unison.FileParser
-resolutionFailures :: Ord v => [ResolutionFailure v Ann] -> P v x
-file :: forall v. Var v => P v (UnisonFile v Ann)
-
--- | Final validations and sanity checks to perform before finishing
---   parsing.
-validateUnisonFile :: forall v. Var v => UnisonFile v Ann -> P v ()
-
--- | Because types and abilities can introduce their own constructors and
---   fields it's difficult to detect all duplicate terms during parsing
---   itself. Here we collect all terms and constructors and verify that no
---   duplicates exist in the file, triggering an error if needed.
-checkForDuplicateTermsAndConstructors :: forall v. Ord v => UnisonFile v Ann -> P v ()
-data Stanza v term
-WatchBinding :: WatchKind -> Ann -> ((Ann, v), term) -> Stanza v term
-WatchExpression :: WatchKind -> Text -> Ann -> term -> Stanza v term
-Binding :: ((Ann, v), term) -> Stanza v term
-Bindings :: [((Ann, v), term)] -> Stanza v term
-getVars :: Var v => Stanza v term -> [v]
-stanza :: Var v => P v (Stanza v (Term v Ann))
-watched :: Var v => P v (WatchKind, Text, Ann)
-type Accessors v = [(Token v, [(Token v, Type v Ann)])]
-declarations :: Var v => P v (Map v (DataDeclaration v Ann), Map v (EffectDeclaration v Ann), Accessors v)
-modifier :: Var v => P v (Maybe (Token Modifier))
-declaration :: Var v => P v (Either (v, DataDeclaration v Ann, Accessors v) (v, EffectDeclaration v Ann))
-dataDeclaration :: forall v. Var v => Maybe (Token Modifier) -> P v (v, DataDeclaration v Ann, Accessors v)
-effectDeclaration :: Var v => Maybe (Token Modifier) -> P v (v, EffectDeclaration v Ann)
-instance GHC.Base.Functor (Unison.FileParser.Stanza v)
-instance Data.Traversable.Traversable (Unison.FileParser.Stanza v)
-instance Data.Foldable.Foldable (Unison.FileParser.Stanza v)
-
-module Unison.Builtin.Terms
-builtinTermsRef :: Map Symbol Id
-builtinTermsSrc :: a -> [(Symbol, Term Symbol a, Type Symbol a)]
-
-module Unison.Builtin
-codeLookup :: Applicative m => CodeLookup Symbol m Ann
-constructorType :: Reference -> Maybe ConstructorType
-names :: NamesWithHistory
-names0 :: Names
-builtinDataDecls :: [(Symbol, (Id, DataDeclaration))]
-builtinEffectDecls :: [(Symbol, (Id, EffectDeclaration))]
-builtinConstructorType :: Map Reference ConstructorType
-builtinTypeDependents :: Reference -> Set Reference
-builtinTypeDependentsOfComponent :: Hash -> Set Reference
-builtinTypes :: [(Name, Reference)]
-builtinTermsByType :: Relation Reference Referent
-builtinTermsByTypeMention :: Relation Reference Referent
-intrinsicTermReferences :: Set Reference
-intrinsicTypeReferences :: Set Reference
-isBuiltinType :: Reference -> Bool
-typeOf :: a -> (Type -> a) -> Reference -> a
-typeLookup :: TypeLookup Symbol Ann
-termRefTypes :: Map Reference Type
-instance GHC.Show.Show Unison.Builtin.BuiltinDSL
-
-module Unison.Codebase.Branch.BranchDiff
-type Star r n = Star r n
-data BranchDiff
-BranchDiff :: Star Referent NameSegment -> Star Referent NameSegment -> Star Reference NameSegment -> Star Reference NameSegment -> Map NameSegment PatchDiff -> BranchDiff
-[addedTerms] :: BranchDiff -> Star Referent NameSegment
-[removedTerms] :: BranchDiff -> Star Referent NameSegment
-[addedTypes] :: BranchDiff -> Star Reference NameSegment
-[removedTypes] :: BranchDiff -> Star Reference NameSegment
-[changedPatches] :: BranchDiff -> Map NameSegment PatchDiff
-diff0 :: Monad m => Branch0 m -> Branch0 m -> m BranchDiff
-instance GHC.Show.Show Unison.Codebase.Branch.BranchDiff.BranchDiff
-instance GHC.Classes.Ord Unison.Codebase.Branch.BranchDiff.BranchDiff
-instance GHC.Classes.Eq Unison.Codebase.Branch.BranchDiff.BranchDiff
-instance GHC.Base.Semigroup Unison.Codebase.Branch.BranchDiff.BranchDiff
-instance GHC.Base.Monoid Unison.Codebase.Branch.BranchDiff.BranchDiff
-
-module Unison.Codebase.Branch
-
--- | A node in the Unison namespace hierarchy along with its history.
-newtype Branch m
-Branch :: UnwrappedBranch m -> Branch m
-[_history] :: Branch m -> UnwrappedBranch m
-type UnwrappedBranch m = Causal m Raw (Branch0 m)
-
--- | A node in the Unison namespace hierarchy.
---   
---   <a>_terms</a> and <a>_types</a> are the declarations at this level.
---   <a>_children</a> are the nodes one level below us. <a>_edits</a> are
---   the <a>Patch</a>s stored at this node in the code.
---   
---   The <tt>deep*</tt> fields are derived from the four above.
-data Branch0 m
-Branch0 :: Star Referent NameSegment -> Star Reference NameSegment -> Map NameSegment (Branch m) -> Map NameSegment (EditHash, m Patch) -> Relation Referent Name -> Relation Reference Name -> R4 Referent Name -> R4 Reference Name -> Set Path -> Map Name EditHash -> Branch0 m
-[_terms] :: Branch0 m -> Star Referent NameSegment
-[_types] :: Branch0 m -> Star Reference NameSegment
-
--- | Note the <a>Branch</a> here, not <a>Branch0</a>. Every level in the
---   tree has a history.
-[_children] :: Branch0 m -> Map NameSegment (Branch m)
-[_edits] :: Branch0 m -> Map NameSegment (EditHash, m Patch)
-[deepTerms] :: Branch0 m -> Relation Referent Name
-[deepTypes] :: Branch0 m -> Relation Reference Name
-[deepTermMetadata] :: Branch0 m -> R4 Referent Name
-[deepTypeMetadata] :: Branch0 m -> R4 Reference Name
-[deepPaths] :: Branch0 m -> Set Path
-[deepEdits] :: Branch0 m -> Map Name EditHash
-data Raw
-Raw :: Star Referent NameSegment -> Star Reference NameSegment -> Map NameSegment Hash -> Map NameSegment EditHash -> Raw
-type Star r n = Star r n
-type Hash = RawHash Raw
-type EditHash = Hash
-pattern Hash :: Hash -> RawHash a
-branch0 :: forall m. Star Referent NameSegment -> Star TypeReference NameSegment -> Map NameSegment (Branch m) -> Map NameSegment (EditHash, m Patch) -> Branch0 m
-one :: Branch0 m -> Branch m
-cons :: Applicative m => Branch0 m -> Branch m -> Branch m
-uncons :: Applicative m => Branch m -> m (Maybe (Branch0 m, Branch m))
-empty :: Branch m
-empty0 :: Branch0 m
-
--- | Discards the history of a Branch and its children, recursively
-discardHistory :: Applicative m => Branch m -> Branch m
-
--- | Discards the history of a Branch0's children, recursively
-discardHistory0 :: Applicative m => Branch0 m -> Branch0 m
-transform :: Functor m => (forall a. m a -> n a) -> Branch m -> Branch n
-
--- | Checks whether a branch is empty AND has no history.
-isEmpty :: Branch m -> Bool
-
--- | Checks whether a Branch0 is empty, which means that the branch
---   contains no terms or types, and that the heads of all children are
---   empty by the same definition. This is not as easy as checking whether
---   the branch is equal to the <a>empty0</a> branch because child branches
---   may be empty, but still have history.
-isEmpty0 :: Branch0 m -> Bool
-isOne :: Branch m -> Bool
-before :: Monad m => Branch m -> Branch m -> m Bool
-lca :: Monad m => Branch m -> Branch m -> m (Maybe (Branch m))
-history :: Iso' (Branch m) (UnwrappedBranch m)
-head :: Branch m -> Branch0 m
-headHash :: Branch m -> Hash
-children :: Lens' (Branch0 m) (Map NameSegment (Branch m))
-nonEmptyChildren :: Branch0 m -> Map NameSegment (Branch m)
-
--- | a version of <a>deepEdits</a> that returns the `m Patch` as well.
-deepEdits' :: Branch0 m -> Map Name (EditHash, m Patch)
-
--- | what does this do? —AI
-toList0 :: Branch0 m -> [(Path, Branch0 m)]
-
--- | Run a series of updates at specific locations, aggregating all changes
---   into a single causal step. History is managed according to
---   <a>UpdateStrategy</a>.
-stepManyAt :: forall m f. (Monad m, Foldable f) => UpdateStrategy -> f (Path, Branch0 m -> Branch0 m) -> Branch m -> Branch m
-
--- | Run a series of updates at specific locations. History is managed
---   according to the <a>UpdateStrategy</a>
-stepManyAtM :: (Monad m, Monad n, Foldable f) => UpdateStrategy -> f (Path, Branch0 m -> n (Branch0 m)) -> Branch m -> n (Branch m)
-stepEverywhere :: Applicative m => (Branch0 m -> Branch0 m) -> Branch0 m -> Branch0 m
-
--- | Perform updates over many locations within a branch by batching up
---   operations on sub-branches as much as possible without affecting
---   semantics. This operation does not create any causal conses, the
---   operations are performed directly on the current head of the provided
---   branch and child branches. It's the caller's responsibility to apply
---   updates in history however they choose.
-batchUpdates :: forall f m. (Monad m, Foldable f) => f (Path, Branch0 m -> Branch0 m) -> Branch0 m -> Branch0 m
-
--- | Batch many updates. This allows us to apply the updates while
---   minimizing redundant traversals. Semantics of operations are preserved
---   by ensuring that all updates will always see changes by updates before
---   them in the list.
---   
---   This method does not <a>step</a> any branches on its own, all causal
---   changes must be performed in the updates themselves, or this batch
---   update must be provided to 'stepManyAt(M)'.
-batchUpdatesM :: forall m n f. (Monad m, Monad n, Foldable f) => f (Path, Branch0 m -> n (Branch0 m)) -> Branch0 m -> n (Branch0 m)
-data UpdateStrategy
-
--- | Compress all changes into a single causal cons. The resulting branch
---   will have at most one new causal cons at each branch.
---   
---   Note that this does NOT allow updates to add histories at children.
---   E.g. if the root.editme branch has history: A -&gt; B -&gt; C and you
---   use <tt>makeSetBranch</tt> to update it to a new branch with history X
---   -&gt; Y -&gt; Z, CompressHistory will result in a history for
---   root.editme of: A -&gt; B -&gt; C -&gt; Z. A <tt>snapshot</tt> of the
---   most recent state of the updated branch is appended to the existing
---   history, if the new state is equal to the existing state, no new
---   history nodes are appended.
-CompressHistory :: UpdateStrategy
-
--- | Preserves any history changes made within the update.
---   
---   Note that this allows you to clobber the history child branches if you
---   want. E.g. if the root.editme branch has history: A -&gt; B -&gt; C
---   and you use <tt>makeSetBranch</tt> to update it to a new branch with
---   history X -&gt; Y -&gt; Z, AllowRewritingHistory will result in a
---   history for root.editme of: X -&gt; Y -&gt; Z. The history of the
---   updated branch is replaced entirely.
-AllowRewritingHistory :: UpdateStrategy
-addTermName :: Referent -> NameSegment -> Metadata -> Branch0 m -> Branch0 m
-addTypeName :: TypeReference -> NameSegment -> Metadata -> Branch0 m -> Branch0 m
-deleteTermName :: Referent -> NameSegment -> Branch0 m -> Branch0 m
-deleteTypeName :: TypeReference -> NameSegment -> Branch0 m -> Branch0 m
-setChildBranch :: NameSegment -> Branch m -> Branch0 m -> Branch0 m
-replacePatch :: Applicative m => NameSegment -> Patch -> Branch0 m -> Branch0 m
-deletePatch :: NameSegment -> Branch0 m -> Branch0 m
-getMaybePatch :: Applicative m => NameSegment -> Branch0 m -> m (Maybe Patch)
-getPatch :: Applicative m => NameSegment -> Branch0 m -> m Patch
-modifyPatches :: Monad m => NameSegment -> (Patch -> Patch) -> Branch0 m -> m (Branch0 m)
-getAt :: Path -> Branch m -> Maybe (Branch m)
-getAt' :: Path -> Branch m -> Branch m
-getAt0 :: Path -> Branch0 m -> Branch0 m
-modifyAt :: Applicative m => Path -> (Branch m -> Branch m) -> Branch m -> Branch m
-modifyAtM :: forall n m. Functor n => Applicative m => Path -> (Branch m -> n (Branch m)) -> Branch m -> n (Branch m)
-
--- | Traverse the head branch of all direct children. The index of the
---   traversal is the name of that child branch according to the parent.
-children0 :: IndexedTraversal' NameSegment (Branch0 m) (Branch0 m)
-terms :: Lens' (Branch0 m) (Star Referent NameSegment)
-types :: Lens' (Branch0 m) (Star TypeReference NameSegment)
-edits :: Lens' (Branch0 m) (Map NameSegment (EditHash, m Patch))
-deepReferents :: Branch0 m -> Set Referent
-deepTypeReferences :: Branch0 m -> Set TypeReference
-
--- | <tt>head <a>consBranchSnapshot</a> base</tt> Cons's the current state
---   of <tt>head</tt> onto <tt>base</tt> as-is. Consider whether you really
---   want this behaviour or the behaviour of <a>squashMerge</a> That is, it
---   does not perform any common ancestor detection, or change
---   reconciliation, it sets the current state of the base branch to the
---   new state as a new causal step (or returns the existing base if there
---   are no)
-consBranchSnapshot :: forall m. Monad m => Branch m -> Branch m -> Branch m
-instance GHC.Classes.Eq Unison.Codebase.Branch.ActionLocation
-instance Control.Lens.Empty.AsEmpty (Unison.Codebase.Branch.Type.Branch m)
-instance Unison.Hashing.V2.Hashable.Hashable (Unison.Codebase.Branch.Type.Branch0 m)
-
-module Unison.Codebase.Type
-
--- | Abstract interface to a user's codebase.
-data Codebase m v a
-Codebase :: (Id -> m (Maybe (Term v a))) -> (Id -> m (Maybe (Type v a))) -> (Id -> m (Maybe (Decl v a))) -> (Id -> Term v a -> Type v a -> m ()) -> (Id -> Decl v a -> m ()) -> (Hash -> m (Maybe [(Term v a, Type v a)])) -> (Hash -> m (Maybe [Decl v a])) -> (Hash -> m (Maybe CycleSize)) -> m (Either GetRootBranchError (Branch m)) -> m Bool -> (Branch m -> m ()) -> m (IO (), IO (Set Hash)) -> (Hash -> m (Maybe (Branch m))) -> (Branch m -> m ()) -> (Hash -> m Bool) -> (EditHash -> m (Maybe Patch)) -> (EditHash -> Patch -> m ()) -> (EditHash -> m Bool) -> (Reference -> m (Set Id)) -> (Hash -> m (Set Id)) -> (CodebasePath -> SyncMode -> Branch m -> m ()) -> (CodebasePath -> SyncMode -> Branch m -> m ()) -> (forall r. ReadRemoteNamespace -> GitBranchBehavior -> ((Branch m, CodebasePath) -> m r) -> m (Either GitError r)) -> (forall e. WriteRepo -> PushGitBranchOpts -> (Branch m -> m (Either e (Branch m))) -> m (Either GitError (Either e (Branch m)))) -> (WatchKind -> m [Id]) -> (WatchKind -> Id -> m (Maybe (Term v a))) -> (WatchKind -> Id -> Term v a -> m ()) -> m () -> m [Entry Hash] -> (Text -> Branch m -> Branch m -> m ()) -> (Reference -> m (Set Id)) -> (Reference -> m (Set Id)) -> m Int -> (ShortHash -> m (Set Id)) -> (ShortHash -> m (Set Id)) -> (ShortHash -> m (Set Id)) -> m Int -> (ShortBranchHash -> m (Set Hash)) -> Maybe (Hash -> Hash -> m (Maybe Hash)) -> Maybe (Hash -> Hash -> m Bool) -> Codebase m v a
-
--- | Get a user-defined term from the codebase.
---   
---   Note that it is possible to call <a>putTerm</a>, then <a>getTerm</a>,
---   and receive <tt>Nothing</tt>, per the semantics of <a>putTerm</a>.
-[getTerm] :: Codebase m v a -> Id -> m (Maybe (Term v a))
-
--- | Get the type of a user-defined term.
---   
---   Note that it is possible to call <a>putTerm</a>, then
---   <a>getTypeOfTermImpl</a>, and receive <tt>Nothing</tt>, per the
---   semantics of <a>putTerm</a>.
-[getTypeOfTermImpl] :: Codebase m v a -> Id -> m (Maybe (Type v a))
-
--- | Get a type declaration.
---   
---   Note that it is possible to call <a>putTypeDeclaration</a>, then
---   <a>getTypeDeclaration</a>, and receive <tt>Nothing</tt>, per the
---   semantics of <a>putTypeDeclaration</a>.
-[getTypeDeclaration] :: Codebase m v a -> Id -> m (Maybe (Decl v a))
-
--- | Enqueue the put of a user-defined term (with its type) into the
---   codebase, if it doesn't already exist. The implementation may choose
---   to delay the put until all of the term's (and its type's) references
---   are stored as well.
-[putTerm] :: Codebase m v a -> Id -> Term v a -> Type v a -> m ()
-
--- | Enqueue the put of a type declaration into the codebase, if it doesn't
---   already exist. The implementation may choose to delay the put until
---   all of the type declaration's references are stored as well.
-[putTypeDeclaration] :: Codebase m v a -> Id -> Decl v a -> m ()
-[getTermComponentWithTypes] :: Codebase m v a -> Hash -> m (Maybe [(Term v a, Type v a)])
-[getDeclComponent] :: Codebase m v a -> Hash -> m (Maybe [Decl v a])
-[getComponentLength] :: Codebase m v a -> Hash -> m (Maybe CycleSize)
-
--- | Get the root branch.
-[getRootBranch] :: Codebase m v a -> m (Either GetRootBranchError (Branch m))
-
--- | Get whether the root branch exists.
-[getRootBranchExists] :: Codebase m v a -> m Bool
-
--- | Like <a>putBranch</a>, but also adjusts the root branch pointer
---   afterwards.
-[putRootBranch] :: Codebase m v a -> Branch m -> m ()
-[rootBranchUpdates] :: Codebase m v a -> m (IO (), IO (Set Hash))
-[getBranchForHashImpl] :: Codebase m v a -> Hash -> m (Maybe (Branch m))
-
--- | Put a branch into the codebase, which includes its children, its
---   patches, and the branch itself, if they don't already exist.
---   
---   The terms and type declarations that a branch references must already
---   exist in the codebase.
-[putBranch] :: Codebase m v a -> Branch m -> m ()
-
--- | Check whether the given branch exists in the codebase.
-[branchExists] :: Codebase m v a -> Hash -> m Bool
-
--- | Get a patch from the codebase.
-[getPatch] :: Codebase m v a -> EditHash -> m (Maybe Patch)
-
--- | Put a patch into the codebase.
---   
---   Note that <a>putBranch</a> may also put patches.
-[putPatch] :: Codebase m v a -> EditHash -> Patch -> m ()
-
--- | Check whether the given patch exists in the codebase.
-[patchExists] :: Codebase m v a -> EditHash -> m Bool
-
--- | Get the set of user-defined terms and type declarations that depend on
---   the given term, type declaration, or builtin type.
-[dependentsImpl] :: Codebase m v a -> Reference -> m (Set Id)
-[dependentsOfComponentImpl] :: Codebase m v a -> Hash -> m (Set Id)
-
--- | Copy a branch and all of its dependencies from the given codebase into
---   this one.
-[syncFromDirectory] :: Codebase m v a -> CodebasePath -> SyncMode -> Branch m -> m ()
-
--- | Copy a branch and all of its dependencies from this codebase into the
---   given codebase.
-[syncToDirectory] :: Codebase m v a -> CodebasePath -> SyncMode -> Branch m -> m ()
-[viewRemoteBranch'] :: Codebase m v a -> forall r. ReadRemoteNamespace -> GitBranchBehavior -> ((Branch m, CodebasePath) -> m r) -> m (Either GitError r)
-
--- | Push the given branch to the given repo, and optionally set it as the
---   root branch.
-[pushGitBranch] :: Codebase m v a -> forall e. WriteRepo -> PushGitBranchOpts -> (Branch m -> m (Either e (Branch m))) -> m (Either GitError (Either e (Branch m)))
-
--- | <tt>watches k</tt> returns all of the references <tt>r</tt> that were
---   previously put by a <tt>putWatch k r t</tt>. <tt>t</tt> can be
---   retrieved by <tt>getWatch k r</tt>.
-[watches] :: Codebase m v a -> WatchKind -> m [Id]
-
--- | <tt>getWatch k r</tt> returns watch result <tt>t</tt> that was
---   previously put by <tt>putWatch k r t</tt>.
-[getWatch] :: Codebase m v a -> WatchKind -> Id -> m (Maybe (Term v a))
-
--- | <tt>putWatch k r t</tt> puts a watch of kind <tt>k</tt>, with
---   hash-of-expression <tt>r</tt> and decompiled result <tt>t</tt> into
---   the codebase.
---   
---   For example, in the watch expression below, <tt>k</tt> is
---   <a>Regular</a>, <tt>r</tt> is the hash of <tt>x</tt>, and <tt>t</tt>
---   is <tt>7</tt>.
---   
---   <pre>
---   &gt; x = 3 + 4
---     ⧩
---     7
---   </pre>
-[putWatch] :: Codebase m v a -> WatchKind -> Id -> Term v a -> m ()
-
--- | Delete all watches that were put by <a>putWatch</a>.
-[clearWatches] :: Codebase m v a -> m ()
-
--- | Get the entire reflog.
-[getReflog] :: Codebase m v a -> m [Entry Hash]
-
--- | <tt>appendReflog reason before after</tt> appends a reflog entry.
---   
---   FIXME: this could have type
---   
---   <pre>
---   appendReflog :: Reflog.Entry (Branch m) -&gt; m ()
---   </pre>
-[appendReflog] :: Codebase m v a -> Text -> Branch m -> Branch m -> m ()
-
--- | Get the set of user-defined terms-or-constructors that have the given
---   type.
-[termsOfTypeImpl] :: Codebase m v a -> Reference -> m (Set Id)
-
--- | Get the set of user-defined terms-or-constructors mention the given
---   type anywhere in their signature.
-[termsMentioningTypeImpl] :: Codebase m v a -> Reference -> m (Set Id)
-
--- | The number of base32 characters needed to distinguish any two
---   references in the codebase.
-[hashLength] :: Codebase m v a -> m Int
-
--- | Get the set of user-defined terms whose hash matches the given prefix.
-[termReferencesByPrefix] :: Codebase m v a -> ShortHash -> m (Set Id)
-
--- | Get the set of type declarations whose hash matches the given prefix.
-[typeReferencesByPrefix] :: Codebase m v a -> ShortHash -> m (Set Id)
-
--- | Get the set of user-defined terms-or-constructors whose hash matches
---   the given prefix.
-[termReferentsByPrefix] :: Codebase m v a -> ShortHash -> m (Set Id)
-
--- | The number of base32 characters needed to distinguish any two branch
---   in the codebase.
-[branchHashLength] :: Codebase m v a -> m Int
-
--- | Get the set of branches whose hash matches the given prefix.
-[branchHashesByPrefix] :: Codebase m v a -> ShortBranchHash -> m (Set Hash)
-[lcaImpl] :: Codebase m v a -> Maybe (Hash -> Hash -> m (Maybe Hash))
-[beforeImpl] :: Codebase m v a -> Maybe (Hash -> Hash -> m Bool)
-
--- | A directory that contains a codebase.
-type CodebasePath = FilePath
-data PushGitBranchOpts
-PushGitBranchOpts :: Bool -> SyncMode -> PushGitBranchOpts
-
--- | Set the branch as root?
-[setRoot] :: PushGitBranchOpts -> Bool
-[syncMode] :: PushGitBranchOpts -> SyncMode
-data GitError
-GitProtocolError :: GitProtocolError -> GitError
-GitCodebaseError :: GitCodebaseError Hash -> GitError
-GitSqliteCodebaseError :: GitSqliteCodebaseError -> GitError
-data GetRootBranchError
-NoRootBranch :: GetRootBranchError
-CouldntParseRootBranch :: String -> GetRootBranchError
-CouldntLoadRootBranch :: Hash -> GetRootBranchError
-type SyncToDir m = CodebasePath -> SyncMode -> Branch m -> m ()
-
--- | Whether a codebase is local or remote.
-data LocalOrRemote
-Local :: LocalOrRemote
-Remote :: LocalOrRemote
-gitErrorFromOpenCodebaseError :: CodebasePath -> ReadRepo -> OpenCodebaseError -> GitSqliteCodebaseError
-instance GHC.Classes.Ord Unison.Codebase.Type.LocalOrRemote
-instance GHC.Classes.Eq Unison.Codebase.Type.LocalOrRemote
-instance GHC.Show.Show Unison.Codebase.Type.LocalOrRemote
-instance GHC.Show.Show Unison.Codebase.Type.GetRootBranchError
-instance GHC.Show.Show Unison.Codebase.Type.GitError
-instance GHC.Exception.Type.Exception Unison.Codebase.Type.GitError
-
-module Unison.Codebase.SqliteCodebase.Conversions
-sbh1to2 :: ShortBranchHash -> ShortBranchHash
-decltype2to1 :: DeclType -> ConstructorType
-decltype1to2 :: ConstructorType -> DeclType
-watchKind1to2 :: WatchKind -> WatchKind
-watchKind2to1 :: WatchKind -> WatchKind
-term1to2 :: Hash -> Term Symbol Ann -> Term Symbol
-term2to1 :: forall m. Monad m => Hash -> (Reference -> m ConstructorType) -> Term Symbol -> m (Term Symbol Ann)
-decl2to1 :: Hash -> Decl Symbol -> Decl Symbol Ann
-decl1to2 :: Hash -> Decl Symbol a -> Decl Symbol
-symbol2to1 :: Symbol -> Symbol
-symbol1to2 :: Symbol -> Symbol
-shortHashSuffix1to2 :: Text -> Pos
-abt2to1 :: Functor f => Term f v a -> Term f v a
-abt1to2 :: Functor f => Term f v a -> Term f v a
-rreference2to1 :: Hash -> Reference' Text (Maybe Hash) -> Reference
-rreference1to2 :: Hash -> Reference -> Reference' Text (Maybe Hash)
-rreferenceid2to1 :: Hash -> Id' (Maybe Hash) -> Id
-rreferenceid1to2 :: Hash -> Id -> Id' (Maybe Hash)
-hash1to2 :: Hash -> Hash
-branchHash1to2 :: Hash -> CausalHash
-branchHash2to1 :: CausalHash -> Hash
-patchHash1to2 :: EditHash -> PatchHash
-reference2to1 :: Reference -> Reference
-reference1to2 :: Reference -> Reference
-referenceid1to2 :: Id -> Id
-referenceid2to1 :: Id -> Id
-rreferent2to1 :: Applicative m => Hash -> (Reference -> m ConstructorType) -> ReferentH -> m Referent
-rreferent1to2 :: Hash -> Referent -> ReferentH
-referent2to1 :: Applicative m => (Reference -> m ConstructorType) -> Referent -> m Referent
-referent1to2 :: Referent -> Referent
-referentid2to1 :: Applicative m => (Reference -> m ConstructorType) -> Id -> m Id
-hash2to1 :: Hash -> Hash
-causalHash2to1 :: CausalHash -> RawHash Raw
-causalHash1to2 :: RawHash Raw -> CausalHash
-ttype2to1 :: Type Symbol -> Type Symbol Ann
-dtype2to1 :: Hash -> Type Symbol -> Type Symbol Ann
-type2to1' :: (r -> Reference) -> TypeR r Symbol -> Type Symbol Ann
-dtype1to2 :: Hash -> Type Symbol a -> TypeD Symbol
-ttype1to2 :: Type Symbol a -> TypeT Symbol
-type1to2' :: (Reference -> r) -> Type Symbol a -> TypeR r Symbol
-
--- | forces loading v1 branches even if they may not exist
-causalbranch2to1 :: Monad m => (Reference -> m ConstructorType) -> Causal m -> m (Branch m)
-causalbranch2to1' :: Monad m => (Reference -> m ConstructorType) -> Causal m -> m (UnwrappedBranch m)
-causalbranch1to2 :: forall m. Monad m => Branch m -> Causal m
-patch2to1 :: Patch -> Patch
-patch1to2 :: Patch -> Patch
-edithash2to1 :: PatchHash -> EditHash
-edithash1to2 :: EditHash -> PatchHash
-namesegment2to1 :: NameSegment -> NameSegment
-namesegment1to2 :: NameSegment -> NameSegment
-branch2to1 :: Monad m => (Reference -> m ConstructorType) -> Branch m -> m (Branch0 m)
-
-module Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.DbHelpers
-dbBranchHash :: EDB m => DbBranch -> m Hash
-dbPatchHash :: forall m. EDB m => Patch -> m Hash
-
-module Unison.Codebase.SqliteCodebase.Branch.Dependencies
-type Branches m = [(Hash, m (Branch m))]
-data Dependencies
-Dependencies :: Set EditHash -> Set Hash -> Set Hash -> Dependencies
-[patches] :: Dependencies -> Set EditHash
-[terms] :: Dependencies -> Set Hash
-[decls] :: Dependencies -> Set Hash
-data Dependencies'
-Dependencies' :: [EditHash] -> [Hash] -> [Hash] -> Dependencies'
-[patches'] :: Dependencies' -> [EditHash]
-[terms'] :: Dependencies' -> [Hash]
-[decls'] :: Dependencies' -> [Hash]
-to' :: Dependencies -> Dependencies'
-fromBranch :: Applicative m => Branch m -> (Branches m, Dependencies)
-fromBranch0 :: Applicative m => Branch0 m -> (Branches m, Dependencies)
-instance GHC.Base.Monoid Unison.Codebase.SqliteCodebase.Branch.Dependencies.Dependencies
-instance GHC.Base.Semigroup Unison.Codebase.SqliteCodebase.Branch.Dependencies.Dependencies
-instance GHC.Generics.Generic Unison.Codebase.SqliteCodebase.Branch.Dependencies.Dependencies
-instance GHC.Show.Show Unison.Codebase.SqliteCodebase.Branch.Dependencies.Dependencies
-instance GHC.Base.Monoid Unison.Codebase.SqliteCodebase.Branch.Dependencies.Dependencies'
-instance GHC.Base.Semigroup Unison.Codebase.SqliteCodebase.Branch.Dependencies.Dependencies'
-instance GHC.Generics.Generic Unison.Codebase.SqliteCodebase.Branch.Dependencies.Dependencies'
-instance GHC.Show.Show Unison.Codebase.SqliteCodebase.Branch.Dependencies.Dependencies'
-instance GHC.Classes.Eq Unison.Codebase.SqliteCodebase.Branch.Dependencies.Dependencies'
-
-module Unison.Codebase.BranchUtil
-
--- | Creates a branch containing all of the given names, with a single
---   history node.
-fromNames :: Monad m => Names -> Branch m
-getBranch :: Split -> Branch0 m -> Maybe (Branch m)
-getTerm :: HQSplit -> Branch0 m -> Set Referent
-getType :: HQSplit -> Branch0 m -> Set Reference
-getTermMetadataAt :: (Path, a) -> Referent -> Branch0 m -> Metadata
-getTypeMetadataAt :: (Path, a) -> Reference -> Branch0 m -> Metadata
-getTermMetadataHQNamed :: (Path, HQSegment) -> Branch0 m -> R4 Referent NameSegment
-getTypeMetadataHQNamed :: (Path, HQSegment) -> Branch0 m -> R4 Reference NameSegment
-makeSetBranch :: Split -> Branch m -> (Path, Branch0 m -> Branch0 m)
-
--- | "delete"s a branch by cons'ing an empty Branch0 onto the history at
---   that location. See also <a>makeObliterateBranch</a>.
-makeDeleteBranch :: Applicative m => Split -> (Path, Branch0 m -> Branch0 m)
-
--- | Erase a branch and its history See also <a>makeDeleteBranch</a>. Note
---   that this requires a AllowRewritingHistory update strategy to behave
---   correctly.
-makeObliterateBranch :: Split -> (Path, Branch0 m -> Branch0 m)
-makeAddTypeName :: Split -> Reference -> Metadata -> (Path, Branch0 m -> Branch0 m)
-makeDeleteTypeName :: Split -> Reference -> (Path, Branch0 m -> Branch0 m)
-makeAddTermName :: Split -> Referent -> Metadata -> (Path, Branch0 m -> Branch0 m)
-makeDeleteTermName :: Split -> Referent -> (Path, Branch0 m -> Branch0 m)
-makeDeletePatch :: Split -> (Path, Branch0 m -> Branch0 m)
-makeReplacePatch :: Applicative m => Split -> Patch -> (Path, Branch0 m -> Branch0 m)
-
-module Unison.Codebase.Branch.Names
-findHistoricalHQs :: Monad m => Set (HashQualified Name) -> Branch m -> m (Set (HashQualified Name), Names)
-findHistoricalRefs :: Monad m => Set LabeledDependency -> Branch m -> m (Set LabeledDependency, Names)
-findHistoricalRefs' :: Monad m => Set Reference -> Branch m -> m (Set Reference, Names)
-namesDiff :: Branch m -> Branch m -> Diff
-toNames :: Branch0 m -> Names
-
-module Unison.Codebase.Branch.Merge
-data MergeMode
-RegularMerge :: MergeMode
-SquashMerge :: MergeMode
-merge'' :: forall m. Monad m => (Branch m -> Branch m -> m (Maybe (Branch m))) -> MergeMode -> Branch m -> Branch m -> m (Branch m)
-instance GHC.Show.Show Unison.Codebase.Branch.Merge.MergeMode
-instance GHC.Classes.Ord Unison.Codebase.Branch.Merge.MergeMode
-instance GHC.Classes.Eq Unison.Codebase.Branch.Merge.MergeMode
-
-module Unison.Util.SyntaxText
-type SyntaxText' r = AnnotatedText (Element r)
-data Element r
-NumericLiteral :: Element r
-TextLiteral :: Element r
-BytesLiteral :: Element r
-CharLiteral :: Element r
-BooleanLiteral :: Element r
-Blank :: Element r
-Var :: Element r
-TypeReference :: r -> Element r
-TermReference :: Referent' r -> Element r
-Op :: SeqOp -> Element r
-AbilityBraces :: Element r
-ControlKeyword :: Element r
-TypeOperator :: Element r
-BindingEquals :: Element r
-TypeAscriptionColon :: Element r
-DataTypeKeyword :: Element r
-DataTypeParams :: Element r
-Unit :: Element r
-DataTypeModifier :: Element r
-UseKeyword :: Element r
-UsePrefix :: Element r
-UseSuffix :: Element r
-HashQualifier :: HashQualified Name -> Element r
-DelayForceChar :: Element r
-DelimiterChar :: Element r
-Parenthesis :: Element r
-LinkKeyword :: Element r
-DocDelimiter :: Element r
-DocKeyword :: Element r
-syntax :: Element r -> SyntaxText' r -> SyntaxText' r
-toPlain :: SyntaxText' r -> String
-instance GHC.Base.Functor Unison.Util.SyntaxText.Element
-instance GHC.Show.Show r => GHC.Show.Show (Unison.Util.SyntaxText.Element r)
-instance GHC.Classes.Ord r => GHC.Classes.Ord (Unison.Util.SyntaxText.Element r)
-instance GHC.Classes.Eq r => GHC.Classes.Eq (Unison.Util.SyntaxText.Element r)
-
-module Unison.Util.ColorText
-type ColorText = AnnotatedText Color
-data Color
-Black :: Color
-Red :: Color
-Green :: Color
-Yellow :: Color
-Blue :: Color
-Purple :: Color
-Cyan :: Color
-White :: Color
-HiBlack :: Color
-HiRed :: Color
-HiGreen :: Color
-HiYellow :: Color
-HiBlue :: Color
-HiPurple :: Color
-HiCyan :: Color
-HiWhite :: Color
-Bold :: Color
-Underline :: Color
-Invert :: Color -> Color
-Background :: Color -> Color -> Color
-Default :: Color
-style :: Color -> ColorText -> ColorText
-toANSI :: ColorText -> String
-toPlain :: ColorText -> String
-toHTML :: String -> ColorText -> String
-defaultColors :: Element r -> Maybe Color
-black :: ColorText -> ColorText
-red :: ColorText -> ColorText
-green :: ColorText -> ColorText
-yellow :: ColorText -> ColorText
-blue :: ColorText -> ColorText
-purple :: ColorText -> ColorText
-cyan :: ColorText -> ColorText
-white :: ColorText -> ColorText
-hiBlack :: ColorText -> ColorText
-hiRed :: ColorText -> ColorText
-hiGreen :: ColorText -> ColorText
-hiYellow :: ColorText -> ColorText
-hiBlue :: ColorText -> ColorText
-hiPurple :: ColorText -> ColorText
-hiCyan :: ColorText -> ColorText
-hiWhite :: ColorText -> ColorText
-bold :: ColorText -> ColorText
-underline :: ColorText -> ColorText
-invert :: ColorText -> ColorText
-background :: Color -> ColorText -> ColorText
-unstyled :: ColorText -> ColorText
-newtype AnnotatedText a
-AnnotatedText :: Seq (Segment a) -> AnnotatedText a
-data Segment a
-Segment :: String -> Maybe a -> Segment a
-[segment] :: Segment a -> String
-[annotation] :: Segment a -> Maybe a
-toPair :: Segment a -> (String, Maybe a)
-annotate :: a -> AnnotatedText a -> AnnotatedText a
-instance GHC.Read.Read Unison.Util.ColorText.Color
-instance GHC.Show.Show Unison.Util.ColorText.Color
-instance GHC.Classes.Ord Unison.Util.ColorText.Color
-instance GHC.Classes.Eq Unison.Util.ColorText.Color
-
-module Unison.Util.Pretty
-data Pretty s
-type ColorText = ColorText
-align :: (ListLike s Char, IsString s) => [(Pretty s, Pretty s)] -> [Pretty s]
-align' :: (ListLike s Char, IsString s) => [(Pretty s, Maybe (Pretty s))] -> [(Pretty s, Pretty s)]
-alternations :: ListLike s c => (c -> Bool) -> s -> [s]
-background :: (Pretty ColorText -> Pretty ColorText) -> Pretty ColorText -> Pretty ColorText
-backticked :: IsString s => Pretty s -> Pretty s
-
--- | Attach some punctuation after the closing backtick.
-backticked' :: IsString s => Pretty s -> Pretty s -> Pretty s
-boxForkLeft :: forall s. (ListLike s Char, IsString s) => [Pretty s] -> [Pretty s]
-boxLeft :: forall s. (ListLike s Char, IsString s) => [Pretty s] -> [Pretty s]
-boxLeftM :: forall m s. (Monad m, ListLike s Char, IsString s) => [m (Pretty s)] -> [m (Pretty s)]
-boxRight :: forall s. (ListLike s Char, IsString s) => [Pretty s] -> [Pretty s]
-boxRightM :: forall m s. (Monad m, ListLike s Char, IsString s) => [m (Pretty s)] -> [m (Pretty s)]
-bulleted :: (Foldable f, ListLike s Char, IsString s) => f (Pretty s) -> Pretty s
-bracket :: (ListLike s Char, IsString s) => Pretty s -> Pretty s
-callout :: (ListLike s Char, IsString s) => Pretty s -> Pretty s -> Pretty s
-excerptSep :: IsString s => Maybe Int -> Pretty s -> [Pretty s] -> Pretty s
-excerptSep' :: IsString s => Maybe Int -> (Int -> Pretty s) -> Pretty s -> [Pretty s] -> Pretty s
-excerptColumn2 :: (ListLike s Char, IsString s) => Maybe Int -> [(Pretty s, Pretty s)] -> Pretty s
-excerptColumn2Headed :: (ListLike s Char, IsString s) => Maybe Int -> (Pretty s, Pretty s) -> [(Pretty s, Pretty s)] -> Pretty s
-warnCallout :: (ListLike s Char, IsString s) => Pretty s -> Pretty s
-blockedCallout :: (ListLike s Char, IsString s) => Pretty s -> Pretty s
-fatalCallout :: (ListLike s Char, IsString s) => Pretty s -> Pretty s
-okCallout :: (ListLike s Char, IsString s) => Pretty s -> Pretty s
-column2 :: (ListLike s Char, IsString s) => [(Pretty s, Pretty s)] -> Pretty s
-column2sep :: (ListLike s Char, IsString s) => Pretty s -> [(Pretty s, Pretty s)] -> Pretty s
-column2Header :: Pretty ColorText -> Pretty ColorText -> [(Pretty ColorText, Pretty ColorText)] -> Pretty ColorText
-column2M :: (Applicative m, ListLike s Char, IsString s) => [m (Pretty s, Pretty s)] -> m (Pretty s)
-column2UnzippedM :: forall m s. (ListLike s Char, IsString s, Monad m) => Pretty s -> [m (Pretty s)] -> [m (Pretty s)] -> m (Pretty s)
-column3 :: (ListLike s Char, IsString s) => [(Pretty s, Pretty s, Pretty s)] -> Pretty s
-column3M :: (ListLike s Char, IsString s, Monad m) => [m (Pretty s, Pretty s, Pretty s)] -> m (Pretty s)
-column3UnzippedM :: forall m s. (ListLike s Char, IsString s, Monad m) => Pretty s -> [m (Pretty s)] -> [m (Pretty s)] -> [m (Pretty s)] -> m (Pretty s)
-column3sep :: (ListLike s Char, IsString s) => Pretty s -> [(Pretty s, Pretty s, Pretty s)] -> Pretty s
-commas :: (Foldable f, IsString s) => f (Pretty s) -> Pretty s
-commented :: (Foldable f, ListLike s Char, IsString s) => f (Pretty s) -> Pretty s
-oxfordCommas :: (Foldable f, IsString s) => f (Pretty s) -> Pretty s
-oxfordCommasWith :: (Foldable f, IsString s) => Pretty s -> f (Pretty s) -> Pretty s
-plural :: Foldable f => f a -> Pretty ColorText -> Pretty ColorText
-dashed :: (Foldable f, ListLike s Char, IsString s) => f (Pretty s) -> Pretty s
-flatMap :: (s -> Pretty s2) -> Pretty s -> Pretty s2
-group :: Pretty s -> Pretty s
-hang' :: (ListLike s Char, IsString s) => Pretty s -> Pretty s -> Pretty s -> Pretty s
-hang :: (ListLike s Char, IsString s) => Pretty s -> Pretty s -> Pretty s
-hangUngrouped' :: (ListLike s Char, IsString s) => Pretty s -> Pretty s -> Pretty s -> Pretty s
-hangUngrouped :: (ListLike s Char, IsString s) => Pretty s -> Pretty s -> Pretty s
-softHang' :: (ListLike s Char, IsString s) => Pretty s -> Pretty s -> Pretty s -> Pretty s
-softHang :: (ListLike s Char, IsString s) => Pretty s -> Pretty s -> Pretty s
-softHangNoSpace' :: (ListLike s Char, IsString s) => Pretty s -> Pretty s -> Pretty s -> Pretty s
-indent :: (ListLike s Char, IsString s) => Pretty s -> Pretty s -> Pretty s
-indentAfterNewline :: (ListLike s Char, IsString s) => Pretty s -> Pretty s -> Pretty s
-indentN :: (ListLike s Char, IsString s) => Width -> Pretty s -> Pretty s
-indentNonEmptyN :: (ListLike s Char, IsString s) => Width -> Pretty s -> Pretty s
-indentNAfterNewline :: (ListLike s Char, IsString s) => Width -> Pretty s -> Pretty s
-invert :: Pretty ColorText -> Pretty ColorText
-isMultiLine :: Pretty s -> Bool
-isEmpty :: Eq s => IsString s => Pretty s -> Bool
-leftPad :: IsString s => Width -> Pretty s -> Pretty s
-lines :: (Foldable f, IsString s) => f (Pretty s) -> Pretty s
-linesNonEmpty :: (Foldable f, IsString s) => f (Pretty s) -> Pretty s
-linesSpaced :: (Foldable f, IsString s) => f (Pretty s) -> Pretty s
-lit :: (IsString s, ListLike s Char) => s -> Pretty s
-map :: ListLike s2 Char => (s -> s2) -> Pretty s -> Pretty s2
-mayColumn2 :: (ListLike s Char, IsString s) => [(Pretty s, Maybe (Pretty s))] -> Pretty s
-nest :: (ListLike s Char, IsString s) => Pretty s -> Pretty s -> Pretty s
-num :: (Show n, Num n, IsString s) => n -> Pretty s
-newline :: IsString s => Pretty s
-leftJustify :: (Eq s, Show s, ListLike s Char, IsString s) => [(Pretty s, a)] -> [(Pretty s, a)]
-lineSkip :: IsString s => Pretty s
-nonEmpty :: (Foldable f, IsString s) => f (Pretty s) -> [Pretty s]
-numbered :: (Foldable f, ListLike s Char, IsString s) => (Int -> Pretty s) -> f (Pretty s) -> Pretty s
-numberedColumn2 :: (Foldable f, ListLike s Char, IsString s) => (Int -> Pretty s) -> f (Pretty s, Pretty s) -> Pretty s
-numberedColumn2Header :: (Foldable f, ListLike s Char, IsString s) => (Int -> Pretty s) -> f (Pretty s, Pretty s) -> Pretty s
-numberedList :: Foldable f => f (Pretty ColorText) -> Pretty ColorText
-orElse :: Pretty s -> Pretty s -> Pretty s
-orElses :: [Pretty s] -> Pretty s
-paragraphyText :: (ListLike s Char, IsString s) => Text -> Pretty s
-parenthesize :: IsString s => Pretty s -> Pretty s
-parenthesizeCommas :: (Foldable f, IsString s) => f (Pretty s) -> Pretty s
-parenthesizeIf :: IsString s => Bool -> Pretty s -> Pretty s
-render :: (Monoid s, IsString s) => Width -> Pretty s -> s
-renderUnbroken :: (Monoid s, IsString s) => Pretty s -> s
-rightPad :: IsString s => Width -> Pretty s -> Pretty s
-sep :: (Foldable f, IsString s) => Pretty s -> f (Pretty s) -> Pretty s
-sepNonEmpty :: (Foldable f, IsString s) => Pretty s -> f (Pretty s) -> Pretty s
-sepSpaced :: (Foldable f, IsString s) => Pretty s -> f (Pretty s) -> Pretty s
-shown :: (Show a, IsString s) => a -> Pretty s
-singleQuoted :: IsString s => Pretty s -> Pretty s
-singleQuoted' :: IsString s => Pretty s -> Pretty s -> Pretty s
-softbreak :: IsString s => Pretty s
-spaceIfBreak :: IsString s => Pretty s
-spaceIfNeeded :: Eq s => IsString s => Pretty s -> Pretty s -> Pretty s
-spaced :: (Foldable f, IsString s) => f (Pretty s) -> Pretty s
-spacedMap :: (Foldable f, IsString s) => (a -> Pretty s) -> f a -> Pretty s
-spacesIfBreak :: IsString s => Int -> Pretty s
-string :: IsString s => String -> Pretty s
-surroundCommas :: (Foldable f, IsString s) => Pretty s -> Pretty s -> f (Pretty s) -> Pretty s
-syntaxToColor :: Pretty (SyntaxText' r) -> Pretty ColorText
-table :: (IsString s, ListLike s Char) => [[Pretty s]] -> Pretty s
-text :: IsString s => Text -> Pretty s
-toANSI :: Width -> Pretty ColorText -> String
-toAnsiUnbroken :: Pretty ColorText -> String
-toHTML :: String -> Width -> Pretty ColorText -> String
-toPlain :: Width -> Pretty ColorText -> String
-toPlainUnbroken :: Pretty ColorText -> String
-underline :: Pretty ColorText -> Pretty ColorText
-withSyntax :: Element r -> Pretty (SyntaxText' r) -> Pretty (SyntaxText' r)
-wrap :: (ListLike s Char, IsString s) => Pretty s -> Pretty s
-wrap' :: IsString s => (s -> [Pretty s]) -> Pretty s -> Pretty s
-wrapColumn2 :: (ListLike s Char, IsString s) => [(Pretty s, Pretty s)] -> Pretty s
-wrapString :: (ListLike s Char, IsString s) => String -> Pretty s
-black :: Pretty ColorText -> Pretty ColorText
-red :: Pretty ColorText -> Pretty ColorText
-green :: Pretty ColorText -> Pretty ColorText
-yellow :: Pretty ColorText -> Pretty ColorText
-blue :: Pretty ColorText -> Pretty ColorText
-purple :: Pretty ColorText -> Pretty ColorText
-cyan :: Pretty ColorText -> Pretty ColorText
-white :: Pretty ColorText -> Pretty ColorText
-hiBlack :: Pretty ColorText -> Pretty ColorText
-hiRed :: Pretty ColorText -> Pretty ColorText
-hiGreen :: Pretty ColorText -> Pretty ColorText
-hiYellow :: Pretty ColorText -> Pretty ColorText
-hiBlue :: Pretty ColorText -> Pretty ColorText
-hiPurple :: Pretty ColorText -> Pretty ColorText
-hiCyan :: Pretty ColorText -> Pretty ColorText
-hiWhite :: Pretty ColorText -> Pretty ColorText
-bold :: Pretty ColorText -> Pretty ColorText
-border :: (ListLike s Char, IsString s) => Width -> Pretty s -> Pretty s
-newtype Width
-Width :: Int -> Width
-[widthToInt] :: Width -> Int
-delta :: Pretty s -> Delta
-data Delta
-instance GHC.Enum.Bounded Unison.Util.Pretty.Width
-instance GHC.Num.Num Unison.Util.Pretty.Width
-instance GHC.Generics.Generic Unison.Util.Pretty.Width
-instance GHC.Show.Show Unison.Util.Pretty.Width
-instance GHC.Classes.Ord Unison.Util.Pretty.Width
-instance GHC.Classes.Eq Unison.Util.Pretty.Width
-instance GHC.Base.Functor (Unison.Util.Pretty.F s)
-instance Data.Traversable.Traversable (Unison.Util.Pretty.F s)
-instance Data.Foldable.Foldable (Unison.Util.Pretty.F s)
-instance (GHC.Show.Show r, GHC.Show.Show s) => GHC.Show.Show (Unison.Util.Pretty.F s r)
-instance (GHC.Classes.Eq r, GHC.Classes.Eq s) => GHC.Classes.Eq (Unison.Util.Pretty.F s r)
-instance GHC.Show.Show Unison.Util.Pretty.Delta
-instance GHC.Classes.Ord Unison.Util.Pretty.Delta
-instance GHC.Classes.Eq Unison.Util.Pretty.Delta
-instance GHC.Classes.Eq s => GHC.Classes.Eq (Unison.Util.Pretty.Pretty s)
-instance GHC.Base.Functor Unison.Util.Pretty.Pretty
-instance Data.String.IsString s => Data.String.IsString (Unison.Util.Pretty.Pretty s)
-instance GHC.Base.Semigroup (Unison.Util.Pretty.Pretty s)
-instance GHC.Base.Monoid (Unison.Util.Pretty.Pretty s)
-instance GHC.Show.Show s => GHC.Show.Show (Unison.Util.Pretty.Pretty s)
-instance GHC.Base.Semigroup Unison.Util.Pretty.Delta
-instance GHC.Base.Monoid Unison.Util.Pretty.Delta
-
-module Unison.Codebase.Runtime
-type Error = Pretty ColorText
-type Term v = Term v ()
-data Runtime v
-Runtime :: IO () -> (CodeLookup v IO () -> PrettyPrintEnv -> Term v -> IO (Either Error (Term v))) -> (CodeLookup v IO () -> PrettyPrintEnv -> Reference -> FilePath -> IO (Maybe Error)) -> Type v Ann -> Type v Ann -> Runtime v
-[terminate] :: Runtime v -> IO ()
-[evaluate] :: Runtime v -> CodeLookup v IO () -> PrettyPrintEnv -> Term v -> IO (Either Error (Term v))
-[compileTo] :: Runtime v -> CodeLookup v IO () -> PrettyPrintEnv -> Reference -> FilePath -> IO (Maybe Error)
-[mainType] :: Runtime v -> Type v Ann
-[ioTestType] :: Runtime v -> Type v Ann
-type IsCacheHit = Bool
-noCache :: Id -> IO (Maybe (Term v))
-type WatchResults v a = (Either Error ([(v, Term v)], Map v (a, WatchKind, Id, Term v, Term v, IsCacheHit)))
-evaluateWatches :: forall v a. Var v => CodeLookup v IO a -> PrettyPrintEnv -> (Id -> IO (Maybe (Term v))) -> Runtime v -> TypecheckedUnisonFile v a -> IO (WatchResults v a)
-evaluateTerm' :: (Var v, Monoid a) => CodeLookup v IO a -> (Id -> IO (Maybe (Term v))) -> PrettyPrintEnv -> Runtime v -> Term v a -> IO (Either Error (Term v))
-evaluateTerm :: (Var v, Monoid a) => CodeLookup v IO a -> PrettyPrintEnv -> Runtime v -> Term v a -> IO (Either Error (Term v))
-
-module Unison.Codebase.Init.CreateCodebaseError
-data CreateCodebaseError
-CreateCodebaseAlreadyExists :: CreateCodebaseError
-type Pretty = Pretty ColorText
-
-module Unison.PrettyTerminal
-stripSurroundingBlanks :: String -> String
-putPrettyLn :: Pretty ColorText -> IO ()
-putPrettyLnUnpaged :: Pretty ColorText -> IO ()
-putPrettyLn' :: Pretty ColorText -> IO ()
-clearCurrentLine :: IO ()
-putPretty' :: Pretty ColorText -> IO ()
-getAvailableWidth :: IO Width
-putPrettyNonempty :: Pretty ColorText -> IO ()
-
-
--- | Duplicate of the Unison.Util.SyntaxText module, but we expect these to
---   evolve separately. This is the version which is outward facing to the
---   server frontend.
-module Unison.Server.Syntax
-type SyntaxText = AnnotatedText Element
-type SyntaxSegment = Segment Element
-convertElement :: Element Reference -> Element
-type UnisonHash = Text
-type HashQualifiedName = Text
-
--- | The elements of the Unison grammar, for syntax highlighting purposes
-data Element
-NumericLiteral :: Element
-TextLiteral :: Element
-BytesLiteral :: Element
-CharLiteral :: Element
-BooleanLiteral :: Element
-Blank :: Element
-Var :: Element
-TypeReference :: UnisonHash -> Element
-DataConstructorReference :: UnisonHash -> Element
-AbilityConstructorReference :: UnisonHash -> Element
-TermReference :: UnisonHash -> Element
-Op :: SeqOp -> Element
-
--- | Constructor Are these even used? | Request
-AbilityBraces :: Element
-ControlKeyword :: Element
-TypeOperator :: Element
-BindingEquals :: Element
-TypeAscriptionColon :: Element
-DataTypeKeyword :: Element
-DataTypeParams :: Element
-Unit :: Element
-DataTypeModifier :: Element
-UseKeyword :: Element
-UsePrefix :: Element
-UseSuffix :: Element
-HashQualifier :: HashQualifiedName -> Element
-DelayForceChar :: Element
-DelimiterChar :: Element
-Parenthesis :: Element
-LinkKeyword :: Element
-DocDelimiter :: Element
-DocKeyword :: Element
-syntax :: Element -> SyntaxText -> SyntaxText
-firstReference :: SyntaxText -> Maybe UnisonHash
-reference :: SyntaxSegment -> Maybe UnisonHash
-
--- | Convert a <a>SyntaxText</a> to a <a>String</a>, ignoring syntax markup
-toPlain :: SyntaxText -> String
-toHtml :: SyntaxText -> Html ()
-nameToHtml :: Name -> Html ()
-segmentToHtml :: SyntaxSegment -> Html ()
-elementToClassName :: Element -> Text
-instance GHC.Generics.Generic Unison.Server.Syntax.Element
-instance GHC.Show.Show Unison.Server.Syntax.Element
-instance GHC.Classes.Ord Unison.Server.Syntax.Element
-instance GHC.Classes.Eq Unison.Server.Syntax.Element
-instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Syntax.Element
-instance Data.OpenApi.Internal.Schema.ToSchema a => Data.OpenApi.Internal.Schema.ToSchema (Unison.Util.AnnotatedText.Segment a)
-instance Data.OpenApi.Internal.Schema.ToSchema Unison.Pattern.SeqOp
-instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Syntax.SyntaxText
-instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Syntax.SyntaxText
-instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Syntax.Element
-instance Data.Aeson.Types.ToJSON.ToJSON a => Data.Aeson.Types.ToJSON.ToJSON (Unison.Util.AnnotatedText.Segment a)
-instance Data.Aeson.Types.ToJSON.ToJSON Unison.Pattern.SeqOp
-instance Data.OpenApi.Internal.Schema.ToSchema r => Data.OpenApi.Internal.Schema.ToSchema (Data.Sequence.Internal.Seq r)
-
-module Unison.NamePrinter
-type SyntaxText = SyntaxText' Reference
-prettyName :: IsString s => Name -> Pretty s
-prettyHashQualified :: HashQualified Name -> Pretty SyntaxText
-prettyHashQualified' :: HashQualified Name -> Pretty SyntaxText
-prettyHashQualified0 :: IsString s => HashQualified Name -> Pretty s
-
--- | Pretty-print a reference as a name and the given number of characters
---   of its hash.
-prettyNamedReference :: Int -> Name -> Reference -> Pretty SyntaxText
-
--- | Pretty-print a referent as a name and the given number of characters
---   of its hash.
-prettyNamedReferent :: Int -> Name -> Referent -> Pretty SyntaxText
-
--- | Pretty-print a reference as the given number of characters of its
---   hash.
-prettyReference :: Int -> Reference -> Pretty SyntaxText
-
--- | Pretty-print a referent as the given number of characters of its hash.
-prettyReferent :: Int -> Referent -> Pretty SyntaxText
-prettyLabeledDependency :: Int -> LabeledDependency -> Pretty SyntaxText
-prettyShortHash :: IsString s => ShortHash -> Pretty s
-styleHashQualified :: IsString s => (Pretty s -> Pretty s) -> HashQualified Name -> Pretty s
-styleHashQualified' :: IsString s => (Pretty s -> Pretty s) -> (Pretty s -> Pretty s) -> HashQualified Name -> Pretty s
-styleHashQualified'' :: (Pretty SyntaxText -> Pretty SyntaxText) -> HashQualified Name -> Pretty SyntaxText
-fmt :: Element r -> Pretty (SyntaxText' r) -> Pretty (SyntaxText' r)
-
-module Unison.Util.Find
-fuzzyFinder :: forall a. String -> [a] -> (a -> String) -> [(a, Pretty ColorText)]
-simpleFuzzyFinder :: forall a. String -> [a] -> (a -> String) -> [(a, Pretty ColorText)]
-simpleFuzzyScore :: String -> String -> Maybe Int
-fuzzyFindInBranch :: HasCallStack => Names -> HashQualified Name -> [(SearchResult, Pretty ColorText)]
-fuzzyFindMatchArray :: forall a. String -> [a] -> (a -> String) -> [(MatchArray, (a, Pretty ColorText))]
-prefixFindInBranch :: Names -> HashQualified Name -> [(SearchResult, Pretty ColorText)]
-
 module Unison.TypePrinter
 pretty :: forall v a. Var v => PrettyPrintEnv -> Type v a -> Pretty ColorText
 pretty0 :: forall v a. Var v => PrettyPrintEnv -> Imports -> Int -> Type v a -> Pretty SyntaxText
@@ -3428,9 +2425,9 @@ Env :: [Type v loc] -> TypeLookup v loc -> Map Name [NamedReference v loc] -> En
 [_ambientAbilities] :: Env v loc -> [Type v loc]
 [_typeLookup] :: Env v loc -> TypeLookup v loc
 [_termsByShortname] :: Env v loc -> Map Name [NamedReference v loc]
-typeLookup :: forall v_a5jkU loc_a5jkV. Lens' (Env v_a5jkU loc_a5jkV) (TypeLookup v_a5jkU loc_a5jkV)
-termsByShortname :: forall v_a5jkU loc_a5jkV. Lens' (Env v_a5jkU loc_a5jkV) (Map Name [NamedReference v_a5jkU loc_a5jkV])
-ambientAbilities :: forall v_a5jkU loc_a5jkV. Lens' (Env v_a5jkU loc_a5jkV) [Type v_a5jkU loc_a5jkV]
+typeLookup :: forall v_a3JPg loc_a3JPh. Lens' (Env v_a3JPg loc_a3JPh) (TypeLookup v_a3JPg loc_a3JPh)
+termsByShortname :: forall v_a3JPg loc_a3JPh. Lens' (Env v_a3JPg loc_a3JPh) (Map Name [NamedReference v_a3JPg loc_a3JPh])
+ambientAbilities :: forall v_a3JPg loc_a3JPh. Lens' (Env v_a3JPg loc_a3JPh) [Type v_a3JPg loc_a3JPh]
 
 -- | Infer the type of a <a>Term</a>, using a function to resolve the type
 --   of <tt>Ref</tt> constructors contained in that term.
@@ -3477,19 +2474,27 @@ instance GHC.Base.Monoid (Unison.Typechecker.Notes v loc)
 module Unison.Codebase.TermEdit.Typing
 typing :: Var v => Type v loc -> Type v loc -> Typing
 
+module Unison.DeclPrinter
+prettyDecl :: Var v => PrettyPrintEnvDecl -> Reference -> HashQualified Name -> Decl v a -> Pretty SyntaxText
+prettyDeclHeader :: Var v => HashQualified Name -> Either (EffectDeclaration v a) (DataDeclaration v a) -> Pretty SyntaxText
+prettyDeclOrBuiltinHeader :: Var v => HashQualified Name -> DeclOrBuiltin v a -> Pretty SyntaxText
 
--- | Find a computation of type '{IO} () in the codebase.
-module Unison.Codebase.MainTerm
-data MainTerm v
-NotAFunctionName :: String -> MainTerm v
-NotFound :: String -> MainTerm v
-BadType :: String -> Maybe (Type v Ann) -> MainTerm v
-Success :: HashQualified Name -> Term v Ann -> Type v Ann -> MainTerm v
-getMainTerm :: (Monad m, Var v) => (Reference -> m (Maybe (Type v Ann))) -> Names -> String -> Type v Ann -> m (MainTerm v)
-builtinMain :: Var v => a -> Type v a
-resultArr :: Ord v => a -> Type v a
-builtinResultArr :: Ord v => a -> Type v a
-builtinTest :: Ord v => a -> Type v a
+module Unison.TypeParser
+type TypeP v = P v (Type v Ann)
+valueType :: Var v => TypeP v
+computationType :: Var v => TypeP v
+valueTypeLeaf :: Var v => TypeP v
+typeAtom :: Var v => TypeP v
+type1 :: Var v => TypeP v
+type2a :: Var v => TypeP v
+delayed :: Var v => TypeP v
+type2 :: Var v => TypeP v
+effect :: Var v => TypeP v
+effectList :: Var v => TypeP v
+sequenceTyp :: Var v => TypeP v
+tupleOrParenthesizedType :: Var v => TypeP v -> TypeP v
+arrow :: Var v => TypeP v -> TypeP v
+forall :: Var v => TypeP v -> TypeP v
 
 module Unison.TermPrinter
 type SyntaxText = SyntaxText' Reference
@@ -3610,6 +2615,106 @@ instance GHC.Show.Show Unison.TermPrinter.PrintAnnotation
 instance GHC.Base.Semigroup Unison.TermPrinter.PrintAnnotation
 instance GHC.Base.Monoid Unison.TermPrinter.PrintAnnotation
 
+module Unison.TermParser
+watch :: Show a => String -> a -> a
+type TermP v = P v (Term v Ann)
+term :: Var v => TermP v
+term2 :: Var v => TermP v
+term3 :: Var v => TermP v
+keywordBlock :: Var v => TermP v
+typeLink' :: Var v => P v (Token Reference)
+termLink' :: Var v => P v (Token Referent)
+link' :: Var v => P v (Either (Token Reference) (Token Referent))
+link :: Var v => TermP v
+blockTerm :: Var v => TermP v
+match :: Var v => TermP v
+matchCases1 :: Var v => Token () -> P v (NonEmpty (Int, MatchCase Ann (Term v Ann)))
+matchCase :: Var v => P v (Int, [MatchCase Ann (Term v Ann)])
+parsePattern :: forall v. Var v => P v (Pattern Ann, [(Ann, v)])
+lam :: Var v => TermP v -> TermP v
+letBlock :: Var v => TermP v
+handle :: Var v => TermP v
+ifthen :: Var v => TermP v
+checkCasesArities :: (Ord v, Annotated a) => NonEmpty (Int, a) -> P v (Int, NonEmpty a)
+lamCase :: Var v => TermP v
+text :: Var v => TermP v
+char :: Var v => TermP v
+boolean :: Var v => TermP v
+list :: Var v => TermP v -> TermP v
+hashQualifiedPrefixTerm :: Var v => TermP v
+hashQualifiedInfixTerm :: Var v => TermP v
+quasikeyword :: Ord v => String -> P v (Token ())
+resolveHashQualified :: Var v => Token (HashQualified Name) -> TermP v
+termLeaf :: forall v. Var v => TermP v
+doc2Block :: forall v. Var v => TermP v
+docBlock :: Var v => TermP v
+data UnbreakCase
+LineEnds :: UnbreakCase
+StartsIndented :: UnbreakCase
+StartsUnindented :: UnbreakCase
+docNormalize :: (Ord v, Show v) => Term v a -> Term v a
+delayQuote :: Var v => TermP v
+bang :: Var v => TermP v
+var :: Var v => Token v -> Term v Ann
+seqOp :: Ord v => P v SeqOp
+term4 :: Var v => TermP v
+infixAppOrBooleanOp :: Var v => TermP v
+typedecl :: Var v => P v (Token v, Type v Ann)
+verifyRelativeVarName :: Var v => P v (Token v) -> P v (Token v)
+verifyRelativeName :: Ord v => P v (Token Name) -> P v (Token Name)
+verifyRelativeName' :: Ord v => Token Name -> P v ()
+destructuringBind :: forall v. Var v => P v (Ann, Term v Ann -> Term v Ann)
+binding :: forall v. Var v => P v ((Ann, v), Term v Ann)
+customFailure :: MonadParsec e s m => e -> m a
+block :: forall v. Var v => String -> TermP v
+importp :: Ord v => P v [(Name, Name)]
+data BlockElement v
+Binding :: ((Ann, v), Term v Ann) -> BlockElement v
+DestructuringBind :: (Ann, Term v Ann -> Term v Ann) -> BlockElement v
+Action :: Term v Ann -> BlockElement v
+imports :: Var v => P v (NamesWithHistory, [(v, v)])
+substImports :: Var v => NamesWithHistory -> [(v, v)] -> Term v Ann -> Term v Ann
+block' :: Var v => IsTop -> String -> P v (Token ()) -> P v b -> TermP v
+block'' :: forall v b. Var v => IsTop -> Bool -> String -> P v (Token ()) -> P v b -> TermP v
+number :: Var v => TermP v
+bytes :: Var v => TermP v
+number' :: Ord v => (Token Int64 -> a) -> (Token Word64 -> a) -> (Token Double -> a) -> P v a
+tupleOrParenthesizedTerm :: Var v => TermP v
+instance GHC.Show.Show Unison.TermParser.UnbreakCase
+instance GHC.Classes.Eq Unison.TermParser.UnbreakCase
+instance GHC.Show.Show v => GHC.Show.Show (Unison.TermParser.BlockElement v)
+
+module Unison.FileParser
+resolutionFailures :: Ord v => [ResolutionFailure v Ann] -> P v x
+file :: forall v. Var v => P v (UnisonFile v Ann)
+
+-- | Final validations and sanity checks to perform before finishing
+--   parsing.
+validateUnisonFile :: forall v. Var v => UnisonFile v Ann -> P v ()
+
+-- | Because types and abilities can introduce their own constructors and
+--   fields it's difficult to detect all duplicate terms during parsing
+--   itself. Here we collect all terms and constructors and verify that no
+--   duplicates exist in the file, triggering an error if needed.
+checkForDuplicateTermsAndConstructors :: forall v. Ord v => UnisonFile v Ann -> P v ()
+data Stanza v term
+WatchBinding :: WatchKind -> Ann -> ((Ann, v), term) -> Stanza v term
+WatchExpression :: WatchKind -> Text -> Ann -> term -> Stanza v term
+Binding :: ((Ann, v), term) -> Stanza v term
+Bindings :: [((Ann, v), term)] -> Stanza v term
+getVars :: Var v => Stanza v term -> [v]
+stanza :: Var v => P v (Stanza v (Term v Ann))
+watched :: Var v => P v (WatchKind, Text, Ann)
+type Accessors v = [(Token v, [(Token v, Type v Ann)])]
+declarations :: Var v => P v (Map v (DataDeclaration v Ann), Map v (EffectDeclaration v Ann), Accessors v)
+modifier :: Var v => P v (Maybe (Token Modifier))
+declaration :: Var v => P v (Either (v, DataDeclaration v Ann, Accessors v) (v, EffectDeclaration v Ann))
+dataDeclaration :: forall v. Var v => Maybe (Token Modifier) -> P v (v, DataDeclaration v Ann, Accessors v)
+effectDeclaration :: Var v => Maybe (Token Modifier) -> P v (v, EffectDeclaration v Ann)
+instance GHC.Base.Functor (Unison.FileParser.Stanza v)
+instance Data.Traversable.Traversable (Unison.FileParser.Stanza v)
+instance Data.Foldable.Foldable (Unison.FileParser.Stanza v)
+
 module Unison.PrintError
 type Env = PrettyPrintEnv
 pattern Code :: Color
@@ -3685,6 +2790,62 @@ intLiteralSyntaxTip :: Term v loc -> Type v loc -> Pretty ColorText
 --   disambiguation suggestions.
 prettyResolutionFailures :: forall v a. (Annotated a, Var v, Ord a) => String -> [ResolutionFailure v a] -> Pretty ColorText
 useExamples :: Pretty ColorText
+
+module Unison.Codebase.Runtime
+type Error = Pretty ColorText
+type Term v = Term v ()
+data Runtime v
+Runtime :: IO () -> (CodeLookup v IO () -> PrettyPrintEnv -> Term v -> IO (Either Error (Term v))) -> (CodeLookup v IO () -> PrettyPrintEnv -> Reference -> FilePath -> IO (Maybe Error)) -> Type v Ann -> Type v Ann -> Runtime v
+[terminate] :: Runtime v -> IO ()
+[evaluate] :: Runtime v -> CodeLookup v IO () -> PrettyPrintEnv -> Term v -> IO (Either Error (Term v))
+[compileTo] :: Runtime v -> CodeLookup v IO () -> PrettyPrintEnv -> Reference -> FilePath -> IO (Maybe Error)
+[mainType] :: Runtime v -> Type v Ann
+[ioTestType] :: Runtime v -> Type v Ann
+type IsCacheHit = Bool
+noCache :: Id -> IO (Maybe (Term v))
+type WatchResults v a = (Either Error ([(v, Term v)], Map v (a, WatchKind, Id, Term v, Term v, IsCacheHit)))
+evaluateWatches :: forall v a. Var v => CodeLookup v IO a -> PrettyPrintEnv -> (Id -> IO (Maybe (Term v))) -> Runtime v -> TypecheckedUnisonFile v a -> IO (WatchResults v a)
+evaluateTerm' :: (Var v, Monoid a) => CodeLookup v IO a -> (Id -> IO (Maybe (Term v))) -> PrettyPrintEnv -> Runtime v -> Term v a -> IO (Either Error (Term v))
+evaluateTerm :: (Var v, Monoid a) => CodeLookup v IO a -> PrettyPrintEnv -> Runtime v -> Term v a -> IO (Either Error (Term v))
+
+
+-- | Find a computation of type '{IO} () in the codebase.
+module Unison.Codebase.MainTerm
+data MainTerm v
+NotAFunctionName :: String -> MainTerm v
+NotFound :: String -> MainTerm v
+BadType :: String -> Maybe (Type v Ann) -> MainTerm v
+Success :: HashQualified Name -> Term v Ann -> Type v Ann -> MainTerm v
+getMainTerm :: (Monad m, Var v) => (Reference -> m (Maybe (Type v Ann))) -> Names -> String -> Type v Ann -> m (MainTerm v)
+builtinMain :: Var v => a -> Type v a
+resultArr :: Ord v => a -> Type v a
+builtinResultArr :: Ord v => a -> Type v a
+builtinTest :: Ord v => a -> Type v a
+
+module Unison.Builtin.Terms
+builtinTermsRef :: Map Symbol Id
+builtinTermsSrc :: a -> [(Symbol, Term Symbol a, Type Symbol a)]
+
+module Unison.Builtin
+codeLookup :: Applicative m => CodeLookup Symbol m Ann
+constructorType :: Reference -> Maybe ConstructorType
+names :: NamesWithHistory
+names0 :: Names
+builtinDataDecls :: [(Symbol, (Id, DataDeclaration))]
+builtinEffectDecls :: [(Symbol, (Id, EffectDeclaration))]
+builtinConstructorType :: Map Reference ConstructorType
+builtinTypeDependents :: Reference -> Set Reference
+builtinTypeDependentsOfComponent :: Hash -> Set Reference
+builtinTypes :: [(Name, Reference)]
+builtinTermsByType :: Relation Reference Referent
+builtinTermsByTypeMention :: Relation Reference Referent
+intrinsicTermReferences :: Set Reference
+intrinsicTypeReferences :: Set Reference
+isBuiltinType :: Reference -> Bool
+typeOf :: a -> (Type -> a) -> Reference -> a
+typeLookup :: TypeLookup Symbol Ann
+termRefTypes :: Map Reference Type
+instance GHC.Show.Show Unison.Builtin.BuiltinDSL
 
 module Unison.Parsers
 unsafeGetRightFrom :: (Var v, Show v) => String -> Either (Err v) a -> a
@@ -3890,6 +3051,748 @@ constructorNamed :: Reference -> Text -> ConstructorId
 constructorName :: Reference -> ConstructorId -> Text
 source :: Text
 
+module Unison.Server.Doc
+type Nat = Word64
+type SSyntaxText = SyntaxText' Reference
+data Doc
+Word :: Text -> Doc
+Code :: Doc -> Doc
+CodeBlock :: Text -> Doc -> Doc
+Bold :: Doc -> Doc
+Italic :: Doc -> Doc
+Strikethrough :: Doc -> Doc
+Style :: Text -> Doc -> Doc
+Anchor :: Text -> Doc -> Doc
+Blockquote :: Doc -> Doc
+Blankline :: Doc
+Linebreak :: Doc
+SectionBreak :: Doc
+Tooltip :: Doc -> Doc -> Doc
+Aside :: Doc -> Doc
+Callout :: Maybe Doc -> Doc -> Doc
+Table :: [[Doc]] -> Doc
+Folded :: Bool -> Doc -> Doc -> Doc
+Paragraph :: [Doc] -> Doc
+BulletedList :: [Doc] -> Doc
+NumberedList :: Nat -> [Doc] -> Doc
+Section :: Doc -> [Doc] -> Doc
+NamedLink :: Doc -> Doc -> Doc
+Image :: Doc -> Doc -> Maybe Doc -> Doc
+Special :: SpecialForm -> Doc
+Join :: [Doc] -> Doc
+UntitledSection :: [Doc] -> Doc
+Column :: [Doc] -> Doc
+Group :: Doc -> Doc
+type UnisonHash = Text
+data Ref a
+Term :: a -> Ref a
+Type :: a -> Ref a
+data MediaSource
+MediaSource :: Text -> Maybe Text -> MediaSource
+[mediaSourceUrl] :: MediaSource -> Text
+[mediaSourceMimeType] :: MediaSource -> Maybe Text
+data SpecialForm
+Source :: [Ref (UnisonHash, DisplayObject SyntaxText Src)] -> SpecialForm
+FoldedSource :: [Ref (UnisonHash, DisplayObject SyntaxText Src)] -> SpecialForm
+Example :: SyntaxText -> SpecialForm
+ExampleBlock :: SyntaxText -> SpecialForm
+Link :: SyntaxText -> SpecialForm
+Signature :: [SyntaxText] -> SpecialForm
+SignatureInline :: SyntaxText -> SpecialForm
+Eval :: SyntaxText -> SyntaxText -> SpecialForm
+EvalInline :: SyntaxText -> SyntaxText -> SpecialForm
+Embed :: SyntaxText -> SpecialForm
+EmbedInline :: SyntaxText -> SpecialForm
+Video :: [MediaSource] -> Map Text Text -> SpecialForm
+FrontMatter :: Map Text [Text] -> SpecialForm
+data Src
+Src :: SyntaxText -> SyntaxText -> Src
+renderDoc :: forall v m. (Var v, Monad m) => PrettyPrintEnvDecl -> (Reference -> m (Maybe (Term v ()))) -> (Referent -> m (Maybe (Type v ()))) -> (Term v () -> m (Maybe (Term v ()))) -> (Reference -> m (Maybe (Decl v ()))) -> Term v () -> m Doc
+instance Data.Traversable.Traversable Unison.Server.Doc.Ref
+instance Data.Foldable.Foldable Unison.Server.Doc.Ref
+instance GHC.Base.Functor Unison.Server.Doc.Ref
+instance GHC.Generics.Generic (Unison.Server.Doc.Ref a)
+instance GHC.Show.Show a => GHC.Show.Show (Unison.Server.Doc.Ref a)
+instance GHC.Classes.Eq a => GHC.Classes.Eq (Unison.Server.Doc.Ref a)
+instance GHC.Generics.Generic Unison.Server.Doc.MediaSource
+instance GHC.Show.Show Unison.Server.Doc.MediaSource
+instance GHC.Classes.Eq Unison.Server.Doc.MediaSource
+instance GHC.Generics.Generic Unison.Server.Doc.Src
+instance GHC.Show.Show Unison.Server.Doc.Src
+instance GHC.Classes.Eq Unison.Server.Doc.Src
+instance GHC.Generics.Generic Unison.Server.Doc.SpecialForm
+instance GHC.Show.Show Unison.Server.Doc.SpecialForm
+instance GHC.Classes.Eq Unison.Server.Doc.SpecialForm
+instance GHC.Generics.Generic Unison.Server.Doc.Doc
+instance GHC.Show.Show Unison.Server.Doc.Doc
+instance GHC.Classes.Eq Unison.Server.Doc.Doc
+
+
+-- | Render Unison.Server.Doc and embedded source to Html
+module Unison.Server.Doc.AsHtml
+data NamedLinkHref
+Href :: Text -> NamedLinkHref
+DocLinkHref :: Name -> NamedLinkHref
+ReferenceHref :: Text -> NamedLinkHref
+InvalidHref :: NamedLinkHref
+data EmbeddedSource
+EmbeddedSource :: SyntaxText -> SyntaxText -> EmbeddedSource
+Builtin :: SyntaxText -> EmbeddedSource
+embeddedSource :: Ref (UnisonHash, DisplayObject SyntaxText Src) -> Maybe EmbeddedSource
+inlineCode :: [Text] -> Html () -> Html ()
+codeBlock :: [Attribute] -> Html () -> Html ()
+normalizeHref :: Map Referent Name -> Doc -> NamedLinkHref
+data IsFolded
+IsFolded :: Bool -> [Html ()] -> [Html ()] -> IsFolded
+Disabled :: Html () -> IsFolded
+foldedToHtml :: [Attribute] -> IsFolded -> Html ()
+foldedToHtmlSource :: Bool -> EmbeddedSource -> Html ()
+
+-- | Merge adjacent Word elements in a list to 1 element with a string of
+--   words separated by space— useful for rendering to the dom without
+--   creating dom elements for each and every word in the doc, but instead
+--   rely on textNodes
+mergeWords :: Text -> [Doc] -> [Doc]
+
+-- | Merge down Doc to Text by merging Paragraphs and Words. Used for
+--   things like extract an src of an image. I.e something that has to be a
+--   Text and not a Doc
+toText :: Text -> Doc -> Text
+data SideContent
+FrontMatterContent :: Map Text [Text] -> SideContent
+TooltipContent :: Html () -> SideContent
+newtype FrontMatterData
+FrontMatterData :: Map Text [Text] -> FrontMatterData
+toHtml :: Map Referent Name -> Doc -> (FrontMatterData, Html ())
+
+-- | Unison Doc allows endlessly deep section nesting with titles, but HTML
+--   only supports to h1-h6, so we clamp the sectionLevel when converting
+h :: Nat -> Text -> Html () -> Html ()
+badge :: Html () -> Html ()
+textToClass :: Text -> Text
+
+module Unison.Codebase.Branch.BranchDiff
+type Star r n = Star r n
+data BranchDiff
+BranchDiff :: Star Referent NameSegment -> Star Referent NameSegment -> Star Reference NameSegment -> Star Reference NameSegment -> Map NameSegment PatchDiff -> BranchDiff
+[addedTerms] :: BranchDiff -> Star Referent NameSegment
+[removedTerms] :: BranchDiff -> Star Referent NameSegment
+[addedTypes] :: BranchDiff -> Star Reference NameSegment
+[removedTypes] :: BranchDiff -> Star Reference NameSegment
+[changedPatches] :: BranchDiff -> Map NameSegment PatchDiff
+diff0 :: Monad m => Branch0 m -> Branch0 m -> m BranchDiff
+instance GHC.Show.Show Unison.Codebase.Branch.BranchDiff.BranchDiff
+instance GHC.Classes.Ord Unison.Codebase.Branch.BranchDiff.BranchDiff
+instance GHC.Classes.Eq Unison.Codebase.Branch.BranchDiff.BranchDiff
+instance GHC.Base.Semigroup Unison.Codebase.Branch.BranchDiff.BranchDiff
+instance GHC.Base.Monoid Unison.Codebase.Branch.BranchDiff.BranchDiff
+
+module Unison.Codebase.Branch
+
+-- | A node in the Unison namespace hierarchy along with its history.
+newtype Branch m
+Branch :: UnwrappedBranch m -> Branch m
+[_history] :: Branch m -> UnwrappedBranch m
+type UnwrappedBranch m = Causal m Raw (Branch0 m)
+
+-- | A node in the Unison namespace hierarchy.
+--   
+--   <a>_terms</a> and <a>_types</a> are the declarations at this level.
+--   <a>_children</a> are the nodes one level below us. <a>_edits</a> are
+--   the <a>Patch</a>s stored at this node in the code.
+--   
+--   The <tt>deep*</tt> fields are derived from the four above.
+data Branch0 m
+Branch0 :: Star Referent NameSegment -> Star Reference NameSegment -> Map NameSegment (Branch m) -> Map NameSegment (EditHash, m Patch) -> Relation Referent Name -> Relation Reference Name -> R4 Referent Name -> R4 Reference Name -> Set Path -> Map Name EditHash -> Branch0 m
+[_terms] :: Branch0 m -> Star Referent NameSegment
+[_types] :: Branch0 m -> Star Reference NameSegment
+
+-- | Note the <a>Branch</a> here, not <a>Branch0</a>. Every level in the
+--   tree has a history.
+[_children] :: Branch0 m -> Map NameSegment (Branch m)
+[_edits] :: Branch0 m -> Map NameSegment (EditHash, m Patch)
+[deepTerms] :: Branch0 m -> Relation Referent Name
+[deepTypes] :: Branch0 m -> Relation Reference Name
+[deepTermMetadata] :: Branch0 m -> R4 Referent Name
+[deepTypeMetadata] :: Branch0 m -> R4 Reference Name
+[deepPaths] :: Branch0 m -> Set Path
+[deepEdits] :: Branch0 m -> Map Name EditHash
+data Raw
+Raw :: Star Referent NameSegment -> Star Reference NameSegment -> Map NameSegment Hash -> Map NameSegment EditHash -> Raw
+type Star r n = Star r n
+type Hash = RawHash Raw
+type EditHash = Hash
+pattern Hash :: Hash -> RawHash a
+branch0 :: forall m. Star Referent NameSegment -> Star TypeReference NameSegment -> Map NameSegment (Branch m) -> Map NameSegment (EditHash, m Patch) -> Branch0 m
+one :: Branch0 m -> Branch m
+cons :: Applicative m => Branch0 m -> Branch m -> Branch m
+uncons :: Applicative m => Branch m -> m (Maybe (Branch0 m, Branch m))
+empty :: Branch m
+empty0 :: Branch0 m
+
+-- | Discards the history of a Branch and its children, recursively
+discardHistory :: Applicative m => Branch m -> Branch m
+
+-- | Discards the history of a Branch0's children, recursively
+discardHistory0 :: Applicative m => Branch0 m -> Branch0 m
+transform :: Functor m => (forall a. m a -> n a) -> Branch m -> Branch n
+
+-- | Checks whether a branch is empty AND has no history.
+isEmpty :: Branch m -> Bool
+
+-- | Checks whether a Branch0 is empty, which means that the branch
+--   contains no terms or types, and that the heads of all children are
+--   empty by the same definition. This is not as easy as checking whether
+--   the branch is equal to the <a>empty0</a> branch because child branches
+--   may be empty, but still have history.
+isEmpty0 :: Branch0 m -> Bool
+isOne :: Branch m -> Bool
+before :: Monad m => Branch m -> Branch m -> m Bool
+lca :: Monad m => Branch m -> Branch m -> m (Maybe (Branch m))
+history :: Iso' (Branch m) (UnwrappedBranch m)
+head :: Branch m -> Branch0 m
+headHash :: Branch m -> Hash
+children :: Lens' (Branch0 m) (Map NameSegment (Branch m))
+nonEmptyChildren :: Branch0 m -> Map NameSegment (Branch m)
+
+-- | a version of <a>deepEdits</a> that returns the `m Patch` as well.
+deepEdits' :: Branch0 m -> Map Name (EditHash, m Patch)
+
+-- | what does this do? —AI
+toList0 :: Branch0 m -> [(Path, Branch0 m)]
+
+-- | Run a series of updates at specific locations, aggregating all changes
+--   into a single causal step. History is managed according to
+--   <a>UpdateStrategy</a>.
+stepManyAt :: forall m f. (Monad m, Foldable f) => UpdateStrategy -> f (Path, Branch0 m -> Branch0 m) -> Branch m -> Branch m
+
+-- | Run a series of updates at specific locations. History is managed
+--   according to the <a>UpdateStrategy</a>
+stepManyAtM :: (Monad m, Monad n, Foldable f) => UpdateStrategy -> f (Path, Branch0 m -> n (Branch0 m)) -> Branch m -> n (Branch m)
+stepEverywhere :: Applicative m => (Branch0 m -> Branch0 m) -> Branch0 m -> Branch0 m
+
+-- | Perform updates over many locations within a branch by batching up
+--   operations on sub-branches as much as possible without affecting
+--   semantics. This operation does not create any causal conses, the
+--   operations are performed directly on the current head of the provided
+--   branch and child branches. It's the caller's responsibility to apply
+--   updates in history however they choose.
+batchUpdates :: forall f m. (Monad m, Foldable f) => f (Path, Branch0 m -> Branch0 m) -> Branch0 m -> Branch0 m
+
+-- | Batch many updates. This allows us to apply the updates while
+--   minimizing redundant traversals. Semantics of operations are preserved
+--   by ensuring that all updates will always see changes by updates before
+--   them in the list.
+--   
+--   This method does not <a>step</a> any branches on its own, all causal
+--   changes must be performed in the updates themselves, or this batch
+--   update must be provided to 'stepManyAt(M)'.
+batchUpdatesM :: forall m n f. (Monad m, Monad n, Foldable f) => f (Path, Branch0 m -> n (Branch0 m)) -> Branch0 m -> n (Branch0 m)
+data UpdateStrategy
+
+-- | Compress all changes into a single causal cons. The resulting branch
+--   will have at most one new causal cons at each branch.
+--   
+--   Note that this does NOT allow updates to add histories at children.
+--   E.g. if the root.editme branch has history: A -&gt; B -&gt; C and you
+--   use <tt>makeSetBranch</tt> to update it to a new branch with history X
+--   -&gt; Y -&gt; Z, CompressHistory will result in a history for
+--   root.editme of: A -&gt; B -&gt; C -&gt; Z. A <tt>snapshot</tt> of the
+--   most recent state of the updated branch is appended to the existing
+--   history, if the new state is equal to the existing state, no new
+--   history nodes are appended.
+CompressHistory :: UpdateStrategy
+
+-- | Preserves any history changes made within the update.
+--   
+--   Note that this allows you to clobber the history child branches if you
+--   want. E.g. if the root.editme branch has history: A -&gt; B -&gt; C
+--   and you use <tt>makeSetBranch</tt> to update it to a new branch with
+--   history X -&gt; Y -&gt; Z, AllowRewritingHistory will result in a
+--   history for root.editme of: X -&gt; Y -&gt; Z. The history of the
+--   updated branch is replaced entirely.
+AllowRewritingHistory :: UpdateStrategy
+addTermName :: Referent -> NameSegment -> Metadata -> Branch0 m -> Branch0 m
+addTypeName :: TypeReference -> NameSegment -> Metadata -> Branch0 m -> Branch0 m
+deleteTermName :: Referent -> NameSegment -> Branch0 m -> Branch0 m
+deleteTypeName :: TypeReference -> NameSegment -> Branch0 m -> Branch0 m
+setChildBranch :: NameSegment -> Branch m -> Branch0 m -> Branch0 m
+replacePatch :: Applicative m => NameSegment -> Patch -> Branch0 m -> Branch0 m
+deletePatch :: NameSegment -> Branch0 m -> Branch0 m
+getMaybePatch :: Applicative m => NameSegment -> Branch0 m -> m (Maybe Patch)
+getPatch :: Applicative m => NameSegment -> Branch0 m -> m Patch
+modifyPatches :: Monad m => NameSegment -> (Patch -> Patch) -> Branch0 m -> m (Branch0 m)
+getAt :: Path -> Branch m -> Maybe (Branch m)
+getAt' :: Path -> Branch m -> Branch m
+getAt0 :: Path -> Branch0 m -> Branch0 m
+modifyAt :: Applicative m => Path -> (Branch m -> Branch m) -> Branch m -> Branch m
+modifyAtM :: forall n m. Functor n => Applicative m => Path -> (Branch m -> n (Branch m)) -> Branch m -> n (Branch m)
+
+-- | Traverse the head branch of all direct children. The index of the
+--   traversal is the name of that child branch according to the parent.
+children0 :: IndexedTraversal' NameSegment (Branch0 m) (Branch0 m)
+terms :: Lens' (Branch0 m) (Star Referent NameSegment)
+types :: Lens' (Branch0 m) (Star TypeReference NameSegment)
+edits :: Lens' (Branch0 m) (Map NameSegment (EditHash, m Patch))
+deepReferents :: Branch0 m -> Set Referent
+deepTypeReferences :: Branch0 m -> Set TypeReference
+
+-- | <tt>head <a>consBranchSnapshot</a> base</tt> Cons's the current state
+--   of <tt>head</tt> onto <tt>base</tt> as-is. Consider whether you really
+--   want this behaviour or the behaviour of <a>squashMerge</a> That is, it
+--   does not perform any common ancestor detection, or change
+--   reconciliation, it sets the current state of the base branch to the
+--   new state as a new causal step (or returns the existing base if there
+--   are no)
+consBranchSnapshot :: forall m. Monad m => Branch m -> Branch m -> Branch m
+instance GHC.Classes.Eq Unison.Codebase.Branch.ActionLocation
+instance Control.Lens.Empty.AsEmpty (Unison.Codebase.Branch.Type.Branch m)
+instance Unison.Hashing.V2.Hashable.Hashable (Unison.Codebase.Branch.Type.Branch0 m)
+
+module Unison.Server.Types
+type APIHeaders x = Headers '[Header "Access-Control-Allow-Origin" String, Header "Cache-Control" String] x
+type APIGet c = Get '[JSON] (APIHeaders c)
+type HashQualifiedName = Text
+type NamespaceFQN = Text
+type Size = Int
+type UnisonName = Text
+type UnisonHash = Text
+newtype Suffixify
+Suffixify :: Bool -> Suffixify
+[suffixified] :: Suffixify -> Bool
+data TermDefinition
+TermDefinition :: [HashQualifiedName] -> HashQualifiedName -> Maybe TermTag -> DisplayObject SyntaxText SyntaxText -> SyntaxText -> [(HashQualifiedName, UnisonHash, Doc)] -> TermDefinition
+[termNames] :: TermDefinition -> [HashQualifiedName]
+[bestTermName] :: TermDefinition -> HashQualifiedName
+[defnTermTag] :: TermDefinition -> Maybe TermTag
+[termDefinition] :: TermDefinition -> DisplayObject SyntaxText SyntaxText
+[signature] :: TermDefinition -> SyntaxText
+[termDocs] :: TermDefinition -> [(HashQualifiedName, UnisonHash, Doc)]
+data TypeDefinition
+TypeDefinition :: [HashQualifiedName] -> HashQualifiedName -> Maybe TypeTag -> DisplayObject SyntaxText SyntaxText -> [(HashQualifiedName, UnisonHash, Doc)] -> TypeDefinition
+[typeNames] :: TypeDefinition -> [HashQualifiedName]
+[bestTypeName] :: TypeDefinition -> HashQualifiedName
+[defnTypeTag] :: TypeDefinition -> Maybe TypeTag
+[typeDefinition] :: TypeDefinition -> DisplayObject SyntaxText SyntaxText
+[typeDocs] :: TypeDefinition -> [(HashQualifiedName, UnisonHash, Doc)]
+data DefinitionDisplayResults
+DefinitionDisplayResults :: Map UnisonHash TermDefinition -> Map UnisonHash TypeDefinition -> [HashQualifiedName] -> DefinitionDisplayResults
+[termDefinitions] :: DefinitionDisplayResults -> Map UnisonHash TermDefinition
+[typeDefinitions] :: DefinitionDisplayResults -> Map UnisonHash TypeDefinition
+[missingDefinitions] :: DefinitionDisplayResults -> [HashQualifiedName]
+data TermTag
+Doc :: TermTag
+Test :: TermTag
+data TypeTag
+Ability :: TypeTag
+Data :: TypeTag
+data UnisonRef
+TypeRef :: UnisonHash -> UnisonRef
+TermRef :: UnisonHash -> UnisonRef
+data FoundEntry
+FoundTerm :: NamedTerm -> FoundEntry
+FoundType :: NamedType -> FoundEntry
+unisonRefToText :: UnisonRef -> Text
+data NamedTerm
+NamedTerm :: HashQualifiedName -> UnisonHash -> Maybe SyntaxText -> Maybe TermTag -> NamedTerm
+[termName] :: NamedTerm -> HashQualifiedName
+[termHash] :: NamedTerm -> UnisonHash
+[termType] :: NamedTerm -> Maybe SyntaxText
+[termTag] :: NamedTerm -> Maybe TermTag
+data NamedType
+NamedType :: HashQualifiedName -> UnisonHash -> TypeTag -> NamedType
+[typeName] :: NamedType -> HashQualifiedName
+[typeHash] :: NamedType -> UnisonHash
+[typeTag] :: NamedType -> TypeTag
+munge :: Text -> ByteString
+mungeShow :: Show s => s -> ByteString
+mungeString :: String -> ByteString
+defaultWidth :: Width
+discard :: Applicative m => a -> m ()
+mayDefaultWidth :: Maybe Width -> Width
+addHeaders :: v -> APIHeaders v
+branchToUnisonHash :: Branch m -> UnisonHash
+instance GHC.Generics.Generic Unison.Server.Types.Suffixify
+instance GHC.Show.Show Unison.Server.Types.Suffixify
+instance GHC.Classes.Ord Unison.Server.Types.Suffixify
+instance GHC.Classes.Eq Unison.Server.Types.Suffixify
+instance GHC.Generics.Generic Unison.Server.Types.TermTag
+instance GHC.Show.Show Unison.Server.Types.TermTag
+instance GHC.Classes.Ord Unison.Server.Types.TermTag
+instance GHC.Classes.Eq Unison.Server.Types.TermTag
+instance GHC.Generics.Generic Unison.Server.Types.TermDefinition
+instance GHC.Show.Show Unison.Server.Types.TermDefinition
+instance GHC.Classes.Eq Unison.Server.Types.TermDefinition
+instance GHC.Generics.Generic Unison.Server.Types.TypeTag
+instance GHC.Show.Show Unison.Server.Types.TypeTag
+instance GHC.Classes.Ord Unison.Server.Types.TypeTag
+instance GHC.Classes.Eq Unison.Server.Types.TypeTag
+instance GHC.Generics.Generic Unison.Server.Types.TypeDefinition
+instance GHC.Show.Show Unison.Server.Types.TypeDefinition
+instance GHC.Classes.Eq Unison.Server.Types.TypeDefinition
+instance GHC.Generics.Generic Unison.Server.Types.DefinitionDisplayResults
+instance GHC.Show.Show Unison.Server.Types.DefinitionDisplayResults
+instance GHC.Classes.Eq Unison.Server.Types.DefinitionDisplayResults
+instance GHC.Generics.Generic Unison.Server.Types.UnisonRef
+instance GHC.Show.Show Unison.Server.Types.UnisonRef
+instance GHC.Classes.Ord Unison.Server.Types.UnisonRef
+instance GHC.Classes.Eq Unison.Server.Types.UnisonRef
+instance GHC.Show.Show Unison.Server.Types.NamedTerm
+instance GHC.Generics.Generic Unison.Server.Types.NamedTerm
+instance GHC.Classes.Eq Unison.Server.Types.NamedTerm
+instance GHC.Show.Show Unison.Server.Types.NamedType
+instance GHC.Generics.Generic Unison.Server.Types.NamedType
+instance GHC.Classes.Eq Unison.Server.Types.NamedType
+instance GHC.Generics.Generic Unison.Server.Types.FoundEntry
+instance GHC.Show.Show Unison.Server.Types.FoundEntry
+instance GHC.Classes.Eq Unison.Server.Types.FoundEntry
+instance Web.Internal.HttpApiData.FromHttpApiData Unison.Server.Types.Suffixify
+instance Data.OpenApi.Internal.ParamSchema.ToParamSchema Unison.Server.Types.Suffixify
+instance Data.OpenApi.Internal.ParamSchema.ToParamSchema Unison.Codebase.ShortBranchHash.ShortBranchHash
+instance Web.Internal.HttpApiData.FromHttpApiData Unison.Util.Pretty.Width
+instance Data.OpenApi.Internal.ParamSchema.ToParamSchema Unison.Util.Pretty.Width
+instance (Data.OpenApi.Internal.Schema.ToSchema b, Data.OpenApi.Internal.Schema.ToSchema a) => Data.OpenApi.Internal.Schema.ToSchema (Unison.Codebase.Editor.DisplayObject.DisplayObject b a)
+instance Data.OpenApi.Internal.Schema.ToSchema Unison.ShortHash.ShortHash
+instance Data.OpenApi.Internal.Schema.ToSchema n => Data.OpenApi.Internal.Schema.ToSchema (Unison.HashQualified.HashQualified n)
+instance Data.OpenApi.Internal.Schema.ToSchema Unison.ConstructorType.ConstructorType
+instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Types.TypeDefinition
+instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Types.TermDefinition
+instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Types.DefinitionDisplayResults
+instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Types.FoundEntry
+instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Types.NamedTerm
+instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Types.NamedType
+instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Types.TermTag
+instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Types.TypeTag
+instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Types.FoundEntry
+instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Types.NamedType
+instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Types.NamedTerm
+instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Types.DefinitionDisplayResults
+instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Types.TypeDefinition
+instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Types.TypeTag
+instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Types.TermDefinition
+instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Types.TermTag
+instance Data.Aeson.Types.ToJSON.ToJSON Unison.Name.Name
+instance Data.OpenApi.Internal.Schema.ToSchema Unison.Name.Name
+instance Web.Internal.HttpApiData.FromHttpApiData Unison.Codebase.ShortBranchHash.ShortBranchHash
+instance (Data.Aeson.Types.ToJSON.ToJSON b, Data.Aeson.Types.ToJSON.ToJSON a) => Data.Aeson.Types.ToJSON.ToJSON (Unison.Codebase.Editor.DisplayObject.DisplayObject b a)
+instance Data.Aeson.Types.ToJSON.ToJSON Unison.ShortHash.ShortHash
+instance Data.Aeson.Types.ToJSON.ToJSONKey Unison.ShortHash.ShortHash
+instance Data.Aeson.Types.ToJSON.ToJSON n => Data.Aeson.Types.ToJSON.ToJSON (Unison.HashQualified.HashQualified n)
+instance Data.Aeson.Types.ToJSON.ToJSON Unison.ConstructorType.ConstructorType
+instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Doc.Doc
+instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Doc.MediaSource
+instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Doc.SpecialForm
+instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Doc.Src
+instance Data.Aeson.Types.ToJSON.ToJSON a => Data.Aeson.Types.ToJSON.ToJSON (Unison.Server.Doc.Ref a)
+instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Doc.Doc
+instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Doc.MediaSource
+instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Doc.SpecialForm
+instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Doc.Src
+instance Data.OpenApi.Internal.Schema.ToSchema a => Data.OpenApi.Internal.Schema.ToSchema (Unison.Server.Doc.Ref a)
+
+module Unison.Codebase.Type
+
+-- | Abstract interface to a user's codebase.
+data Codebase m v a
+Codebase :: (Id -> m (Maybe (Term v a))) -> (Id -> m (Maybe (Type v a))) -> (Id -> m (Maybe (Decl v a))) -> (Id -> Term v a -> Type v a -> m ()) -> (Id -> Decl v a -> m ()) -> (Hash -> m (Maybe [(Term v a, Type v a)])) -> (Hash -> m (Maybe [Decl v a])) -> (Hash -> m (Maybe CycleSize)) -> m (Either GetRootBranchError (Branch m)) -> m Bool -> (Branch m -> m ()) -> m (IO (), IO (Set Hash)) -> (Hash -> m (Maybe (Branch m))) -> (Branch m -> m ()) -> (Hash -> m Bool) -> (EditHash -> m (Maybe Patch)) -> (EditHash -> Patch -> m ()) -> (EditHash -> m Bool) -> (Reference -> m (Set Id)) -> (Hash -> m (Set Id)) -> (CodebasePath -> SyncMode -> Branch m -> m ()) -> (CodebasePath -> SyncMode -> Branch m -> m ()) -> (forall r. ReadRemoteNamespace -> GitBranchBehavior -> ((Branch m, CodebasePath) -> m r) -> m (Either GitError r)) -> (forall e. WriteRepo -> PushGitBranchOpts -> (Branch m -> m (Either e (Branch m))) -> m (Either GitError (Either e (Branch m)))) -> (WatchKind -> m [Id]) -> (WatchKind -> Id -> m (Maybe (Term v a))) -> (WatchKind -> Id -> Term v a -> m ()) -> m () -> m [Entry Hash] -> (Text -> Branch m -> Branch m -> m ()) -> (Reference -> m (Set Id)) -> (Reference -> m (Set Id)) -> m Int -> (ShortHash -> m (Set Id)) -> (ShortHash -> m (Set Id)) -> (ShortHash -> m (Set Id)) -> m Int -> (ShortBranchHash -> m (Set Hash)) -> Maybe (Hash -> Hash -> m (Maybe Hash)) -> Maybe (Hash -> Hash -> m Bool) -> Codebase m v a
+
+-- | Get a user-defined term from the codebase.
+--   
+--   Note that it is possible to call <a>putTerm</a>, then <a>getTerm</a>,
+--   and receive <tt>Nothing</tt>, per the semantics of <a>putTerm</a>.
+[getTerm] :: Codebase m v a -> Id -> m (Maybe (Term v a))
+
+-- | Get the type of a user-defined term.
+--   
+--   Note that it is possible to call <a>putTerm</a>, then
+--   <a>getTypeOfTermImpl</a>, and receive <tt>Nothing</tt>, per the
+--   semantics of <a>putTerm</a>.
+[getTypeOfTermImpl] :: Codebase m v a -> Id -> m (Maybe (Type v a))
+
+-- | Get a type declaration.
+--   
+--   Note that it is possible to call <a>putTypeDeclaration</a>, then
+--   <a>getTypeDeclaration</a>, and receive <tt>Nothing</tt>, per the
+--   semantics of <a>putTypeDeclaration</a>.
+[getTypeDeclaration] :: Codebase m v a -> Id -> m (Maybe (Decl v a))
+
+-- | Enqueue the put of a user-defined term (with its type) into the
+--   codebase, if it doesn't already exist. The implementation may choose
+--   to delay the put until all of the term's (and its type's) references
+--   are stored as well.
+[putTerm] :: Codebase m v a -> Id -> Term v a -> Type v a -> m ()
+
+-- | Enqueue the put of a type declaration into the codebase, if it doesn't
+--   already exist. The implementation may choose to delay the put until
+--   all of the type declaration's references are stored as well.
+[putTypeDeclaration] :: Codebase m v a -> Id -> Decl v a -> m ()
+[getTermComponentWithTypes] :: Codebase m v a -> Hash -> m (Maybe [(Term v a, Type v a)])
+[getDeclComponent] :: Codebase m v a -> Hash -> m (Maybe [Decl v a])
+[getComponentLength] :: Codebase m v a -> Hash -> m (Maybe CycleSize)
+
+-- | Get the root branch.
+[getRootBranch] :: Codebase m v a -> m (Either GetRootBranchError (Branch m))
+
+-- | Get whether the root branch exists.
+[getRootBranchExists] :: Codebase m v a -> m Bool
+
+-- | Like <a>putBranch</a>, but also adjusts the root branch pointer
+--   afterwards.
+[putRootBranch] :: Codebase m v a -> Branch m -> m ()
+[rootBranchUpdates] :: Codebase m v a -> m (IO (), IO (Set Hash))
+[getBranchForHashImpl] :: Codebase m v a -> Hash -> m (Maybe (Branch m))
+
+-- | Put a branch into the codebase, which includes its children, its
+--   patches, and the branch itself, if they don't already exist.
+--   
+--   The terms and type declarations that a branch references must already
+--   exist in the codebase.
+[putBranch] :: Codebase m v a -> Branch m -> m ()
+
+-- | Check whether the given branch exists in the codebase.
+[branchExists] :: Codebase m v a -> Hash -> m Bool
+
+-- | Get a patch from the codebase.
+[getPatch] :: Codebase m v a -> EditHash -> m (Maybe Patch)
+
+-- | Put a patch into the codebase.
+--   
+--   Note that <a>putBranch</a> may also put patches.
+[putPatch] :: Codebase m v a -> EditHash -> Patch -> m ()
+
+-- | Check whether the given patch exists in the codebase.
+[patchExists] :: Codebase m v a -> EditHash -> m Bool
+
+-- | Get the set of user-defined terms and type declarations that depend on
+--   the given term, type declaration, or builtin type.
+[dependentsImpl] :: Codebase m v a -> Reference -> m (Set Id)
+[dependentsOfComponentImpl] :: Codebase m v a -> Hash -> m (Set Id)
+
+-- | Copy a branch and all of its dependencies from the given codebase into
+--   this one.
+[syncFromDirectory] :: Codebase m v a -> CodebasePath -> SyncMode -> Branch m -> m ()
+
+-- | Copy a branch and all of its dependencies from this codebase into the
+--   given codebase.
+[syncToDirectory] :: Codebase m v a -> CodebasePath -> SyncMode -> Branch m -> m ()
+[viewRemoteBranch'] :: Codebase m v a -> forall r. ReadRemoteNamespace -> GitBranchBehavior -> ((Branch m, CodebasePath) -> m r) -> m (Either GitError r)
+
+-- | Push the given branch to the given repo, and optionally set it as the
+--   root branch.
+[pushGitBranch] :: Codebase m v a -> forall e. WriteRepo -> PushGitBranchOpts -> (Branch m -> m (Either e (Branch m))) -> m (Either GitError (Either e (Branch m)))
+
+-- | <tt>watches k</tt> returns all of the references <tt>r</tt> that were
+--   previously put by a <tt>putWatch k r t</tt>. <tt>t</tt> can be
+--   retrieved by <tt>getWatch k r</tt>.
+[watches] :: Codebase m v a -> WatchKind -> m [Id]
+
+-- | <tt>getWatch k r</tt> returns watch result <tt>t</tt> that was
+--   previously put by <tt>putWatch k r t</tt>.
+[getWatch] :: Codebase m v a -> WatchKind -> Id -> m (Maybe (Term v a))
+
+-- | <tt>putWatch k r t</tt> puts a watch of kind <tt>k</tt>, with
+--   hash-of-expression <tt>r</tt> and decompiled result <tt>t</tt> into
+--   the codebase.
+--   
+--   For example, in the watch expression below, <tt>k</tt> is
+--   <a>Regular</a>, <tt>r</tt> is the hash of <tt>x</tt>, and <tt>t</tt>
+--   is <tt>7</tt>.
+--   
+--   <pre>
+--   &gt; x = 3 + 4
+--     ⧩
+--     7
+--   </pre>
+[putWatch] :: Codebase m v a -> WatchKind -> Id -> Term v a -> m ()
+
+-- | Delete all watches that were put by <a>putWatch</a>.
+[clearWatches] :: Codebase m v a -> m ()
+
+-- | Get the entire reflog.
+[getReflog] :: Codebase m v a -> m [Entry Hash]
+
+-- | <tt>appendReflog reason before after</tt> appends a reflog entry.
+--   
+--   FIXME: this could have type
+--   
+--   <pre>
+--   appendReflog :: Reflog.Entry (Branch m) -&gt; m ()
+--   </pre>
+[appendReflog] :: Codebase m v a -> Text -> Branch m -> Branch m -> m ()
+
+-- | Get the set of user-defined terms-or-constructors that have the given
+--   type.
+[termsOfTypeImpl] :: Codebase m v a -> Reference -> m (Set Id)
+
+-- | Get the set of user-defined terms-or-constructors mention the given
+--   type anywhere in their signature.
+[termsMentioningTypeImpl] :: Codebase m v a -> Reference -> m (Set Id)
+
+-- | The number of base32 characters needed to distinguish any two
+--   references in the codebase.
+[hashLength] :: Codebase m v a -> m Int
+
+-- | Get the set of user-defined terms whose hash matches the given prefix.
+[termReferencesByPrefix] :: Codebase m v a -> ShortHash -> m (Set Id)
+
+-- | Get the set of type declarations whose hash matches the given prefix.
+[typeReferencesByPrefix] :: Codebase m v a -> ShortHash -> m (Set Id)
+
+-- | Get the set of user-defined terms-or-constructors whose hash matches
+--   the given prefix.
+[termReferentsByPrefix] :: Codebase m v a -> ShortHash -> m (Set Id)
+
+-- | The number of base32 characters needed to distinguish any two branch
+--   in the codebase.
+[branchHashLength] :: Codebase m v a -> m Int
+
+-- | Get the set of branches whose hash matches the given prefix.
+[branchHashesByPrefix] :: Codebase m v a -> ShortBranchHash -> m (Set Hash)
+[lcaImpl] :: Codebase m v a -> Maybe (Hash -> Hash -> m (Maybe Hash))
+[beforeImpl] :: Codebase m v a -> Maybe (Hash -> Hash -> m Bool)
+
+-- | A directory that contains a codebase.
+type CodebasePath = FilePath
+data PushGitBranchOpts
+PushGitBranchOpts :: Bool -> SyncMode -> PushGitBranchOpts
+
+-- | Set the branch as root?
+[setRoot] :: PushGitBranchOpts -> Bool
+[syncMode] :: PushGitBranchOpts -> SyncMode
+data GitError
+GitProtocolError :: GitProtocolError -> GitError
+GitCodebaseError :: GitCodebaseError Hash -> GitError
+GitSqliteCodebaseError :: GitSqliteCodebaseError -> GitError
+data GetRootBranchError
+NoRootBranch :: GetRootBranchError
+CouldntParseRootBranch :: String -> GetRootBranchError
+CouldntLoadRootBranch :: Hash -> GetRootBranchError
+type SyncToDir m = CodebasePath -> SyncMode -> Branch m -> m ()
+
+-- | Whether a codebase is local or remote.
+data LocalOrRemote
+Local :: LocalOrRemote
+Remote :: LocalOrRemote
+gitErrorFromOpenCodebaseError :: CodebasePath -> ReadRepo -> OpenCodebaseError -> GitSqliteCodebaseError
+instance GHC.Classes.Ord Unison.Codebase.Type.LocalOrRemote
+instance GHC.Classes.Eq Unison.Codebase.Type.LocalOrRemote
+instance GHC.Show.Show Unison.Codebase.Type.LocalOrRemote
+instance GHC.Show.Show Unison.Codebase.Type.GetRootBranchError
+instance GHC.Show.Show Unison.Codebase.Type.GitError
+instance GHC.Exception.Type.Exception Unison.Codebase.Type.GitError
+
+module Unison.Codebase.SqliteCodebase.Conversions
+sbh1to2 :: ShortBranchHash -> ShortBranchHash
+decltype2to1 :: DeclType -> ConstructorType
+decltype1to2 :: ConstructorType -> DeclType
+watchKind1to2 :: WatchKind -> WatchKind
+watchKind2to1 :: WatchKind -> WatchKind
+term1to2 :: Hash -> Term Symbol Ann -> Term Symbol
+term2to1 :: forall m. Monad m => Hash -> (Reference -> m ConstructorType) -> Term Symbol -> m (Term Symbol Ann)
+decl2to1 :: Hash -> Decl Symbol -> Decl Symbol Ann
+decl1to2 :: Hash -> Decl Symbol a -> Decl Symbol
+symbol2to1 :: Symbol -> Symbol
+symbol1to2 :: Symbol -> Symbol
+shortHashSuffix1to2 :: Text -> Pos
+abt2to1 :: Functor f => Term f v a -> Term f v a
+abt1to2 :: Functor f => Term f v a -> Term f v a
+rreference2to1 :: Hash -> Reference' Text (Maybe Hash) -> Reference
+rreference1to2 :: Hash -> Reference -> Reference' Text (Maybe Hash)
+rreferenceid2to1 :: Hash -> Id' (Maybe Hash) -> Id
+rreferenceid1to2 :: Hash -> Id -> Id' (Maybe Hash)
+hash1to2 :: Hash -> Hash
+branchHash1to2 :: Hash -> CausalHash
+branchHash2to1 :: CausalHash -> Hash
+patchHash1to2 :: EditHash -> PatchHash
+reference2to1 :: Reference -> Reference
+reference1to2 :: Reference -> Reference
+referenceid1to2 :: Id -> Id
+referenceid2to1 :: Id -> Id
+rreferent2to1 :: Applicative m => Hash -> (Reference -> m ConstructorType) -> ReferentH -> m Referent
+rreferent1to2 :: Hash -> Referent -> ReferentH
+referent2to1 :: Applicative m => (Reference -> m ConstructorType) -> Referent -> m Referent
+referent1to2 :: Referent -> Referent
+referentid2to1 :: Applicative m => (Reference -> m ConstructorType) -> Id -> m Id
+hash2to1 :: Hash -> Hash
+causalHash2to1 :: CausalHash -> RawHash Raw
+causalHash1to2 :: RawHash Raw -> CausalHash
+ttype2to1 :: Type Symbol -> Type Symbol Ann
+dtype2to1 :: Hash -> Type Symbol -> Type Symbol Ann
+type2to1' :: (r -> Reference) -> TypeR r Symbol -> Type Symbol Ann
+dtype1to2 :: Hash -> Type Symbol a -> TypeD Symbol
+ttype1to2 :: Type Symbol a -> TypeT Symbol
+type1to2' :: (Reference -> r) -> Type Symbol a -> TypeR r Symbol
+
+-- | forces loading v1 branches even if they may not exist
+causalbranch2to1 :: Monad m => (Reference -> m ConstructorType) -> Causal m -> m (Branch m)
+causalbranch2to1' :: Monad m => (Reference -> m ConstructorType) -> Causal m -> m (UnwrappedBranch m)
+causalbranch1to2 :: forall m. Monad m => Branch m -> Causal m
+patch2to1 :: Patch -> Patch
+patch1to2 :: Patch -> Patch
+edithash2to1 :: PatchHash -> EditHash
+edithash1to2 :: EditHash -> PatchHash
+namesegment2to1 :: NameSegment -> NameSegment
+namesegment1to2 :: NameSegment -> NameSegment
+branch2to1 :: Monad m => (Reference -> m ConstructorType) -> Branch m -> m (Branch0 m)
+
+module Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.DbHelpers
+dbBranchHash :: EDB m => DbBranch -> m Hash
+dbPatchHash :: forall m. EDB m => Patch -> m Hash
+
+module Unison.Codebase.SqliteCodebase.Branch.Dependencies
+type Branches m = [(Hash, m (Branch m))]
+data Dependencies
+Dependencies :: Set EditHash -> Set Hash -> Set Hash -> Dependencies
+[patches] :: Dependencies -> Set EditHash
+[terms] :: Dependencies -> Set Hash
+[decls] :: Dependencies -> Set Hash
+data Dependencies'
+Dependencies' :: [EditHash] -> [Hash] -> [Hash] -> Dependencies'
+[patches'] :: Dependencies' -> [EditHash]
+[terms'] :: Dependencies' -> [Hash]
+[decls'] :: Dependencies' -> [Hash]
+to' :: Dependencies -> Dependencies'
+fromBranch :: Applicative m => Branch m -> (Branches m, Dependencies)
+fromBranch0 :: Applicative m => Branch0 m -> (Branches m, Dependencies)
+instance GHC.Base.Monoid Unison.Codebase.SqliteCodebase.Branch.Dependencies.Dependencies
+instance GHC.Base.Semigroup Unison.Codebase.SqliteCodebase.Branch.Dependencies.Dependencies
+instance GHC.Generics.Generic Unison.Codebase.SqliteCodebase.Branch.Dependencies.Dependencies
+instance GHC.Show.Show Unison.Codebase.SqliteCodebase.Branch.Dependencies.Dependencies
+instance GHC.Base.Monoid Unison.Codebase.SqliteCodebase.Branch.Dependencies.Dependencies'
+instance GHC.Base.Semigroup Unison.Codebase.SqliteCodebase.Branch.Dependencies.Dependencies'
+instance GHC.Generics.Generic Unison.Codebase.SqliteCodebase.Branch.Dependencies.Dependencies'
+instance GHC.Show.Show Unison.Codebase.SqliteCodebase.Branch.Dependencies.Dependencies'
+instance GHC.Classes.Eq Unison.Codebase.SqliteCodebase.Branch.Dependencies.Dependencies'
+
+module Unison.Codebase.BranchUtil
+
+-- | Creates a branch containing all of the given names, with a single
+--   history node.
+fromNames :: Monad m => Names -> Branch m
+getBranch :: Split -> Branch0 m -> Maybe (Branch m)
+getTerm :: HQSplit -> Branch0 m -> Set Referent
+getType :: HQSplit -> Branch0 m -> Set Reference
+getTermMetadataAt :: (Path, a) -> Referent -> Branch0 m -> Metadata
+getTypeMetadataAt :: (Path, a) -> Reference -> Branch0 m -> Metadata
+getTermMetadataHQNamed :: (Path, HQSegment) -> Branch0 m -> R4 Referent NameSegment
+getTypeMetadataHQNamed :: (Path, HQSegment) -> Branch0 m -> R4 Reference NameSegment
+makeSetBranch :: Split -> Branch m -> (Path, Branch0 m -> Branch0 m)
+
+-- | "delete"s a branch by cons'ing an empty Branch0 onto the history at
+--   that location. See also <a>makeObliterateBranch</a>.
+makeDeleteBranch :: Applicative m => Split -> (Path, Branch0 m -> Branch0 m)
+
+-- | Erase a branch and its history See also <a>makeDeleteBranch</a>. Note
+--   that this requires a AllowRewritingHistory update strategy to behave
+--   correctly.
+makeObliterateBranch :: Split -> (Path, Branch0 m -> Branch0 m)
+makeAddTypeName :: Split -> Reference -> Metadata -> (Path, Branch0 m -> Branch0 m)
+makeDeleteTypeName :: Split -> Reference -> (Path, Branch0 m -> Branch0 m)
+makeAddTermName :: Split -> Referent -> Metadata -> (Path, Branch0 m -> Branch0 m)
+makeDeleteTermName :: Split -> Referent -> (Path, Branch0 m -> Branch0 m)
+makeDeletePatch :: Split -> (Path, Branch0 m -> Branch0 m)
+makeReplacePatch :: Applicative m => Split -> Patch -> (Path, Branch0 m -> Branch0 m)
+
 module Unison.Codebase.BranchDiff
 data DiffType a
 Create :: a -> DiffType a
@@ -3922,6 +3825,22 @@ instance GHC.Show.Show a => GHC.Show.Show (Unison.Codebase.BranchDiff.DiffType a
 instance GHC.Show.Show r => GHC.Show.Show (Unison.Codebase.BranchDiff.NamespaceSlice r)
 instance GHC.Show.Show r => GHC.Show.Show (Unison.Codebase.BranchDiff.DiffSlice r)
 instance GHC.Show.Show Unison.Codebase.BranchDiff.BranchDiff
+
+module Unison.Codebase.Branch.Names
+findHistoricalHQs :: Monad m => Set (HashQualified Name) -> Branch m -> m (Set (HashQualified Name), Names)
+findHistoricalRefs :: Monad m => Set LabeledDependency -> Branch m -> m (Set LabeledDependency, Names)
+findHistoricalRefs' :: Monad m => Set Reference -> Branch m -> m (Set Reference, Names)
+namesDiff :: Branch m -> Branch m -> Diff
+toNames :: Branch0 m -> Names
+
+module Unison.Codebase.Branch.Merge
+data MergeMode
+RegularMerge :: MergeMode
+SquashMerge :: MergeMode
+merge'' :: forall m. Monad m => (Branch m -> Branch m -> m (Maybe (Branch m))) -> MergeMode -> Branch m -> Branch m -> m (Branch m)
+instance GHC.Show.Show Unison.Codebase.Branch.Merge.MergeMode
+instance GHC.Classes.Ord Unison.Codebase.Branch.Merge.MergeMode
+instance GHC.Classes.Eq Unison.Codebase.Branch.Merge.MergeMode
 
 module Unison.Codebase
 
@@ -4156,421 +4075,6 @@ installUcmDependencies :: forall m. Monad m => Codebase m Symbol Ann -> m ()
 toCodeLookup :: Monad m => Codebase m Symbol Ann -> CodeLookup Symbol m Ann
 typeLookupForDependencies :: (Monad m, BuiltinAnnotation a) => Codebase m Symbol a -> Set Reference -> m (TypeLookup Symbol a)
 unsafeGetComponentLength :: (HasCallStack, Monad m) => Codebase m v a -> Hash -> m CycleSize
-
-module Unison.Codebase.SqliteCodebase.Paths
-
--- | Prefer makeCodebasePath or makeCodebaseDirPath when possible.
-codebasePath :: FilePath
-
--- | Makes a path to a sqlite database from a codebase path.
-makeCodebasePath :: CodebasePath -> FilePath
-
--- | Makes a path to the location where sqlite files are stored within a
---   codebase path.
-makeCodebaseDirPath :: CodebasePath -> FilePath
-
--- | Makes a path to store a backup of a sqlite database given the current
---   time.
-backupCodebasePath :: NominalDiffTime -> FilePath
-
-module Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema2To3
-
--- | The 1 to 2 migration kept around hash objects of hash version 1,
---   unfortunately this caused an issue:
---   
---   The migration would detect causals whose value hash did not have a
---   corresponding branch object, this was caused by a race-condition in
---   sync which could end up in a partial sync. When a branch object was
---   determined to be missing, the migration would replace it with the
---   empty branch. This worked well, but led to a situation where related
---   parent or successors of that causal would have their hash objects
---   mapped to the new v2 object which contained the empty branch in place
---   of missing branches. This is fine, but, if a different codebase
---   migrated the same branch and wasn't missing the branch in question it
---   would migrate successfully and each database now have the same v1 hash
---   object mapped to two distinct v2 objects, which rightfully causes a
---   crash when syncing.
---   
---   This migration drops all the v1 hash objects to avoid this issue,
---   since these hash objects weren't being used for anything anyways.
-migrateSchema2To3 :: forall a m v. (MonadUnliftIO m, Var v) => Connection -> Codebase m v a -> m (Either MigrationError ())
-
-module Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2
-migrateSchema1To2 :: forall a m v. (MonadUnliftIO m, Var v) => Connection -> Codebase m v a -> m (Either MigrationError ())
-instance GHC.Show.Show Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.Entity
-instance GHC.Classes.Ord Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.Entity
-instance GHC.Classes.Eq Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.Entity
-instance Data.Traversable.Traversable Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.SomeReference
-instance Data.Foldable.Foldable Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.SomeReference
-instance GHC.Show.Show ref => GHC.Show.Show (Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.SomeReference ref)
-instance GHC.Classes.Ord ref => GHC.Classes.Ord (Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.SomeReference ref)
-instance GHC.Generics.Generic (Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.SomeReference ref)
-instance GHC.Base.Functor Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.SomeReference
-instance GHC.Classes.Eq ref => GHC.Classes.Eq (Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.SomeReference ref)
-instance GHC.Generics.Generic Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.MigrationState
-
-module Unison.Codebase.SqliteCodebase.Migrations
-type Migration m a v = Connection -> Codebase m v a -> m (Either MigrationError ())
-
--- | The highest schema that this ucm knows how to migrate to.
-currentSchemaVersion :: SchemaVersion
-
--- | Mapping from schema version to the migration required to get there.
---   Each migration may only be run on a schema of its immediate
---   predecessor, E.g. The migration at index 2 must be run on a codebase
---   at version 1.
-migrations :: forall m v a. (MonadUnliftIO m, Var v) => Map SchemaVersion (Migration m a v)
-
--- | Migrates a codebase up to the most recent version known to ucm. This
---   is a No-op if it's up to date Returns an error if the schema version
---   is newer than this ucm knows about.
-ensureCodebaseIsUpToDate :: (MonadUnliftIO m, Var v) => LocalOrRemote -> CodebasePath -> Connection -> Codebase m v a -> m (Either OpenCodebaseError ())
-
--- | Copy the sqlite database to a new file with a unique name based on
---   current time.
-backupCodebase :: CodebasePath -> MonadIO m => m ()
-
-module Unison.Codebase.Init.Type
-data Init m v a
-Init :: (DebugName -> CodebasePath -> m (Either Pretty (m (), Codebase m v a))) -> (DebugName -> CodebasePath -> m (Either CreateCodebaseError (m (), Codebase m v a))) -> (CodebasePath -> CodebasePath) -> Init m v a
-
--- | open an existing codebase
-[openCodebase] :: Init m v a -> DebugName -> CodebasePath -> m (Either Pretty (m (), Codebase m v a))
-
--- | create a new codebase
-[createCodebase'] :: Init m v a -> DebugName -> CodebasePath -> m (Either CreateCodebaseError (m (), Codebase m v a))
-
--- | given a codebase root, and given that the codebase root may have other
---   junk in it, give the path to the "actual" files; e.g. what a forked
---   transcript should clone.
-[codebasePath] :: Init m v a -> CodebasePath -> CodebasePath
-
-module Unison.Codebase.FileCodebase
-codebaseExists :: MonadIO m => CodebasePath -> m Bool
-
-module Unison.Codebase.Init
-data Init m v a
-Init :: (forall r. DebugName -> CodebasePath -> (Codebase m v a -> m r) -> m (Either OpenCodebaseError r)) -> (forall r. DebugName -> CodebasePath -> (Codebase m v a -> m r) -> m (Either CreateCodebaseError r)) -> (CodebasePath -> CodebasePath) -> Init m v a
-
--- | open an existing codebase
-[withOpenCodebase] :: Init m v a -> forall r. DebugName -> CodebasePath -> (Codebase m v a -> m r) -> m (Either OpenCodebaseError r)
-
--- | create a new codebase
-[withCreatedCodebase] :: Init m v a -> forall r. DebugName -> CodebasePath -> (Codebase m v a -> m r) -> m (Either CreateCodebaseError r)
-
--- | given a codebase root, and given that the codebase root may have other
---   junk in it, give the path to the "actual" files; e.g. what a forked
---   transcript should clone.
-[codebasePath] :: Init m v a -> CodebasePath -> CodebasePath
-type DebugName = String
-
--- | An error that occurred while initializing a codebase.
-data InitError
-FoundV1Codebase :: InitError
-InitErrorOpen :: OpenCodebaseError -> InitError
-CouldntCreateCodebase :: Pretty -> InitError
-data CodebaseInitOptions
-Home :: CodebasePath -> CodebaseInitOptions
-Specified :: SpecifiedCodebase -> CodebaseInitOptions
-data InitResult
-OpenedCodebase :: InitResult
-CreatedCodebase :: InitResult
-data SpecifiedCodebase
-CreateWhenMissing :: CodebasePath -> SpecifiedCodebase
-DontCreateWhenMissing :: CodebasePath -> SpecifiedCodebase
-type Pretty = Pretty ColorText
-createCodebase :: MonadIO m => Init m v a -> DebugName -> CodebasePath -> (Codebase m v a -> m r) -> m (Either Pretty r)
-
--- | try to init a codebase where none exists and then exit regardless
---   (i.e. `ucm --codebase dir init`)
-initCodebaseAndExit :: MonadIO m => Init m Symbol Ann -> DebugName -> Maybe CodebasePath -> m ()
-withOpenOrCreateCodebase :: MonadIO m => Init m v a -> DebugName -> CodebaseInitOptions -> ((InitResult, CodebasePath, Codebase m v a) -> m r) -> m (Either (CodebasePath, InitError) r)
-withNewUcmCodebaseOrExit :: MonadIO m => Init m Symbol Ann -> DebugName -> CodebasePath -> (Codebase m Symbol Ann -> m r) -> m r
-withTemporaryUcmCodebase :: MonadUnliftIO m => Init m Symbol Ann -> DebugName -> ((CodebasePath, Codebase m Symbol Ann) -> m r) -> m r
-instance GHC.Classes.Eq Unison.Codebase.Init.InitResult
-instance GHC.Show.Show Unison.Codebase.Init.InitResult
-
-module Unison.Codebase.SqliteCodebase
-init :: HasCallStack => MonadUnliftIO m => Init m Symbol Ann
-instance GHC.Classes.Eq Unison.Codebase.SqliteCodebase.CodebaseStatus
-instance GHC.Show.Show a => GHC.Show.Show (Unison.Codebase.SqliteCodebase.BufferEntry a)
-instance GHC.Classes.Eq a => GHC.Classes.Eq (Unison.Codebase.SqliteCodebase.BufferEntry a)
-instance GHC.Show.Show (Unison.Codebase.SqliteCodebase.Entity m)
-
-
--- | Execute a computation of type '{IO} () that has been previously added
---   to the codebase, without setting up an interactive environment.
---   
---   This allows one to run standalone applications implemented in the
---   Unison language.
-module Unison.Codebase.Execute
-execute :: Codebase IO Symbol Ann -> Runtime Symbol -> String -> IO ()
-
-module Unison.DeclPrinter
-prettyDecl :: Var v => PrettyPrintEnvDecl -> Reference -> HashQualified Name -> Decl v a -> Pretty SyntaxText
-prettyDeclHeader :: Var v => HashQualified Name -> Either (EffectDeclaration v a) (DataDeclaration v a) -> Pretty SyntaxText
-prettyDeclOrBuiltinHeader :: Var v => HashQualified Name -> DeclOrBuiltin v a -> Pretty SyntaxText
-
-module Unison.Server.Doc
-type Nat = Word64
-type SSyntaxText = SyntaxText' Reference
-data Doc
-Word :: Text -> Doc
-Code :: Doc -> Doc
-CodeBlock :: Text -> Doc -> Doc
-Bold :: Doc -> Doc
-Italic :: Doc -> Doc
-Strikethrough :: Doc -> Doc
-Style :: Text -> Doc -> Doc
-Anchor :: Text -> Doc -> Doc
-Blockquote :: Doc -> Doc
-Blankline :: Doc
-Linebreak :: Doc
-SectionBreak :: Doc
-Tooltip :: Doc -> Doc -> Doc
-Aside :: Doc -> Doc
-Callout :: Maybe Doc -> Doc -> Doc
-Table :: [[Doc]] -> Doc
-Folded :: Bool -> Doc -> Doc -> Doc
-Paragraph :: [Doc] -> Doc
-BulletedList :: [Doc] -> Doc
-NumberedList :: Nat -> [Doc] -> Doc
-Section :: Doc -> [Doc] -> Doc
-NamedLink :: Doc -> Doc -> Doc
-Image :: Doc -> Doc -> Maybe Doc -> Doc
-Special :: SpecialForm -> Doc
-Join :: [Doc] -> Doc
-UntitledSection :: [Doc] -> Doc
-Column :: [Doc] -> Doc
-Group :: Doc -> Doc
-type UnisonHash = Text
-data Ref a
-Term :: a -> Ref a
-Type :: a -> Ref a
-data MediaSource
-MediaSource :: Text -> Maybe Text -> MediaSource
-[mediaSourceUrl] :: MediaSource -> Text
-[mediaSourceMimeType] :: MediaSource -> Maybe Text
-data SpecialForm
-Source :: [Ref (UnisonHash, DisplayObject SyntaxText Src)] -> SpecialForm
-FoldedSource :: [Ref (UnisonHash, DisplayObject SyntaxText Src)] -> SpecialForm
-Example :: SyntaxText -> SpecialForm
-ExampleBlock :: SyntaxText -> SpecialForm
-Link :: SyntaxText -> SpecialForm
-Signature :: [SyntaxText] -> SpecialForm
-SignatureInline :: SyntaxText -> SpecialForm
-Eval :: SyntaxText -> SyntaxText -> SpecialForm
-EvalInline :: SyntaxText -> SyntaxText -> SpecialForm
-Embed :: SyntaxText -> SpecialForm
-EmbedInline :: SyntaxText -> SpecialForm
-Video :: [MediaSource] -> Map Text Text -> SpecialForm
-FrontMatter :: Map Text [Text] -> SpecialForm
-data Src
-Src :: SyntaxText -> SyntaxText -> Src
-renderDoc :: forall v m. (Var v, Monad m) => PrettyPrintEnvDecl -> (Reference -> m (Maybe (Term v ()))) -> (Referent -> m (Maybe (Type v ()))) -> (Term v () -> m (Maybe (Term v ()))) -> (Reference -> m (Maybe (Decl v ()))) -> Term v () -> m Doc
-instance Data.Traversable.Traversable Unison.Server.Doc.Ref
-instance Data.Foldable.Foldable Unison.Server.Doc.Ref
-instance GHC.Base.Functor Unison.Server.Doc.Ref
-instance GHC.Generics.Generic (Unison.Server.Doc.Ref a)
-instance GHC.Show.Show a => GHC.Show.Show (Unison.Server.Doc.Ref a)
-instance GHC.Classes.Eq a => GHC.Classes.Eq (Unison.Server.Doc.Ref a)
-instance GHC.Generics.Generic Unison.Server.Doc.MediaSource
-instance GHC.Show.Show Unison.Server.Doc.MediaSource
-instance GHC.Classes.Eq Unison.Server.Doc.MediaSource
-instance GHC.Generics.Generic Unison.Server.Doc.Src
-instance GHC.Show.Show Unison.Server.Doc.Src
-instance GHC.Classes.Eq Unison.Server.Doc.Src
-instance GHC.Generics.Generic Unison.Server.Doc.SpecialForm
-instance GHC.Show.Show Unison.Server.Doc.SpecialForm
-instance GHC.Classes.Eq Unison.Server.Doc.SpecialForm
-instance GHC.Generics.Generic Unison.Server.Doc.Doc
-instance GHC.Show.Show Unison.Server.Doc.Doc
-instance GHC.Classes.Eq Unison.Server.Doc.Doc
-
-module Unison.Server.Types
-type APIHeaders x = Headers '[Header "Access-Control-Allow-Origin" String, Header "Cache-Control" String] x
-type APIGet c = Get '[JSON] (APIHeaders c)
-type HashQualifiedName = Text
-type NamespaceFQN = Text
-type Size = Int
-type UnisonName = Text
-type UnisonHash = Text
-newtype Suffixify
-Suffixify :: Bool -> Suffixify
-[suffixified] :: Suffixify -> Bool
-data TermDefinition
-TermDefinition :: [HashQualifiedName] -> HashQualifiedName -> Maybe TermTag -> DisplayObject SyntaxText SyntaxText -> SyntaxText -> [(HashQualifiedName, UnisonHash, Doc)] -> TermDefinition
-[termNames] :: TermDefinition -> [HashQualifiedName]
-[bestTermName] :: TermDefinition -> HashQualifiedName
-[defnTermTag] :: TermDefinition -> Maybe TermTag
-[termDefinition] :: TermDefinition -> DisplayObject SyntaxText SyntaxText
-[signature] :: TermDefinition -> SyntaxText
-[termDocs] :: TermDefinition -> [(HashQualifiedName, UnisonHash, Doc)]
-data TypeDefinition
-TypeDefinition :: [HashQualifiedName] -> HashQualifiedName -> Maybe TypeTag -> DisplayObject SyntaxText SyntaxText -> [(HashQualifiedName, UnisonHash, Doc)] -> TypeDefinition
-[typeNames] :: TypeDefinition -> [HashQualifiedName]
-[bestTypeName] :: TypeDefinition -> HashQualifiedName
-[defnTypeTag] :: TypeDefinition -> Maybe TypeTag
-[typeDefinition] :: TypeDefinition -> DisplayObject SyntaxText SyntaxText
-[typeDocs] :: TypeDefinition -> [(HashQualifiedName, UnisonHash, Doc)]
-data DefinitionDisplayResults
-DefinitionDisplayResults :: Map UnisonHash TermDefinition -> Map UnisonHash TypeDefinition -> [HashQualifiedName] -> DefinitionDisplayResults
-[termDefinitions] :: DefinitionDisplayResults -> Map UnisonHash TermDefinition
-[typeDefinitions] :: DefinitionDisplayResults -> Map UnisonHash TypeDefinition
-[missingDefinitions] :: DefinitionDisplayResults -> [HashQualifiedName]
-data TermTag
-Doc :: TermTag
-Test :: TermTag
-data TypeTag
-Ability :: TypeTag
-Data :: TypeTag
-data UnisonRef
-TypeRef :: UnisonHash -> UnisonRef
-TermRef :: UnisonHash -> UnisonRef
-data FoundEntry
-FoundTerm :: NamedTerm -> FoundEntry
-FoundType :: NamedType -> FoundEntry
-unisonRefToText :: UnisonRef -> Text
-data NamedTerm
-NamedTerm :: HashQualifiedName -> UnisonHash -> Maybe SyntaxText -> Maybe TermTag -> NamedTerm
-[termName] :: NamedTerm -> HashQualifiedName
-[termHash] :: NamedTerm -> UnisonHash
-[termType] :: NamedTerm -> Maybe SyntaxText
-[termTag] :: NamedTerm -> Maybe TermTag
-data NamedType
-NamedType :: HashQualifiedName -> UnisonHash -> TypeTag -> NamedType
-[typeName] :: NamedType -> HashQualifiedName
-[typeHash] :: NamedType -> UnisonHash
-[typeTag] :: NamedType -> TypeTag
-munge :: Text -> ByteString
-mungeShow :: Show s => s -> ByteString
-mungeString :: String -> ByteString
-defaultWidth :: Width
-discard :: Applicative m => a -> m ()
-mayDefaultWidth :: Maybe Width -> Width
-addHeaders :: v -> APIHeaders v
-branchToUnisonHash :: Branch m -> UnisonHash
-instance GHC.Generics.Generic Unison.Server.Types.Suffixify
-instance GHC.Show.Show Unison.Server.Types.Suffixify
-instance GHC.Classes.Ord Unison.Server.Types.Suffixify
-instance GHC.Classes.Eq Unison.Server.Types.Suffixify
-instance GHC.Generics.Generic Unison.Server.Types.TermTag
-instance GHC.Show.Show Unison.Server.Types.TermTag
-instance GHC.Classes.Ord Unison.Server.Types.TermTag
-instance GHC.Classes.Eq Unison.Server.Types.TermTag
-instance GHC.Generics.Generic Unison.Server.Types.TermDefinition
-instance GHC.Show.Show Unison.Server.Types.TermDefinition
-instance GHC.Classes.Eq Unison.Server.Types.TermDefinition
-instance GHC.Generics.Generic Unison.Server.Types.TypeTag
-instance GHC.Show.Show Unison.Server.Types.TypeTag
-instance GHC.Classes.Ord Unison.Server.Types.TypeTag
-instance GHC.Classes.Eq Unison.Server.Types.TypeTag
-instance GHC.Generics.Generic Unison.Server.Types.TypeDefinition
-instance GHC.Show.Show Unison.Server.Types.TypeDefinition
-instance GHC.Classes.Eq Unison.Server.Types.TypeDefinition
-instance GHC.Generics.Generic Unison.Server.Types.DefinitionDisplayResults
-instance GHC.Show.Show Unison.Server.Types.DefinitionDisplayResults
-instance GHC.Classes.Eq Unison.Server.Types.DefinitionDisplayResults
-instance GHC.Generics.Generic Unison.Server.Types.UnisonRef
-instance GHC.Show.Show Unison.Server.Types.UnisonRef
-instance GHC.Classes.Ord Unison.Server.Types.UnisonRef
-instance GHC.Classes.Eq Unison.Server.Types.UnisonRef
-instance GHC.Show.Show Unison.Server.Types.NamedTerm
-instance GHC.Generics.Generic Unison.Server.Types.NamedTerm
-instance GHC.Classes.Eq Unison.Server.Types.NamedTerm
-instance GHC.Show.Show Unison.Server.Types.NamedType
-instance GHC.Generics.Generic Unison.Server.Types.NamedType
-instance GHC.Classes.Eq Unison.Server.Types.NamedType
-instance GHC.Generics.Generic Unison.Server.Types.FoundEntry
-instance GHC.Show.Show Unison.Server.Types.FoundEntry
-instance GHC.Classes.Eq Unison.Server.Types.FoundEntry
-instance Web.Internal.HttpApiData.FromHttpApiData Unison.Server.Types.Suffixify
-instance Data.OpenApi.Internal.ParamSchema.ToParamSchema Unison.Server.Types.Suffixify
-instance Data.OpenApi.Internal.ParamSchema.ToParamSchema Unison.Codebase.ShortBranchHash.ShortBranchHash
-instance Web.Internal.HttpApiData.FromHttpApiData Unison.Util.Pretty.Width
-instance Data.OpenApi.Internal.ParamSchema.ToParamSchema Unison.Util.Pretty.Width
-instance (Data.OpenApi.Internal.Schema.ToSchema b, Data.OpenApi.Internal.Schema.ToSchema a) => Data.OpenApi.Internal.Schema.ToSchema (Unison.Codebase.Editor.DisplayObject.DisplayObject b a)
-instance Data.OpenApi.Internal.Schema.ToSchema Unison.ShortHash.ShortHash
-instance Data.OpenApi.Internal.Schema.ToSchema n => Data.OpenApi.Internal.Schema.ToSchema (Unison.HashQualified.HashQualified n)
-instance Data.OpenApi.Internal.Schema.ToSchema Unison.ConstructorType.ConstructorType
-instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Types.TypeDefinition
-instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Types.TermDefinition
-instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Types.DefinitionDisplayResults
-instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Types.FoundEntry
-instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Types.NamedTerm
-instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Types.NamedType
-instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Types.TermTag
-instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Types.TypeTag
-instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Types.FoundEntry
-instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Types.NamedType
-instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Types.NamedTerm
-instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Types.DefinitionDisplayResults
-instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Types.TypeDefinition
-instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Types.TypeTag
-instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Types.TermDefinition
-instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Types.TermTag
-instance Data.Aeson.Types.ToJSON.ToJSON Unison.Name.Name
-instance Data.OpenApi.Internal.Schema.ToSchema Unison.Name.Name
-instance Web.Internal.HttpApiData.FromHttpApiData Unison.Codebase.ShortBranchHash.ShortBranchHash
-instance (Data.Aeson.Types.ToJSON.ToJSON b, Data.Aeson.Types.ToJSON.ToJSON a) => Data.Aeson.Types.ToJSON.ToJSON (Unison.Codebase.Editor.DisplayObject.DisplayObject b a)
-instance Data.Aeson.Types.ToJSON.ToJSON Unison.ShortHash.ShortHash
-instance Data.Aeson.Types.ToJSON.ToJSONKey Unison.ShortHash.ShortHash
-instance Data.Aeson.Types.ToJSON.ToJSON n => Data.Aeson.Types.ToJSON.ToJSON (Unison.HashQualified.HashQualified n)
-instance Data.Aeson.Types.ToJSON.ToJSON Unison.ConstructorType.ConstructorType
-instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Doc.Doc
-instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Doc.MediaSource
-instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Doc.SpecialForm
-instance Data.Aeson.Types.ToJSON.ToJSON Unison.Server.Doc.Src
-instance Data.Aeson.Types.ToJSON.ToJSON a => Data.Aeson.Types.ToJSON.ToJSON (Unison.Server.Doc.Ref a)
-instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Doc.Doc
-instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Doc.MediaSource
-instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Doc.SpecialForm
-instance Data.OpenApi.Internal.Schema.ToSchema Unison.Server.Doc.Src
-instance Data.OpenApi.Internal.Schema.ToSchema a => Data.OpenApi.Internal.Schema.ToSchema (Unison.Server.Doc.Ref a)
-
-
--- | Render Unison.Server.Doc and embedded source to Html
-module Unison.Server.Doc.AsHtml
-data NamedLinkHref
-Href :: Text -> NamedLinkHref
-DocLinkHref :: Name -> NamedLinkHref
-ReferenceHref :: Text -> NamedLinkHref
-InvalidHref :: NamedLinkHref
-data EmbeddedSource
-EmbeddedSource :: SyntaxText -> SyntaxText -> EmbeddedSource
-Builtin :: SyntaxText -> EmbeddedSource
-embeddedSource :: Ref (UnisonHash, DisplayObject SyntaxText Src) -> Maybe EmbeddedSource
-inlineCode :: [Text] -> Html () -> Html ()
-codeBlock :: [Attribute] -> Html () -> Html ()
-normalizeHref :: Map Referent Name -> Doc -> NamedLinkHref
-data IsFolded
-IsFolded :: Bool -> [Html ()] -> [Html ()] -> IsFolded
-Disabled :: Html () -> IsFolded
-foldedToHtml :: [Attribute] -> IsFolded -> Html ()
-foldedToHtmlSource :: Bool -> EmbeddedSource -> Html ()
-
--- | Merge adjacent Word elements in a list to 1 element with a string of
---   words separated by space— useful for rendering to the dom without
---   creating dom elements for each and every word in the doc, but instead
---   rely on textNodes
-mergeWords :: Text -> [Doc] -> [Doc]
-
--- | Merge down Doc to Text by merging Paragraphs and Words. Used for
---   things like extract an src of an image. I.e something that has to be a
---   Text and not a Doc
-toText :: Text -> Doc -> Text
-data SideContent
-FrontMatterContent :: Map Text [Text] -> SideContent
-TooltipContent :: Html () -> SideContent
-newtype FrontMatterData
-FrontMatterData :: Map Text [Text] -> FrontMatterData
-toHtml :: Map Referent Name -> Doc -> (FrontMatterData, Html ())
-
--- | Unison Doc allows endlessly deep section nesting with titles, but HTML
---   only supports to h1-h6, so we clamp the sectionLevel when converting
-h :: Nat -> Text -> Html () -> Html ()
-badge :: Html () -> Html ()
-textToClass :: Text -> Text
 
 module Unison.Server.Backend
 type SyntaxText = SyntaxText' Reference
@@ -4914,6 +4418,155 @@ instance GHC.Show.Show Unison.Server.CodebaseServer.BaseUrl
 instance Servant.API.ContentTypes.MimeRender Unison.Server.CodebaseServer.HTML Unison.Server.CodebaseServer.RawHtml
 instance Servant.API.ContentTypes.Accept Unison.Server.CodebaseServer.HTML
 instance Servant.Docs.Internal.ToSample GHC.Types.Char
+
+module Unison.Codebase.SqliteCodebase.Paths
+
+-- | Prefer makeCodebasePath or makeCodebaseDirPath when possible.
+codebasePath :: FilePath
+
+-- | Makes a path to a sqlite database from a codebase path.
+makeCodebasePath :: CodebasePath -> FilePath
+
+-- | Makes a path to the location where sqlite files are stored within a
+--   codebase path.
+makeCodebaseDirPath :: CodebasePath -> FilePath
+
+-- | Makes a path to store a backup of a sqlite database given the current
+--   time.
+backupCodebasePath :: NominalDiffTime -> FilePath
+
+module Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema2To3
+
+-- | The 1 to 2 migration kept around hash objects of hash version 1,
+--   unfortunately this caused an issue:
+--   
+--   The migration would detect causals whose value hash did not have a
+--   corresponding branch object, this was caused by a race-condition in
+--   sync which could end up in a partial sync. When a branch object was
+--   determined to be missing, the migration would replace it with the
+--   empty branch. This worked well, but led to a situation where related
+--   parent or successors of that causal would have their hash objects
+--   mapped to the new v2 object which contained the empty branch in place
+--   of missing branches. This is fine, but, if a different codebase
+--   migrated the same branch and wasn't missing the branch in question it
+--   would migrate successfully and each database now have the same v1 hash
+--   object mapped to two distinct v2 objects, which rightfully causes a
+--   crash when syncing.
+--   
+--   This migration drops all the v1 hash objects to avoid this issue,
+--   since these hash objects weren't being used for anything anyways.
+migrateSchema2To3 :: forall a m v. (MonadUnliftIO m, Var v) => Connection -> Codebase m v a -> m (Either MigrationError ())
+
+module Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2
+migrateSchema1To2 :: forall a m v. (MonadUnliftIO m, Var v) => Connection -> Codebase m v a -> m (Either MigrationError ())
+instance GHC.Show.Show Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.Entity
+instance GHC.Classes.Ord Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.Entity
+instance GHC.Classes.Eq Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.Entity
+instance Data.Traversable.Traversable Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.SomeReference
+instance Data.Foldable.Foldable Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.SomeReference
+instance GHC.Show.Show ref => GHC.Show.Show (Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.SomeReference ref)
+instance GHC.Classes.Ord ref => GHC.Classes.Ord (Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.SomeReference ref)
+instance GHC.Generics.Generic (Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.SomeReference ref)
+instance GHC.Base.Functor Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.SomeReference
+instance GHC.Classes.Eq ref => GHC.Classes.Eq (Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.SomeReference ref)
+instance GHC.Generics.Generic Unison.Codebase.SqliteCodebase.Migrations.MigrateSchema1To2.MigrationState
+
+module Unison.Codebase.SqliteCodebase.Migrations
+type Migration m a v = Connection -> Codebase m v a -> m (Either MigrationError ())
+
+-- | The highest schema that this ucm knows how to migrate to.
+currentSchemaVersion :: SchemaVersion
+
+-- | Mapping from schema version to the migration required to get there.
+--   Each migration may only be run on a schema of its immediate
+--   predecessor, E.g. The migration at index 2 must be run on a codebase
+--   at version 1.
+migrations :: forall m v a. (MonadUnliftIO m, Var v) => Map SchemaVersion (Migration m a v)
+
+-- | Migrates a codebase up to the most recent version known to ucm. This
+--   is a No-op if it's up to date Returns an error if the schema version
+--   is newer than this ucm knows about.
+ensureCodebaseIsUpToDate :: (MonadUnliftIO m, Var v) => LocalOrRemote -> CodebasePath -> Connection -> Codebase m v a -> m (Either OpenCodebaseError ())
+
+-- | Copy the sqlite database to a new file with a unique name based on
+--   current time.
+backupCodebase :: CodebasePath -> MonadIO m => m ()
+
+module Unison.Codebase.Init.Type
+data Init m v a
+Init :: (DebugName -> CodebasePath -> m (Either Pretty (m (), Codebase m v a))) -> (DebugName -> CodebasePath -> m (Either CreateCodebaseError (m (), Codebase m v a))) -> (CodebasePath -> CodebasePath) -> Init m v a
+
+-- | open an existing codebase
+[openCodebase] :: Init m v a -> DebugName -> CodebasePath -> m (Either Pretty (m (), Codebase m v a))
+
+-- | create a new codebase
+[createCodebase'] :: Init m v a -> DebugName -> CodebasePath -> m (Either CreateCodebaseError (m (), Codebase m v a))
+
+-- | given a codebase root, and given that the codebase root may have other
+--   junk in it, give the path to the "actual" files; e.g. what a forked
+--   transcript should clone.
+[codebasePath] :: Init m v a -> CodebasePath -> CodebasePath
+
+module Unison.Codebase.FileCodebase
+codebaseExists :: MonadIO m => CodebasePath -> m Bool
+
+module Unison.Codebase.Init
+data Init m v a
+Init :: (forall r. DebugName -> CodebasePath -> (Codebase m v a -> m r) -> m (Either OpenCodebaseError r)) -> (forall r. DebugName -> CodebasePath -> (Codebase m v a -> m r) -> m (Either CreateCodebaseError r)) -> (CodebasePath -> CodebasePath) -> Init m v a
+
+-- | open an existing codebase
+[withOpenCodebase] :: Init m v a -> forall r. DebugName -> CodebasePath -> (Codebase m v a -> m r) -> m (Either OpenCodebaseError r)
+
+-- | create a new codebase
+[withCreatedCodebase] :: Init m v a -> forall r. DebugName -> CodebasePath -> (Codebase m v a -> m r) -> m (Either CreateCodebaseError r)
+
+-- | given a codebase root, and given that the codebase root may have other
+--   junk in it, give the path to the "actual" files; e.g. what a forked
+--   transcript should clone.
+[codebasePath] :: Init m v a -> CodebasePath -> CodebasePath
+type DebugName = String
+
+-- | An error that occurred while initializing a codebase.
+data InitError
+FoundV1Codebase :: InitError
+InitErrorOpen :: OpenCodebaseError -> InitError
+CouldntCreateCodebase :: Pretty -> InitError
+data CodebaseInitOptions
+Home :: CodebasePath -> CodebaseInitOptions
+Specified :: SpecifiedCodebase -> CodebaseInitOptions
+data InitResult
+OpenedCodebase :: InitResult
+CreatedCodebase :: InitResult
+data SpecifiedCodebase
+CreateWhenMissing :: CodebasePath -> SpecifiedCodebase
+DontCreateWhenMissing :: CodebasePath -> SpecifiedCodebase
+type Pretty = Pretty ColorText
+createCodebase :: MonadIO m => Init m v a -> DebugName -> CodebasePath -> (Codebase m v a -> m r) -> m (Either Pretty r)
+
+-- | try to init a codebase where none exists and then exit regardless
+--   (i.e. `ucm --codebase dir init`)
+initCodebaseAndExit :: MonadIO m => Init m Symbol Ann -> DebugName -> Maybe CodebasePath -> m ()
+withOpenOrCreateCodebase :: MonadIO m => Init m v a -> DebugName -> CodebaseInitOptions -> ((InitResult, CodebasePath, Codebase m v a) -> m r) -> m (Either (CodebasePath, InitError) r)
+withNewUcmCodebaseOrExit :: MonadIO m => Init m Symbol Ann -> DebugName -> CodebasePath -> (Codebase m Symbol Ann -> m r) -> m r
+withTemporaryUcmCodebase :: MonadUnliftIO m => Init m Symbol Ann -> DebugName -> ((CodebasePath, Codebase m Symbol Ann) -> m r) -> m r
+instance GHC.Classes.Eq Unison.Codebase.Init.InitResult
+instance GHC.Show.Show Unison.Codebase.Init.InitResult
+
+module Unison.Codebase.SqliteCodebase
+init :: HasCallStack => MonadUnliftIO m => Init m Symbol Ann
+instance GHC.Classes.Eq Unison.Codebase.SqliteCodebase.CodebaseStatus
+instance GHC.Show.Show a => GHC.Show.Show (Unison.Codebase.SqliteCodebase.BufferEntry a)
+instance GHC.Classes.Eq a => GHC.Classes.Eq (Unison.Codebase.SqliteCodebase.BufferEntry a)
+instance GHC.Show.Show (Unison.Codebase.SqliteCodebase.Entity m)
+
+
+-- | Execute a computation of type '{IO} () that has been previously added
+--   to the codebase, without setting up an interactive environment.
+--   
+--   This allows one to run standalone applications implemented in the
+--   Unison language.
+module Unison.Codebase.Execute
+execute :: Codebase IO Symbol Ann -> Runtime Symbol -> String -> IO ()
 
 module Unison.Util.TQueue
 data TQueue a

@@ -57,7 +57,7 @@ ResolveTypeNameI :: HQSplit' -> Input
 LoadI :: Maybe FilePath -> Input
 AddI :: Set Name -> Input
 PreviewAddI :: Set Name -> Input
-UpdateI :: Maybe PatchPath -> Set Name -> Input
+UpdateI :: OptionalPatch -> Set Name -> Input
 PreviewUpdateI :: Set Name -> Input
 TodoI :: Maybe PatchPath -> Path' -> Input
 PropagatePatchI :: PatchPath -> Path' -> Input
@@ -130,6 +130,13 @@ Try :: Insistence
 data PullMode
 PullWithHistory :: PullMode
 PullWithoutHistory :: PullMode
+data OptionalPatch
+NoPatch :: OptionalPatch
+DefaultPatch :: OptionalPatch
+UsePatch :: PatchPath -> OptionalPatch
+instance GHC.Show.Show Unison.Codebase.Editor.Input.OptionalPatch
+instance GHC.Classes.Ord Unison.Codebase.Editor.Input.OptionalPatch
+instance GHC.Classes.Eq Unison.Codebase.Editor.Input.OptionalPatch
 instance GHC.Classes.Eq Unison.Codebase.Editor.Input.Insistence
 instance GHC.Show.Show Unison.Codebase.Editor.Input.Insistence
 instance GHC.Show.Show Unison.Codebase.Editor.Input.PullMode
@@ -726,13 +733,13 @@ LoopState :: Branch m -> Branch m -> NonEmpty Absolute -> Maybe (FilePath, SkipN
 type Action' m v = Action m (Either Event Input) v
 type SkipNextUpdate = Bool
 type InputDescription = Text
-root :: forall m_a1BQ2 v_a1BQ3. Lens' (LoopState m_a1BQ2 v_a1BQ3) (Branch m_a1BQ2)
-numberedArgs :: forall m_a1BQ2 v_a1BQ3. Lens' (LoopState m_a1BQ2 v_a1BQ3) NumberedArgs
-latestTypecheckedFile :: forall m_a1BQ2 v_a1BQ3 v_a1C1N. Lens (LoopState m_a1BQ2 v_a1BQ3) (LoopState m_a1BQ2 v_a1C1N) (Maybe (TypecheckedUnisonFile v_a1BQ3 Ann)) (Maybe (TypecheckedUnisonFile v_a1C1N Ann))
-latestFile :: forall m_a1BQ2 v_a1BQ3. Lens' (LoopState m_a1BQ2 v_a1BQ3) (Maybe (FilePath, SkipNextUpdate))
-lastSavedRoot :: forall m_a1BQ2 v_a1BQ3. Lens' (LoopState m_a1BQ2 v_a1BQ3) (Branch m_a1BQ2)
-lastInput :: forall m_a1BQ2 v_a1BQ3. Lens' (LoopState m_a1BQ2 v_a1BQ3) (Maybe Input)
-currentPathStack :: forall m_a1BQ2 v_a1BQ3. Lens' (LoopState m_a1BQ2 v_a1BQ3) (NonEmpty Absolute)
+root :: forall m_a1Cgc v_a1Cgd. Lens' (LoopState m_a1Cgc v_a1Cgd) (Branch m_a1Cgc)
+numberedArgs :: forall m_a1Cgc v_a1Cgd. Lens' (LoopState m_a1Cgc v_a1Cgd) NumberedArgs
+latestTypecheckedFile :: forall m_a1Cgc v_a1Cgd v_a1CrX. Lens (LoopState m_a1Cgc v_a1Cgd) (LoopState m_a1Cgc v_a1CrX) (Maybe (TypecheckedUnisonFile v_a1Cgd Ann)) (Maybe (TypecheckedUnisonFile v_a1CrX Ann))
+latestFile :: forall m_a1Cgc v_a1Cgd. Lens' (LoopState m_a1Cgc v_a1Cgd) (Maybe (FilePath, SkipNextUpdate))
+lastSavedRoot :: forall m_a1Cgc v_a1Cgd. Lens' (LoopState m_a1Cgc v_a1Cgd) (Branch m_a1Cgc)
+lastInput :: forall m_a1Cgc v_a1Cgd. Lens' (LoopState m_a1Cgc v_a1Cgd) (Maybe Input)
+currentPathStack :: forall m_a1Cgc v_a1Cgd. Lens' (LoopState m_a1Cgc v_a1Cgd) (NonEmpty Absolute)
 currentPath :: Getter (LoopState m v) Absolute
 loopState0 :: Branch m -> Absolute -> LoopState m v
 instance Unison.Codebase.Editor.HandleInput.LoopState.MonadCommand (Unison.Util.Free.Free (Unison.Codebase.Editor.Command.Command m i v)) m i v
@@ -779,6 +786,7 @@ todo :: InputPattern
 load :: InputPattern
 add :: InputPattern
 previewAdd :: InputPattern
+updateNoPatch :: InputPattern
 update :: InputPattern
 previewUpdate :: InputPattern
 patch :: InputPattern

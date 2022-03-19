@@ -3350,7 +3350,7 @@ instance Control.Lens.Empty.AsEmpty (Unison.Codebase.Branch.Type.Branch m)
 instance Unison.Hashing.V2.Hashable.Hashable (Unison.Codebase.Branch.Type.Branch0 m)
 
 module Unison.Server.Types
-type APIHeaders x = Headers '[Header "Access-Control-Allow-Origin" String, Header "Cache-Control" String] x
+type APIHeaders x = Headers '[Header "Cache-Control" String] x
 type APIGet c = Get '[JSON] (APIHeaders c)
 type HashQualifiedName = Text
 type NamespaceFQN = Text

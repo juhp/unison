@@ -72,7 +72,6 @@ import qualified Control.Lens as Lens
 import qualified Data.Foldable as Foldable
 import Data.List.Extra (dropPrefix)
 import qualified Data.List.NonEmpty as List.NonEmpty
-import Data.Maybe (fromJust)
 import Data.Sequence (Seq ((:<|), (:|>)))
 import qualified Data.Sequence as Seq
 import qualified Data.Text as Text
@@ -198,10 +197,19 @@ ancestors :: Absolute -> Seq Absolute
 ancestors (Absolute (Path segments)) = Absolute . Path <$> Seq.inits segments
 
 hqSplitFromName' :: Name -> HQSplit'
-hqSplitFromName' = fmap HQ'.fromName . fromJust . Lens.unsnoc . fromName'
+hqSplitFromName' name =
+  let s List.NonEmpty.:| ss = Name.reverseSegments name
+   in (wrap (fromList (reverse ss)), HQ'.fromName s)
+  where
+    wrap =
+      if Name.isAbsolute name
+        then toAbsolute
+        else toRelative
 
 splitFromName :: Name -> Split
-splitFromName = fromJust . unsnoc . fromName
+splitFromName name =
+  let s List.NonEmpty.:| ss = Name.reverseSegments name
+   in (fromList (reverse ss), s)
 
 -- | what is this? —AI
 unprefixName :: Absolute -> Name -> Name

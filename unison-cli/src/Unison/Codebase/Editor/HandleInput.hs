@@ -2383,9 +2383,56 @@ oink selection unisonFile0 = do
               isTestValue
               (Branch.deepTermMetadata currentBranch0)
 
+  -- FIXME:
+  -- What does hydrateUnisonFileDecls need from slurp0?
+  -- - type updates (Set v)
+  -- - unison file
+  --   - tcDeclarationsById
+  --   - tcDeclarationVarsById
+  -- - decl mapping
+  -- - declRef0
+  -- What does hydrateUnisonFileTerms need from slurp1?
+  -- Suspicion: SlurpResult2 can disappear, we only need to pass in certain things
+
+  -- makeSlurp2 :: Var v => Names -> Set v -> TypecheckedUnisonFile v Ann -> SlurpResult2 v
+  -- makeSlurp2 allNames selection unisonFile =
+  --   SlurpResult2
+  --     { slurp,
+  --       declMapping = makeMap declRef0 declRef1 (SC.types (Slurp.updates slurp)),
+  --       declRef0,
+  --       termMapping = makeMap termRef0 termRef1 (SC.terms (Slurp.updates slurp)),
+  --       termRef0
+  --     }
+  --   where
+  --     makeMap k v = foldl' (\acc x -> Map.insert (k x) (v x) acc) Map.empty
+  --     declRef0 = Names.theTypeNamed allNames . Name.unsafeFromVar
+  --     declRef1 v = fst (UF.tcDeclarationsByVar unisonFile Map.! v)
+  --     fileNames = UF.typecheckedToNames unisonFile
+  --     termRef0 = Names.theRefTermNamed allNames . Name.unsafeFromVar
+  --     termRef1 = Reference.unsafeId . Names.theRefTermNamed fileNames . Name.unsafeFromVar
+  let makeMap k v = foldl' (\acc x -> Map.insert (k x) (v x) acc) Map.empty
+  let declRef0 = Names.theTypeNamed allNames . Name.unsafeFromVar
+  let declRef1 v = fst (UF.tcDeclarationsByVar unisonFile0 Map.! v)
+  let termRef0 = Names.theRefTermNamed allNames . Name.unsafeFromVar
+  -- FIXME rewrite like declRef1
+  let termRef1 = Reference.unsafeId . Names.theRefTermNamed (UF.typecheckedToNames unisonFile0) . Name.unsafeFromVar
+  let slurp00 = Slurp.slurpFile unisonFile0 selection Slurp.UpdateOp allNames
+  let declVarsBeingUpdated = SC.types (Slurp.updates slurp00)
+  let termVarsBeingUpdated = SC.terms (Slurp.updates slurp00)
+  let declMapping = makeMap declRef0 declRef1 declVarsBeingUpdated
+  let termMapping = makeMap termRef0 termRef1 termVarsBeingUpdated
+
   let makeSlurp = makeSlurp2 allNames selection
   let slurp0 = makeSlurp unisonFile0
-  maybeDeclUpserts <- hydrateUnisonFileDecls loadDeclComponent declNames slurp0
+  -- FIXME seems like declVarsBeingUpdated + declRef0 + declMapping would be cleaner as a single thing
+  maybeDeclUpserts <-
+    hydrateUnisonFileDecls
+      loadDeclComponent
+      declNames
+      unisonFile0
+      declVarsBeingUpdated
+      declRef0
+      declMapping
 
   let slurp1 =
         case maybeDeclUpserts of
@@ -2506,20 +2553,22 @@ hydrateUnisonFileDecls ::
   (Monad m, Var v) =>
   (Hash -> m [(TypeReferenceId, Decl v Ann)]) ->
   (TypeReferenceId -> Set Name) ->
-  SlurpResult2 v ->
+  TypecheckedUnisonFile v Ann ->
+  Set v ->
+  (v -> TypeReference) ->
+  Map TypeReference TypeReferenceId ->
   m (Maybe [UpsertDecl v Ann])
-hydrateUnisonFileDecls loadDeclComponent declNames SlurpResult2 {declMapping, declRef0, slurp} = do
-  extraDecls <- loadExtraObjects loadDeclComponent declRef0 declNames (SC.types (Slurp.updates slurp))
+hydrateUnisonFileDecls loadDeclComponent declNames unisonFile declVarsBeingUpdated declRef0 declMapping = do
+  extraDecls <- loadExtraObjects loadDeclComponent declRef0 declNames declVarsBeingUpdated
   pure
     if Map.null extraDecls
       then Nothing
-      else hydrateDecls (Slurp.originalFile slurp) extraDecls
+      else hydrateDecls extraDecls
   where
     hydrateDecls ::
-      TypecheckedUnisonFile v Ann ->
       Map TypeReferenceId (Decl v Ann) ->
       Maybe [UpsertDecl v Ann]
-    hydrateDecls unisonFile extraDecls =
+    hydrateDecls extraDecls =
       allUnhashedDecls
         & Map.elems
         & Map.fromList
@@ -2542,7 +2591,7 @@ hydrateUnisonFileDecls loadDeclComponent declNames SlurpResult2 {declMapping, de
           where
             maybeUserSuppliedName = Map.lookup randomName randomNameToUserSuppliedName
             isExtraDecl = isNothing maybeUserSuppliedName
-            isExplicitUpdate = Set.member var (SC.types (Slurp.updates slurp))
+            isExplicitUpdate = Set.member var declVarsBeingUpdated
             var = fromMaybe randomName maybeUserSuppliedName
             after :: DeclrefId v Ann
             after =

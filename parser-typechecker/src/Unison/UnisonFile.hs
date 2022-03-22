@@ -25,6 +25,8 @@ module Unison.UnisonFile
     tcEffectDeclarationsById,
     tcDeclarationsById,
     tcDeclarationsByVar,
+    tcDeclarationVarsById,
+    tcTermVarsById,
     hashConstructors,
     constructorsForDecls,
     hashTerms,
@@ -51,7 +53,7 @@ import qualified Unison.Hashing.V2.Convert as Hashing
 import Unison.LabeledDependency (LabeledDependency)
 import qualified Unison.LabeledDependency as LD
 import Unison.Prelude
-import Unison.Reference (Reference)
+import Unison.Reference (Reference, TermReference, TermReferenceId, TypeReference, TypeReferenceId)
 import qualified Unison.Reference as Reference
 import qualified Unison.Referent as Referent
 import Unison.Term (Term)
@@ -61,13 +63,14 @@ import qualified Unison.Type as Type
 import qualified Unison.Typechecker.TypeLookup as TL
 import Unison.UnisonFile.Type (TypecheckedUnisonFile (..), UnisonFile (..), pattern TypecheckedUnisonFile, pattern UnisonFile)
 import qualified Unison.Util.List as List
+import qualified Unison.Util.Map as Map
 import Unison.Var (Var)
 import Unison.WatchKind (WatchKind, pattern TestWatch)
 
-dataDeclarations :: UnisonFile v a -> Map v (Reference, DataDeclaration v a)
+dataDeclarations :: UnisonFile v a -> Map v (TypeReference, DataDeclaration v a)
 dataDeclarations = fmap (first Reference.DerivedId) . dataDeclarationsId
 
-effectDeclarations :: UnisonFile v a -> Map v (Reference, EffectDeclaration v a)
+effectDeclarations :: UnisonFile v a -> Map v (TypeReference, EffectDeclaration v a)
 effectDeclarations = fmap (first Reference.DerivedId) . effectDeclarationsId
 
 watchesOfKind :: WatchKind -> UnisonFile v a -> [(v, Term v a)]
@@ -92,27 +95,27 @@ typecheckingTerm uf =
     testWatches = map (second f) $ watchesOfKind TestWatch uf
 
 -- backwards compatibility with the old data type
-dataDeclarations' :: TypecheckedUnisonFile v a -> Map v (Reference, DataDeclaration v a)
+dataDeclarations' :: TypecheckedUnisonFile v a -> Map v (TypeReference, DataDeclaration v a)
 dataDeclarations' = fmap (first Reference.DerivedId) . dataDeclarationsId'
 
-effectDeclarations' :: TypecheckedUnisonFile v a -> Map v (Reference, EffectDeclaration v a)
+effectDeclarations' :: TypecheckedUnisonFile v a -> Map v (TypeReference, EffectDeclaration v a)
 effectDeclarations' = fmap (first Reference.DerivedId) . effectDeclarationsId'
 
-hashTerms :: TypecheckedUnisonFile v a -> Map v (Reference, Maybe WatchKind, Term v a, Type v a)
+hashTerms :: TypecheckedUnisonFile v a -> Map v (TermReference, Maybe WatchKind, Term v a, Type v a)
 hashTerms = fmap (over _1 Reference.DerivedId) . hashTermsId
 
 -- | Get all data declarations in a typechecked unison file, keyed by id.
-tcDataDeclarationsById :: TypecheckedUnisonFile v a -> Map Reference.Id (DataDeclaration v a)
+tcDataDeclarationsById :: TypecheckedUnisonFile v a -> Map TypeReferenceId (DataDeclaration v a)
 tcDataDeclarationsById =
   Map.fromList . Map.elems . dataDeclarationsId'
 
 -- | Get all effect declarations in a typechecked unison file, keyed by id.
-tcEffectDeclarationsById :: TypecheckedUnisonFile v a -> Map Reference.Id (EffectDeclaration v a)
+tcEffectDeclarationsById :: TypecheckedUnisonFile v a -> Map TypeReferenceId (EffectDeclaration v a)
 tcEffectDeclarationsById =
   Map.fromList . Map.elems . effectDeclarationsId'
 
 -- | Get all declarations in a typechecked unison file, keyed by id.
-tcDeclarationsById :: TypecheckedUnisonFile v a -> Map Reference.Id (Decl v a)
+tcDeclarationsById :: TypecheckedUnisonFile v a -> Map TypeReferenceId (Decl v a)
 tcDeclarationsById file =
   Map.union (Map.map Right (tcDataDeclarationsById file)) (Map.map Left (tcEffectDeclarationsById file))
 
@@ -121,11 +124,25 @@ tcDeclarationsByVar :: Ord v => TypecheckedUnisonFile v a -> Map v (Reference.Id
 tcDeclarationsByVar file =
   Map.union (Map.map (over _2 Right) (dataDeclarationsId' file)) (Map.map (over _2 Left) (effectDeclarationsId' file))
 
+-- | Get all declarations' vars (i.e. user-given names) in a typechecked unison file, keyed by id.
+tcDeclarationVarsById :: forall a v. TypecheckedUnisonFile v a -> Map TypeReferenceId v
+tcDeclarationVarsById file =
+  Map.union (f (dataDeclarationsId' file)) (f (effectDeclarationsId' file))
+  where
+    f :: forall decl. Map v (TypeReferenceId, decl) -> Map TypeReferenceId v
+    f =
+      Map.remap (\(v, (r, _)) -> (r, v))
+
+-- | Get all terms' vars (i.e. user-given names) in a typechecked unison file, keyed by id.
+tcTermVarsById :: forall a v. TypecheckedUnisonFile v a -> Map TermReferenceId v
+tcTermVarsById file =
+  Map.remap (\(v, (r, _, _, _)) -> (r, v)) (hashTermsId file)
+
 typecheckedUnisonFile ::
   forall v a.
   Var v =>
-  Map v (Reference.Id, DataDeclaration v a) ->
-  Map v (Reference.Id, EffectDeclaration v a) ->
+  Map v (TypeReferenceId, DataDeclaration v a) ->
+  Map v (TypeReferenceId, EffectDeclaration v a) ->
   [[(v, Term v a, Type v a)]] ->
   [(WatchKind, [(v, Term v a, Type v a)])] ->
   TypecheckedUnisonFile v a
@@ -155,14 +172,14 @@ lookupDecl ::
   Ord v =>
   v ->
   TypecheckedUnisonFile v a ->
-  Maybe (Reference.Id, DD.Decl v a)
+  Maybe (TypeReferenceId, DD.Decl v a)
 lookupDecl v uf =
   over _2 Right <$> (Map.lookup v (dataDeclarationsId' uf))
     <|> over _2 Left <$> (Map.lookup v (effectDeclarationsId' uf))
 
 indexByReference ::
   TypecheckedUnisonFile v a ->
-  (Map Reference.Id (Term v a, Type v a), Map Reference.Id (DD.Decl v a))
+  (Map TermReferenceId (Term v a, Type v a), Map TypeReferenceId (DD.Decl v a))
 indexByReference uf = (tms, tys)
   where
     tys =

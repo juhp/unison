@@ -2355,6 +2355,8 @@ makeSlurp2 allNames selection unisonFile =
 -- Move slurpToDeclUpserts to top level.
 --
 -- Remove fromJusts from some name->path functions.
+--
+-- Refactoring/cleanup in hydrating terms.
 
 oink ::
   forall m v.
@@ -2538,7 +2540,7 @@ hydrateUnisonFileDecls loadDeclComponent declNames SlurpResult2 {declMapping, de
               | isExplicitUpdate -> Update UpdateDecl {update = Explicit Upd1 {before = declRef0 var, after}, var}
               | otherwise -> Add AddDecl {declref = after, var}
           where
-            maybeUserSuppliedName = randomNameToUserSuppliedName randomName
+            maybeUserSuppliedName = Map.lookup randomName randomNameToUserSuppliedName
             isExtraDecl = isNothing maybeUserSuppliedName
             isExplicitUpdate = Set.member var (SC.types (Slurp.updates slurp))
             var = fromMaybe randomName maybeUserSuppliedName
@@ -2562,17 +2564,9 @@ hydrateUnisonFileDecls loadDeclComponent declNames SlurpResult2 {declMapping, de
         randomNameToOldRef =
           Map.remap (\(r, (v, _)) -> (v, r)) allUnhashedDecls
 
-        oldRefToUserSuppliedName :: Map TypeReferenceId v
-        oldRefToUserSuppliedName =
-          Map.union (f (UF.dataDeclarationsId' unisonFile)) (f (UF.effectDeclarationsId' unisonFile))
-          where
-            f :: forall decl. Map v (TypeReferenceId, decl) -> Map TypeReferenceId v
-            f =
-              Map.remap (\(v, (r, _)) -> (r, v))
-
-        randomNameToUserSuppliedName :: v -> Maybe v
-        randomNameToUserSuppliedName v =
-          Map.lookup v (Map.compose oldRefToUserSuppliedName randomNameToOldRef)
+        randomNameToUserSuppliedName :: Map v v
+        randomNameToUserSuppliedName =
+          Map.compose (UF.tcDeclarationVarsById unisonFile) randomNameToOldRef
 
     substituteDecl :: Decl v a -> Decl v a
     substituteDecl =
@@ -2633,13 +2627,50 @@ hydrateUnisonFileTerms loadTermComponent typecheck termNames termIsTest construc
       if Map.null constructorMapping
         then pure Nothing
         else undefined
-    else hydrateTerms (Slurp.originalFile slurp) extraTerms
-  where
-    hydrateTerms ::
-      TypecheckedUnisonFile v Ann ->
-      Map TermReferenceId (Term v Ann) ->
-      m (Maybe [UpsertTerm v])
-    hydrateTerms unisonFile extraTerms = do
+    else do
+      let -- in mates, perform ref->ref replacement, for all new ->ref that are being updated
+          -- FIXME what about old type? currently just passing it along...
+          allUnhashedTermsAndWatches :: Map TermReferenceId (v, Term v Ann)
+          allUnhashedTermsAndWatches =
+            extraTerms
+              & Map.map (oingoTerm declMapping constructorMapping termMapping)
+              & Map.union fileTerms
+              & Term.unhashComponent
+
+      let -- FIXME "old ref" might be a bad name - it's the "original" / "pre-hash" ref
+          randomNameToOldRef :: Map v TermReferenceId
+          randomNameToOldRef =
+            Map.remap (\(r, (v, _)) -> (v, r)) allUnhashedTermsAndWatches
+
+      let randomNameToUserSuppliedName :: Map v v
+          randomNameToUserSuppliedName =
+            Map.compose (UF.tcTermVarsById unisonFile) randomNameToOldRef
+
+      let partitionUnhashedTermsAndWatches ::
+            Map TermReferenceId (v, Term v Ann) ->
+            ([(v, Term v Ann)], Map WK.WatchKind [(v, Term v Ann)])
+          partitionUnhashedTermsAndWatches =
+            List.foldl'
+              ( \(terms, !watches) term@(randomName, _) ->
+                  case Map.lookup randomName randomNameToUserSuppliedName of
+                    -- A Nothing here means this was an extra term, I guess just assume it's not a watch.
+                    -- FIXME this is somewhat suspicious. Currently a watch can't be a member of a cycle because we only
+                    -- store test watches as terms, which aren't lambdas. But still, it seems like we could pull out
+                    -- such a watch as a dependency of the updated term, which refers to the original in some way. What
+                    -- to do in that case?
+                    Nothing -> (term : terms, watches)
+                    Just userSuppliedName ->
+                      case UF.hashTermsId unisonFile Map.! userSuppliedName of
+                        (_, Just watchKind, _, _) -> (terms, Map.insertWith (++) watchKind [term] watches)
+                        _ -> (term : terms, watches)
+              )
+              ([], Map.empty)
+
+      let allUnhashedTerms :: [(v, Term v Ann)]
+          allUnhashedWatches :: Map WK.WatchKind [(v, Term v Ann)]
+          (allUnhashedTerms, allUnhashedWatches) =
+            partitionUnhashedTermsAndWatches allUnhashedTermsAndWatches
+
       -- FIXME can skip typechecking if types don't change
       let fileToTypecheck =
             UF.UnisonFileId
@@ -2651,95 +2682,49 @@ hydrateUnisonFileTerms loadTermComponent typecheck termNames termIsTest construc
 
       typecheck fileToTypecheck <&> \case
         Nothing -> Nothing
-        Just unisonFile1 -> Just (mapMaybe classify (Map.toList (UF.hashTermsId unisonFile1)))
-      where
-        classify :: (v, (TermReferenceId, Maybe WK.WatchKind, Term v Ann, Type v Ann)) -> Maybe (UpsertTerm v)
-        classify (randomName, (ref1, watchKind, term1, _typ1)) = do
-          after <- tagStoredTerm Termref {term = term1, ref = ref1} watchKind
-          Just
-            ( if
-                  | isExtraTerm ->
-                    let ref0 = randomNameToOldRef Map.! randomName
-                        termref0 = Termref {term = extraTerms Map.! ref0, ref = ref0}
-                        before = if termIsTest (Reference.fromId ref0) then TestWatch termref0 else NormalTerm termref0
-                     in Update UpdateTerm {update = Implicit Upd1 {before, after}, var}
-                  | isExplicitUpdate ->
-                    let ref0 = termRef0 var
-                     in Update
-                          UpdateTerm
-                            { update =
-                                Explicit
-                                  Upd1
-                                    { before = if termIsTest ref0 then TestWatch ref0 else NormalTerm ref0,
-                                      after
-                                    },
-                              var
-                            }
-                  | otherwise -> Add AddTerm {termref = after, var}
-            )
-          where
-            isExtraTerm = isNothing maybeUserSuppliedName
-            maybeUserSuppliedName = randomNameToUserSuppliedName randomName
-            isExplicitUpdate = Set.member var (SC.terms (Slurp.updates slurp))
-            var = fromMaybe randomName maybeUserSuppliedName
+        Just unisonFile1 ->
+          let classify :: (v, (TermReferenceId, Maybe WK.WatchKind, Term v Ann, Type v Ann)) -> Maybe (UpsertTerm v)
+              classify (randomName, (ref1, watchKind, term1, _typ1)) = do
+                after <- tagStoredTerm Termref {term = term1, ref = ref1} watchKind
+                Just
+                  ( if
+                        | isExtraTerm ->
+                          let ref0 = randomNameToOldRef Map.! randomName
+                              termref0 = Termref {term = extraTerms Map.! ref0, ref = ref0}
+                              before = if termIsTest (Reference.fromId ref0) then TestWatch termref0 else NormalTerm termref0
+                           in Update UpdateTerm {update = Implicit Upd1 {before, after}, var}
+                        | isExplicitUpdate ->
+                          let ref0 = termRef0 var
+                           in Update
+                                UpdateTerm
+                                  { update =
+                                      Explicit
+                                        Upd1
+                                          { before = if termIsTest ref0 then TestWatch ref0 else NormalTerm ref0,
+                                            after
+                                          },
+                                    var
+                                  }
+                        | otherwise -> Add AddTerm {termref = after, var}
+                  )
+                where
+                  isExtraTerm = isNothing maybeUserSuppliedName
+                  maybeUserSuppliedName = Map.lookup randomName randomNameToUserSuppliedName
+                  isExplicitUpdate = Set.member var (SC.terms (Slurp.updates slurp))
+                  var = fromMaybe randomName maybeUserSuppliedName
+           in Just (mapMaybe classify (Map.toList (UF.hashTermsId unisonFile1)))
+  where
+    unisonFile = Slurp.originalFile slurp
 
-        -- in mates, perform ref->ref replacement, for all new ->ref that are being updated
-        -- FIXME what about old type? currently just passing it along...
-        allUnhashedTermsAndWatches :: Map TermReferenceId (v, Term v Ann)
-        allUnhashedTermsAndWatches =
-          extraTerms
-            & Map.map (oingoTerm declMapping constructorMapping termMapping)
-            & Map.union fileTerms -- FIXME do we oingo these?
-            & Term.unhashComponent
-
-        allUnhashedTerms :: [(v, Term v Ann)]
-        allUnhashedWatches :: Map WK.WatchKind [(v, Term v Ann)]
-        (allUnhashedTerms, allUnhashedWatches) =
-          allUnhashedTermsAndWatches
-            & List.foldl'
-              ( \(terms, !watches) term@(v, _) ->
-                  case Map.lookup (restoreName v) (UF.hashTermsId unisonFile) of
-                    Just (_, Just watchKind, _, _) -> (terms, Map.insertWith (++) watchKind [term] watches)
-                    -- A Nothing here means this was an extra term, I guess just assume it's not a watch.
-                    -- FIXME this is somewhat suspicious. Currently a watch can't be a member of a cycle because we only
-                    -- store test watches as terms, which aren't lambdas. But still, it seems like we could pull out
-                    -- such a watch as a dependency of the updated term, which refers to the original in some way. What
-                    -- to do in that case?
-                    _ -> (term : terms, watches)
-              )
-              ([], Map.empty)
-
-        fileTerms :: Map TermReferenceId (Term v Ann)
-        fileTerms =
-          unisonFile
-            & UF.hashTermsId
-            & Map.elems
-            & map (\(ref, _wk, term, _typ) -> (ref, term))
-            & Map.fromList
-
-        restoreName :: v -> v
-        restoreName =
-          \v -> Map.findWithDefault v (m0 Map.! v) m1
-          where
-            m0 :: Map v TermReferenceId
-            m0 =
-              Map.remap (\(r, (v, _)) -> (v, r)) allUnhashedTermsAndWatches
-
-            m1 :: Map TermReferenceId v
-            m1 =
-              Map.remap (\(v, (r, _, _, _)) -> (r, v)) (UF.hashTermsId unisonFile)
-
-        randomNameToOldRef :: Map v TermReferenceId
-        randomNameToOldRef =
-          Map.remap (\(r, (v, _)) -> (v, r)) allUnhashedTermsAndWatches
-
-        oldRefToUserSuppliedName :: Map TermReferenceId v
-        oldRefToUserSuppliedName =
-          Map.remap (\(v, (r, _, _, _)) -> (r, v)) (UF.hashTermsId unisonFile)
-
-        randomNameToUserSuppliedName :: v -> Maybe v
-        randomNameToUserSuppliedName v =
-          Map.lookup v (Map.compose oldRefToUserSuppliedName randomNameToOldRef)
+    fileTerms :: Map TermReferenceId (Term v Ann)
+    fileTerms =
+      unisonFile
+        & UF.hashTermsId
+        & Map.elems
+        -- Apply the constructor mapping to each term in the original unison file; decl and term mappings are empty,
+        -- because decls have already been applied, and term mappings would all miss.
+        & map (\(ref, _wk, term, _typ) -> (ref, oingoTerm Map.empty constructorMapping Map.empty term))
+        & Map.fromList
 
 -- FIXME rename
 oingoTerm ::
@@ -2751,22 +2736,24 @@ oingoTerm ::
   Term v Ann ->
   Term v Ann
 oingoTerm declMapping constructorMapping termMapping =
-  ABT.rebuildUp \term ->
-    case term of
-      Term.Constructor ref0 ->
-        fromMaybe term do
-          ref1 <- substituteConstructorReference ref0
-          Just (Term.Constructor ref1)
-      Term.Ref ref0 ->
-        case Map.lookup ref0 termMapping of
-          Nothing -> term
-          Just ref1 -> Term.Ref (Reference.fromId ref1)
-      Term.Request ref0 ->
-        fromMaybe term do
-          ref1 <- substituteConstructorReference ref0
-          Just (Term.Request ref1)
-      Term.Ann ann ty -> Term.Ann ann (substituteType ty)
-      _ -> term
+  if Map.null declMapping && Map.null constructorMapping && Map.null termMapping
+    then id
+    else ABT.rebuildUp \term ->
+      case term of
+        Term.Constructor ref0 ->
+          fromMaybe term do
+            ref1 <- substituteConstructorReference ref0
+            Just (Term.Constructor ref1)
+        Term.Ref ref0 ->
+          case Map.lookup ref0 termMapping of
+            Nothing -> term
+            Just ref1 -> Term.Ref (Reference.fromId ref1)
+        Term.Request ref0 ->
+          fromMaybe term do
+            ref1 <- substituteConstructorReference ref0
+            Just (Term.Request ref1)
+        Term.Ann ann ty -> Term.Ann ann (substituteType ty)
+        _ -> term
   where
     substituteConstructorReference :: ConstructorReference -> Maybe ConstructorReference
     substituteConstructorReference ref0 = do
